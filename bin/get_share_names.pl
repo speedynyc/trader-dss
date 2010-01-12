@@ -9,18 +9,22 @@ use HTML::TableExtract;
 use LWP::UserAgent;
 use Data::Dumper;
 use DBI;
+use strict;
 
-$dbname   = 'trader';
-$username = 'postgres';
-$password = '';
-$total_added=0;
+my ($a, $b);
+my $debug = 0;
 
-$dbh = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password) or die $DBI::errstr;
+my $dbname   = 'trader';
+my $username = 'postgres';
+my $password = '';
+my $total_added=0;
+
+my $dbh = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password) or die $DBI::errstr;
 
 # get the base one, then get all subsequent ones
-$res = get_page("http://uk.biz.yahoo.com/p/uk/cpi/index.html");
+my $res = get_page("http://uk.biz.yahoo.com/p/uk/cpi/index.html");
 get_companies($res);
-@names = ('1', '2', '3', '4', '5', '6', '8', '@', 'q', 'x', 'y', 'z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'v', 'w');
+my @names = ('1', '2', '3', '4', '5', '6', '8', '@', 'q', 'x', 'y', 'z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'v', 'w');
 
 foreach $a (@names)
 {
@@ -72,8 +76,9 @@ sub get_companies
 {
     my $content = shift;
     my ($symb, $name);
-    $found_companies_table = 0;
+    my $found_companies_table = 0;
     my $te = new HTML::TableExtract(depth => 0, count => 3, gridmap => 0);
+    my ($a, $b, $ts, $row);
     foreach $a (0 .. 10)
     {
         foreach $b (0 .. 10)
@@ -112,7 +117,7 @@ sub add_to_db
     my $exch = 'L';
     my $name = shift;
     $name =~ s/\'/\'\'/g;
-    my $sth;
+    my ($sth, @row);
     print "$symb, $exch, $name\n";
     $sth = $dbh->prepare("select symb from stocks where symb = \'$symb\'");
     $sth->execute or die $dbh->errstr;
@@ -124,7 +129,7 @@ sub add_to_db
             return;
         }
     }
-    #print "insert into stocks values(\'$symb\',\'$name\',\'$exch\')\n" if ($debug);
+    print "insert into stocks values(\'$symb\',\'$name\',\'$exch\')\n" if ($debug);
     $sth = $dbh->prepare("insert into stocks values(\'$symb\',\'$name\',\'$exch\')") or die $dbh->errstr;
     $sth->execute or die $dbh->errstr;
     $sth->finish;
