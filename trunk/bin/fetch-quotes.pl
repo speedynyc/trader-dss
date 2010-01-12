@@ -8,18 +8,22 @@
 use LWP::UserAgent;
 use Finance::QuoteHist::Yahoo;
 use DBI;
+use strict;
 
 $| = 1;
 
 my $dbname   = 'trader';
 my $username = 'postgres';
 my $password = '';
-my (%stock, %start_dates, %splits, %dividends);
+my (%stock, %start_dates, %splits, %dividends, $date, $symbol);
+my ($row, @row, $exchange, $stock_code, $isth, $dividend, $added);
+my ($pre, $post, $content, $url, $start_month, $start_day, $start_year);
+my ($end_month, $end_day, $end_year);
+my ($open, $close, $high, $low, $volume);
 
 my $dbh = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password) or die $DBI::errstr;
 
 my $useragent = LWP::UserAgent->new;
-#$useragent->proxy(['http'], 'http://bbnwebcache2.net.europe.agilent.com:8088/');
 
 if ( ! -f "stock" )
 {
@@ -65,14 +69,14 @@ else
     load_dividends();
 }
 
-$sth = $dbh->prepare("select symb from stocks where exchange = 'L' order by symb") or die $dbh->errstr;
+my $sth = $dbh->prepare("select symb from stocks where exchange = 'L' order by symb") or die $dbh->errstr;
 $sth->execute or die $dbh->errstr;
 while (@row = $sth->fetchrow_array)
 {
     if ( -f "stop" )
     {
-	print "[INFO]Exiting on stop file\n";
-	exit;
+        print "[INFO]Exiting on stop file\n";
+        exit;
     }
     $useragent->timeout('20');
     $stock_code = $row[0];
@@ -83,22 +87,22 @@ while (@row = $sth->fetchrow_array)
     # get the yahoo summary page because it has the date range available for a stock
     print "[INFO] http://finance.yahoo.com/q/hp?s=$stock_code.$exchange\n";
     sleep 30;
-    $response = $useragent->get("http://finance.yahoo.com/q/hp?s=$stock_code.$exchange");
+    my $response = $useragent->get("http://finance.yahoo.com/q/hp?s=$stock_code.$exchange");
     if ($response->is_success)
     {
         $content = $response->content;
         # parse the date range out of the URL matching the following
         $content =~ m#(http://ichart.finance.yahoo.com/table.csv\S*)>\s*Download To Spreadsheet#;
         $url = $1;
-	if ($url)
-	{
-	    print "[INFO]Found CSV at $url\n";
-	}
-	else
-	{
-	    print "[INFO]No csv offered for $stock_code\n";
-	    next; # didn't find any offer of a CSV so move right along
-	}
+        if ($url)
+        {
+            print "[INFO]Found CSV at $url\n";
+        }
+        else
+        {
+            print "[INFO]No csv offered for $stock_code\n";
+            next; # didn't find any offer of a CSV so move right along
+        }
         $url =~ m/a=(\d+)/;
         $start_month = $1;
         $start_month++;
@@ -113,63 +117,58 @@ while (@row = $sth->fetchrow_array)
         $end_day = $1;
         $url =~ m/f=(\d+)/;
         $end_year = $1;
-        #print "[INFO]url=$url\n";
-        #print "from $start_day/$start_month/$start_year to $end_day/$end_month/$end_year\n";
-	print "HERE 1\n";
-        print START "$stock_code\t$exchange\t$start_day/$start_month/$start_year\n" unless (exists($start_dates{$code}));
-        $q = new Finance::QuoteHist::Yahoo(
-            symbols    => [qq($stock_code.$exchange)],
-            start_date => "01/01/1970",
-            end_date   => 'today',
-	    verbose    => 1
-        );
-	print "HERE 2\n";
-
+        print "HERE 1\n";
+        print START "$stock_code\t$exchange\t$start_day/$start_month/$start_year\n" unless (exists($start_dates{$stock_code}));
+        my $q = new Finance::QuoteHist::Yahoo(
+                symbols    => [qq($stock_code.$exchange)],
+                start_date => "01/01/1970",
+                end_date   => 'today',
+                verbose    => 1
+                );
+        print "HERE 2\n";
         $q->adjusted(0);
-	print "HERE 3\n";
-	$added = 0;
+        print "HERE 3\n";
+        $added = 0;
         foreach $row ($q->quotes())
         {
-	    print "HERE 4\n";
+            print "HERE 4\n";
             ($symbol, $date, $open, $high, $low, $close, $volume, undef) = @$row;
-	    if (! $added )
-	    {
-		print "[INFO]Quote $date\t$stock_code\t$exchange\t$open\t$high\t$low\t$close\t$volume\n";
-		$added = 1;
-	    }
+            if (! $added )
+            {
+                print "[INFO]Quote $date\t$stock_code\t$exchange\t$open\t$high\t$low\t$close\t$volume\n";
+                $added = 1;
+            }
             print STOCK "$date\t$stock_code\t$exchange\t$open\t$high\t$low\t$close\t$volume\n";
             $isth = $dbh->prepare("insert into quotes values ('$date', '$stock_code', 'L', $open, $high, $low, $close, $volume)") or die $dbh->errstr;
             $isth->execute or die $dbh->errstr;
             $isth->finish;
         }
-	    print "HERE 5\n";
-
+        print "HERE 5\n";
         # Splits
-	$added = 0;
+        $added = 0;
         foreach $row ($q->splits())
         {
             ($symbol, $date, $post, $pre) = @$row;
-	    if (! $added)
-	    {
-		print "[INFO]Split $stock_code\t$exchange\t$date\t$post\t$pre\n";
-		$added = 1;
-	    }
+            if (! $added)
+            {
+                print "[INFO]Split $stock_code\t$exchange\t$date\t$post\t$pre\n";
+                $added = 1;
+            }
             print SPLITS "$stock_code\t$exchange\t$date\t$post\t$pre\n";
             $isth = $dbh->prepare("insert into splits values ('$date', '$stock_code', 'L', '$date', $dividend)") or die $dbh->errstr;
             $isth->execute or die $dbh->errstr;
             $isth->finish;
         }
-
         # Dividends
-	$added = 0;
+        $added = 0;
         foreach $row ($q->dividends())
         {
             ($symbol, $date, $dividend) = @$row;
             if ( ! $added )
-	    {
-		print "[INFO]Dividends $stock_code\t$exchange\t$date\t$dividend\n";
-		$added = 1;
-	    }
+            {
+                print "[INFO]Dividends $stock_code\t$exchange\t$date\t$dividend\n";
+                $added = 1;
+            }
             print DIVIDENDS "$stock_code\t$exchange\t$date\t$dividend\n";
             $isth = $dbh->prepare("insert into dividend values ('$stock_code', 'L', '$date', $dividend)") or die $dbh->errstr;
             $isth->execute or die $dbh->errstr;
@@ -189,45 +188,49 @@ $sth->disconnect;
 sub load_stock
 {
     # load the stock names into the %stock hash
+    my ($line, $code);
     while ($line = <STOCK>)
     {
-	next if ($line =~ /^#/);
-	(undef, $code, undef) = split(/\t/, $line);
-	if (not exists($stock{$code}))
-	{
-	    print "$code ";
-	    $stock{$code} = 1;
-	}
+        next if ($line =~ /^#/);
+        (undef, $code, undef) = split(/\t/, $line);
+        if (not exists($stock{$code}))
+        {
+            print "$code ";
+            $stock{$code} = 1;
+        }
     }
     print "\n";
 }
 
 sub load_start_dates
 {
+    my ($line, $code);
     while ($line = <START>)
     {
-	next if ($line =~ /^#/);
-	($code, undef) = split(/\t/, $line);
-	$start_dates{$code} = 1;
+        next if ($line =~ /^#/);
+        ($code, undef) = split(/\t/, $line);
+        $start_dates{$code} = 1;
     }
 }
 
 sub load_splits
 {
+    my ($line, $code);
     while ($line = <SPLITS>)
     {
-	next if ($line =~ /^#/);
-	($code, undef) = split(/\t/, $line);
-	$splits{$code} = 1;
+        next if ($line =~ /^#/);
+        ($code, undef) = split(/\t/, $line);
+        $splits{$code} = 1;
     }
 }
 
 sub load_dividends
 {
+    my ($line, $code);
     while ($line = <DIVIDENDS>)
     {
-	next if ($line =~ /^#/);
-	($code, undef) = split(/\t/, $line);
-	$dividends{$code} = 1;
+        next if ($line =~ /^#/);
+        ($code, undef) = split(/\t/, $line);
+        $dividends{$code} = 1;
     }
 }
