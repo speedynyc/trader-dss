@@ -35,12 +35,12 @@ CREATE TABLE simple_moving_averages (
     ma_50_run integer,
     ma_100_run integer,
     ma_200_run integer,
-    ma_10_sum numeric(9,2),
-    ma_20_sum numeric(9,2),
-    ma_30_sum numeric(9,2),
-    ma_50_sum numeric(9,2),
-    ma_100_sum numeric(9,2),
-    ma_200_sum numeric(9,2)
+    ma_10_sum numeric(12,2),
+    ma_20_sum numeric(12,2),
+    ma_30_sum numeric(12,2),
+    ma_50_sum numeric(12,2),
+    ma_100_sum numeric(12,2),
+    ma_200_sum numeric(12,2)
 );
 ALTER TABLE public.simple_moving_averages OWNER TO postgres;
 ALTER TABLE ONLY simple_moving_averages ADD CONSTRAINT simple_moving_averages_pkey PRIMARY KEY (date, symb, exch);
