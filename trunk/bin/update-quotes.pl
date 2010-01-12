@@ -8,6 +8,7 @@ use strict;
 use Finance::QuoteHist::Yahoo;
 use Date::Manip;
 use DBI;
+use strict;
 
 $| = 1;
 my $debug = 0;
