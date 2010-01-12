@@ -13,7 +13,6 @@ use DBI;
 $dbname   = 'trader';
 $username = 'postgres';
 $password = '';
-#$password = "happy";
 $total_added=0;
 
 $dbh = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password) or die $DBI::errstr;
@@ -54,8 +53,6 @@ sub get_page
     sleep 1;
     my ($res, $content);
     my $ua = new LWP::UserAgent;
-    #$ua->proxy(['http'], 'http://web-proxy.britain.agilent.com:8088/');
-    #$ua->proxy(['http'], 'http://bbnwebcache2.net.europe.agilent.com:8088/');
     $ua->agent("Mozilla/6.0");
     $res = $ua->get($page);
     if ($res->is_success)
@@ -87,7 +84,6 @@ sub get_companies
             {
                 foreach $row ($ts->rows)
                 {
-                    #print "[INFO]table $a, $b: row is '$$row[0]'\n";
                     if ($$row[0] eq 'Companies')
                     {
                         $found_companies_table = 1;
@@ -113,7 +109,6 @@ sub get_companies
 sub add_to_db
 {
     my $symb = shift;
-    #$symb = quotemeta($symb);
     my $exch = 'L';
     my $name = shift;
     $name =~ s/\'/\'\'/g;
@@ -130,8 +125,7 @@ sub add_to_db
         }
     }
     #print "insert into stocks values(\'$symb\',\'$name\',\'$exch\')\n" if ($debug);
-    print "insert into stocks values(\'$symb\',\'$name\',\'$exch\')\n";
-    #$sth = $dbh->prepare("insert into stocks values(\'$symb\',\'$name\',\'$exch\')") or die $dbh->errstr;
+    $sth = $dbh->prepare("insert into stocks values(\'$symb\',\'$name\',\'$exch\')") or die $dbh->errstr;
     $sth->execute or die $dbh->errstr;
     $sth->finish;
     ++$total_added;
