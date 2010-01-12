@@ -14,7 +14,7 @@ $dbname   = 'trader';
 $username = 'postgres';
 $password = '';
 #$password = "happy";
-$total_added=0
+$total_added=0;
 
 $dbh = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password) or die $DBI::errstr;
 
@@ -131,7 +131,7 @@ sub add_to_db
     }
     #print "insert into stocks values(\'$symb\',\'$name\',\'$exch\')\n" if ($debug);
     print "insert into stocks values(\'$symb\',\'$name\',\'$exch\')\n";
-    $sth = $dbh->prepare("insert into stocks values(\'$symb\',\'$name\',\'$exch\')") or die $dbh->errstr;
+    #$sth = $dbh->prepare("insert into stocks values(\'$symb\',\'$name\',\'$exch\')") or die $dbh->errstr;
     $sth->execute or die $dbh->errstr;
     $sth->finish;
     ++$total_added;
