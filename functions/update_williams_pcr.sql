@@ -1,7 +1,7 @@
 --
 -- Name: update_williams_pcr(date, character varying, character varying, numeric); Type: FUNCTION; Schema: public; Owner: postgres
 --
-CREATE FUNCTION update_williams_pcr(new_date date, new_symb character varying, new_exch character varying, new_close numeric) RETURNS void
+CREATE or replace FUNCTION update_williams_pcr(new_date date, new_symb character varying, new_exch character varying, new_close numeric) RETURNS void
     LANGUAGE plpgsql
     AS $$
     DECLARE

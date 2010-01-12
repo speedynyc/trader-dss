@@ -1,7 +1,7 @@
 --
 -- Name: tidy_quotes(character varying, character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
-CREATE FUNCTION tidy_quotes(symbol character varying, exchange character varying) RETURNS integer
+CREATE or replace FUNCTION tidy_quotes(symbol character varying, exchange character varying) RETURNS integer
     LANGUAGE plpgsql
     AS $$
  BEGIN 

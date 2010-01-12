@@ -1,7 +1,7 @@
 --
 -- Name: update_derived_tables(); Type: FUNCTION; Schema: public; Owner: postgres
 --
-CREATE FUNCTION update_derived_tables() RETURNS "trigger"
+CREATE or replace FUNCTION update_derived_tables() RETURNS "trigger"
     LANGUAGE plpgsql
     AS $$
     BEGIN

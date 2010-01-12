@@ -1,7 +1,7 @@
 --
 -- Name: deviation(real, real, real); Type: FUNCTION; Schema: public; Owner: postgres
 --
-CREATE FUNCTION deviation(value real, mean real, sd real) RETURNS real
+CREATE or replace FUNCTION deviation(value real, mean real, sd real) RETURNS real
     LANGUAGE plpgsql
     AS $$
     BEGIN
