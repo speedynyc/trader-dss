@@ -1,7 +1,7 @@
 --
 -- Name: update_moving_averages(date, character varying, character varying, numeric, numeric); Type: FUNCTION; Schema: public; Owner: postgres
 --
-CREATE FUNCTION update_moving_averages(new_date date, new_symb character varying, new_exch character varying, new_close numeric, new_volume numeric) RETURNS void
+CREATE or replace FUNCTION update_moving_averages(new_date date, new_symb character varying, new_exch character varying, new_close numeric, new_volume numeric) RETURNS void
     LANGUAGE plpgsql
     AS $$
     DECLARE
@@ -35,12 +35,12 @@ CREATE FUNCTION update_moving_averages(new_date date, new_symb character varying
         v_ma_50_run integer;
         v_ma_100_run integer;
         v_ma_200_run integer;
-        v_ma_10_sum numeric(9,2);
-        v_ma_20_sum numeric(9,2);
-        v_ma_30_sum numeric(9,2);
-        v_ma_50_sum numeric(9,2);
-        v_ma_100_sum numeric(9,2);
-        v_ma_200_sum numeric(9,2);
+        v_ma_10_sum numeric(12,2);
+        v_ma_20_sum numeric(12,2);
+        v_ma_30_sum numeric(12,2);
+        v_ma_50_sum numeric(12,2);
+        v_ma_100_sum numeric(12,2);
+        v_ma_200_sum numeric(12,2);
         v_ma_10_MAPR numeric(9,2);
         v_ma_20_MAPR numeric(9,2);
         v_ma_30_MAPR numeric(9,2);

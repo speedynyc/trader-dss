@@ -1,7 +1,7 @@
 --
 -- Name: update_stock_dates(character varying, character varying, date); Type: FUNCTION; Schema: public; Owner: postgres
 --
-CREATE FUNCTION update_stock_dates(new_symb character varying, new_exch character varying, new_date date) RETURNS void
+CREATE or replace FUNCTION update_stock_dates(new_symb character varying, new_exch character varying, new_date date) RETURNS void
     LANGUAGE plpgsql
     AS $$
     DECLARE

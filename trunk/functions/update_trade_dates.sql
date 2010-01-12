@@ -1,7 +1,7 @@
 --
 -- Name: update_trade_dates(character varying, date); Type: FUNCTION; Schema: public; Owner: postgres
 --
-CREATE FUNCTION update_trade_dates(new_exch character varying, new_date date) RETURNS void
+CREATE or replace FUNCTION update_trade_dates(new_exch character varying, new_date date) RETURNS void
     LANGUAGE plpgsql
     AS $$
     DECLARE

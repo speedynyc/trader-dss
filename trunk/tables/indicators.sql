@@ -11,12 +11,12 @@ CREATE TABLE indicators (
     wpr_50 numeric(9,2),
     wpr_100 numeric(9,2),
     wpr_200 numeric(9,2),
-    mapr_10 numeric(12,2),
-    mapr_20 numeric(12,2),
-    mapr_30 numeric(12,2),
-    mapr_50 numeric(12,2),
-    mapr_100 numeric(12,2),
-    mapr_200 numeric(12,2)
+    mapr_10 numeric(9,2),
+    mapr_20 numeric(9,2),
+    mapr_30 numeric(9,2),
+    mapr_50 numeric(9,2),
+    mapr_100 numeric(9,2),
+    mapr_200 numeric(9,2)
 );
 ALTER TABLE public.indicators OWNER TO postgres;
 ALTER TABLE ONLY indicators ADD CONSTRAINT indicators_pkey PRIMARY KEY (date, symb, exch);
