@@ -1,0 +1,19 @@
+--
+-- Name: update_derived_tables(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+CREATE FUNCTION update_derived_tables() RETURNS "trigger"
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+      PERFORM update_moving_averages(NEW.date, NEW.symb, NEW.exch, NEW.close, NEW.volume);
+      PERFORM update_gains(NEW.date, NEW.symb, NEW.exch, NEW.close);
+      PERFORM update_stock_dates(NEW.symb, NEW.exch, NEW.date);
+      PERFORM update_trade_dates(NEW.exch, NEW.date);
+      PERFORM update_williams_pcr(NEW.date, NEW.symb, NEW.exch, NEW.close);
+    -- Work out the max/min over the same periods
+    -- Work out the trading range over the same periods
+    RETURN NEW;
+END
+$$;
+ALTER FUNCTION public.update_derived_tables() OWNER TO postgres;
+
