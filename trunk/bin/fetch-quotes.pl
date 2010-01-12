@@ -65,7 +65,7 @@ else
     load_dividends();
 }
 
-$sth = $dbh->prepare("select symb from stocks order by symb") or die $dbh->errstr;
+$sth = $dbh->prepare("select symb from stocks where exchange = 'L' order by symb") or die $dbh->errstr;
 $sth->execute or die $dbh->errstr;
 while (@row = $sth->fetchrow_array)
 {
