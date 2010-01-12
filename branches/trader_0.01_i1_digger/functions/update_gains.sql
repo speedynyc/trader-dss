@@ -26,7 +26,7 @@ CREATE or replace FUNCTION update_gains(new_date date, new_symb character varyin
     select topN.date, topN.symb, topN.exch, topN.close into gain200 from (select date, symb, exch, close from quotes where symb = new_symb and exch = new_exch and date < new_date order by date desc limit 200) as topN order by date asc limit 1;
     IF NOT FOUND THEN
         -- no records found, must be the first record. Populate it with the symbol details and zeros and don't bother with the 20,30 etc.
-        insert into gains (date, symb, exch, gain_10, gain_20, gain_30, gain_50, gain_100, gain_200) values (new_date, new_symb, new_exch, 0, 0, 0, 0, 0, 0);
+        insert into gains (date, symb, exch, gain_10, gain_20, gain_30, gain_50, gain_100, gain_200, d_10, d_20, d_30, d_50, d_100, d_200, c_10, c_20, c_30, c_50, c_100, c_200) values (new_date, new_symb, new_exch, 0, 0, 0, 0, 0, 0, new_date, new_date, new_date, new_date, new_date, new_date, new_close, new_close, new_close, new_close, new_close, new_close);
     ELSE
         -- gain200
         update gains set d_200 = new_date, c_200 = new_close, gain_200 = new_close - gain200.close where symb = new_symb and exch = new_exch and date = new_date;
