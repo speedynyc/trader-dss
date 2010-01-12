@@ -3,8 +3,6 @@
 # fetch all the symbols/names/sectors for all the shares.
 # this is done by ripping out the data from a yahoo table
 
-# $Header: /var/lib/pgsql/bin/RCS/get_share_names.pl,v 1.2 2007/08/10 14:33:04 postgres Exp postgres $
-
 use HTML::TableExtract;
 use LWP::UserAgent;
 use Data::Dumper;
