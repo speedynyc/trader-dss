@@ -22,7 +22,6 @@ my $password = '';
 my $exchange = 'L';
 my (@row, $dbh, $sth, $found_code, $last_quote, $last_quote_plus, $isth);
 my ($a, $b, $c, $d, $e, $f);
-#my $useragent = LWP::UserAgent->new;
 my ($symbol, $date, $open, $high, $low, $close, $volume, $adjusted);
 my ($q, $stock_code, $row);
 my $total_inserts=0;
