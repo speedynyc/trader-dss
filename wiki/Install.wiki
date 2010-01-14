@@ -118,4 +118,4 @@ bin/get_share_names.pl
   * load the quotes from yahoo with
 {{{
 bin/update-quotes.pl
-}}
+}}}
