@@ -2,8 +2,6 @@
 
 # fetch all the quotes, splits and dividends for all symbols listed in stocks.
 
-# $Header: /home/trader/bin/RCS/fetch-quotes-csv.pl,v 1.1 2007/08/10 14:32:39 postgres Exp $
-
 #use strict;
 use LWP::UserAgent;
 use DBI;
@@ -20,7 +18,6 @@ my $stock_file = "$data_dir/stock";
 my $dbh = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password) or die $DBI::errstr;
 
 my $useragent = LWP::UserAgent->new;
-$useragent->proxy(['http'], 'http://bbnwebcache2.net.europe.agilent.com:8088/');
 
 if ( ! -f $stock_file )
 {
@@ -39,8 +36,8 @@ while (@row = $sth->fetchrow_array)
 {
     if ( -f "stop" )
     {
-	print "[INFO]Exiting on stop file\n";
-	exit;
+        print "[INFO]Exiting on stop file\n";
+        exit;
     }
     $useragent->timeout('20');
     $stock_code = $row[0];
@@ -59,17 +56,17 @@ while (@row = $sth->fetchrow_array)
         # parse the date range out of the URL matching the following
         $content =~ m#(http://ichart.finance.yahoo.com/table.csv\S*)>\s*Download To Spreadsheet#;
         $url = $1;
-	if ($url)
-	{
-	    print "[INFO]Found CSV at $url\n";
-	    $useragent->get("http://ichart.finance.yahoo.com/table.csv?s=$stock_code&ignore=.csv", ':content_file'=>"$data_dir/$stock_code.csv");
-	    print STOCK "$stock_code\n";
-	}
-	else
-	{
-	    print "[INFO]No csv offered for $stock_code\n";
-	    next; # didn't find any offer of a CSV so move right along
-	}
+        if ($url)
+        {
+            print "[INFO]Found CSV at $url\n";
+            $useragent->get("http://ichart.finance.yahoo.com/table.csv?s=$stock_code&ignore=.csv", ':content_file'=>"$data_dir/$stock_code.csv");
+            print STOCK "$stock_code\n";
+        }
+        else
+        {
+            print "[INFO]No csv offered for $stock_code\n";
+            next; # didn't find any offer of a CSV so move right along
+        }
     }
     else
     {
@@ -85,14 +82,14 @@ sub load_stock
     my $line;
     while ($line = <STOCK>)
     {
-	next if ($line =~ /^#/);
-	chomp($line);
-	$code = $line;
-	if (not exists($stock{$code}))
-	{
-	    print "$code ";
-	    $stock{$code} = 1;
-	}
+        next if ($line =~ /^#/);
+        chomp($line);
+        $code = $line;
+        if (not exists($stock{$code}))
+        {
+            print "$code ";
+            $stock{$code} = 1;
+        }
     }
     print "\n";
 }

@@ -12,4 +12,3 @@ COMMENT ON COLUMN exchange.exch IS 'Yahoo Exchange symbol';
 COMMENT ON COLUMN exchange.name IS 'Name of the Exchange';
 COMMENT ON COLUMN exchange.curr_desc IS 'Standard acronym for the currency the exchange trades in';
 COMMENT ON COLUMN exchange.curr_char IS 'The symbol used to represent the currency the exchange trades in';
-ALTER TABLE ONLY exchange ADD CONSTRAINT exchange_pkey PRIMARY KEY (exch);

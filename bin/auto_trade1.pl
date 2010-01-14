@@ -2,17 +2,9 @@
 
 # buy according to the buy criteria, sell similarly and report profit
 
-# $Header: /home/trader/bin/RCS/auto_trade1.pl,v 1.2 2010/01/03 10:06:26 trader Exp trader $
-
-use lib '/var/lib/pgsql/trader/current/modules';
-
 use strict;
 use Date::Manip;
 use DBI;
-#use CGI qw(:standard *table *Tr *td);
-#use CGI::Pretty;
-#use CGI::Carp qw/fatalsToBrowser/;
-#use trader_cgi;
 my $view_columns = '
 symb          | character varying(10)  | 
 symb_name     | character varying(100) | 

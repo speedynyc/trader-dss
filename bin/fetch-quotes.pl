@@ -2,8 +2,6 @@
 
 # fetch all the quotes, splits and dividends for all symbols listed in stocks.
 
-# $Header: /home/trader/bin/RCS/fetch-quotes.pl,v 1.2 2010/01/03 10:12:55 trader Exp trader $
-
 #use strict;
 use LWP::UserAgent;
 use Finance::QuoteHist::Yahoo;

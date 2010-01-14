@@ -2,8 +2,6 @@
 
 # fetch all the quotes, splits and dividends for all symbols listed in stocks.
 
-# $Header: /home/trader/bin/RCS/update-quotes.pl,v 1.2 2010/01/03 10:05:22 trader Exp trader $
-
 use strict;
 use Finance::QuoteHist::Yahoo;
 use Date::Manip;
@@ -47,26 +45,26 @@ while ((@row) = $sth->fetchrow_array)
     $last_quote_plus = UnixDate($last_quote_plus, "%Y-%m-%d");
     if (Date_Cmp($last_business_day, $last_quote_plus) <= 0)
     {
-	    print "[INFO]Skipping $stock_code up to date\n" if ($debug);
-	    next;
+        print "[INFO]Skipping $stock_code up to date\n" if ($debug);
+        next;
     }
     print "[INFO][Seeking update to], @row\n";
     sleep $sleep_time;
     $q = new Finance::QuoteHist::Yahoo(
-	    symbols    => [qq($stock_code.$exchange)],
-	    start_date => $last_quote_plus,
-	    end_date   => 'today',
-	    verbose    => 0
+        symbols    => [qq($stock_code.$exchange)],
+        start_date => $last_quote_plus,
+        end_date   => 'today',
+        verbose    => 0
     );
     $q->adjusted(0);
     foreach $row ($q->quotes())
     {
-	    ($symbol, $date, $open, $high, $low, $close, $volume, $adjusted) = @$row;
-	    print "[INFO][inserting]$symbol, $date, $open, $high, $low, $close, $volume, $adjusted\n";
-	    print "insert into quotes (date, symb, exch, open, high, low, close, volume, adj_close) values ('$date', '$stock_code', '$exchange', $open, $high, $low, $close, $volume, $adjusted)\n" if ($debug);
-	    $isth = $dbh->prepare("insert into quotes (date, symb, exch, open, high, low, close, volume, adj_close) values ('$date', '$stock_code', '$exchange', $open, $high, $low, $close, $volume, $adjusted)") or die $dbh->errstr;
-	    $isth->execute or die $dbh->errstr;
-	    ++$total_inserts;
+        ($symbol, $date, $open, $high, $low, $close, $volume, $adjusted) = @$row;
+        print "[INFO][inserting]$symbol, $date, $open, $high, $low, $close, $volume, $adjusted\n";
+        print "insert into quotes (date, symb, exch, open, high, low, close, volume, adj_close) values ('$date', '$stock_code', '$exchange', $open, $high, $low, $close, $volume, $adjusted)\n" if ($debug);
+        $isth = $dbh->prepare("insert into quotes (date, symb, exch, open, high, low, close, volume, adj_close) values ('$date', '$stock_code', '$exchange', $open, $high, $low, $close, $volume, $adjusted)") or die $dbh->errstr;
+        $isth->execute or die $dbh->errstr;
+        ++$total_inserts;
     }
 }
 print "[INFO]Total rows added $total_inserts\n";
