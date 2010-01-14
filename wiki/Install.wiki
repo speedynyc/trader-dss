@@ -1,0 +1,122 @@
+# A rough install guide for the Trader Decision Support System
+
+= Introduction =
+
+This is a rough guide to installing the Trader DSS on a Unix like operating system
+
+= Details =
+
+== Perl Setup ==
+  * Install the following. The example here uses the CPAN module to do the work
+{{{
+perl -MCPAN -e shell
+install Compress::Zlib
+install Text::CSV_PP
+install Text::CSV_XS
+install Date::Manip
+install HTML::PullParser
+install HTML::Entities
+install HTML::Parser
+install HTML::TokeParser
+install HTML::LinkExtor
+install HTML::HeadParser
+install HTML::Filter
+install HTML::Tagset
+install HTML::TreeBuilder
+install HTML::TableExtract
+install LWP
+install Regexp::Common
+install Finance::QuoteHist::Yahoo
+install DBI
+install DBD::Pg
+install CGI
+}}}
+
+== Postgresql setup ==
+  * install postgres
+    * as root create posrgres user and group, set postgres shell to bash
+{{{
+mkdir /postgres/db
+chown -R postgres:postgres /postgres/db
+}}}
+
+  * install unixodbc
+  * install gnu R from [http://www.stats.bris.ac.uk/R/ here] or another mirror
+
+== Create the database ==
+  * as postgres
+{{{
+export PGDATA=/postgres/db
+export PGDATABASE=trader
+echo export PGDATA=$PGDATA >> ~/.profile
+echo export PGDATABASE=$PGDATABASE >> ~/.profile
+mkdir $PGDATA
+initdb -E UTF8 $PGDATA
+pg_ctl -l logfile start  # ignore the warnings about the ports
+# create the trader database
+createdb trader # created the database
+createlang plpgsql trader # turn on pgsql for triggers
+psql trader -U postgres
+}}}
+
+== Create the tables etc ==
+  * Still as the postgres user
+{{{
+psql trader -U postgres
+
+trader=# \i tables/exchange.sql
+trader=# \i tables/stocks.sql
+trader=# \i tables/sectors.sql
+trader=# \i tables/sector_quotes.sql
+trader=# \i tables/sector_quotes.sql
+trader=# \i tables/gains.sql
+trader=# \i tables/sequence_sector.sql
+trader=# \i tables/trade_dates.sql
+trader=# \i tables/indicators.sql
+trader=# \i tables/simple_moving_averages.sql
+trader=# \i tables/quotes.sql
+trader=# \i tables/standard_deviations_from_mean.sql
+
+trader=# \i constraints/exchange.sql
+trader=# \i constraints/stocks.sql
+trader=# \i constraints/sectors.sql
+trader=# \i constraints/sector_quotes.sql
+trader=# \i constraints/gains.sql
+trader=# \i constraints/simple_moving_averages.sql
+trader=# \i constraints/indicators.sql
+trader=# \i constraints/standard_deviations_from_mean.sql
+trader=# \i constraints/quotes.sql
+trader=# \i constraints/stock_sector.sql
+
+trader=# \i functions/update_stock_dates.sql
+trader=# \i functions/deviation.sql
+trader=# \i functions/update_trade_dates.sql
+trader=# \i functions/tidy_quotes.sql
+trader=# \i functions/update_williams_pcr.sql
+trader=# \i functions/update_derived_tables.sql
+trader=# \i functions/update_derived_g
+trader=# \i functions/update_gains.sql
+trader=# \i functions/update_moving_averages.sql
+
+trader=# \i triggers/update_derived_tables.sql
+
+trader=# \i views/view_everything.sql
+trader=# \i views/view_stock_gains.sql
+trader=# \i views/view_stock_quote.sql
+trader=# \i views/view_stock_sector.sql
+}}}
+
+== Populate with data ==
+  * If your data's coming from Yahoo then
+{{{
+insert into exchange (exch, name, curr_desc, curr_char) values ('L', 'London Stock Exchange', 'GBP', '£');
+}}}
+  * Load all the share names with
+{{{
+bin/get_share_names.pl
+}}}
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
