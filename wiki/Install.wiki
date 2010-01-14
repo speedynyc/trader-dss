@@ -107,7 +107,7 @@ trader=# \i views/view_stock_sector.sql
 }}}
 
 == Populate with data ==
-  * If your data's coming from Yahoo then
+  * If your data's coming from the LSE then
 {{{
 insert into exchange (exch, name, curr_desc, curr_char) values ('L', 'London Stock Exchange', 'GBP', '£');
 }}}
