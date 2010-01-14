@@ -28,4 +28,3 @@ ALTER TABLE public.gains OWNER TO postgres;
 COMMENT ON COLUMN gains.date IS 'Date this row refers to.';
 COMMENT ON COLUMN gains.symb IS 'symbol of the commodity being traded';
 COMMENT ON COLUMN gains.exch IS 'Exchange code';
-ALTER TABLE ONLY gains ADD CONSTRAINT gains_pkey PRIMARY KEY (date, symb, exch);
