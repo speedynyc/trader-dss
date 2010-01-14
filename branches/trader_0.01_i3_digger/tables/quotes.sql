@@ -13,5 +13,4 @@ CREATE TABLE quotes (
     adj_close numeric(9,2)
 );
 ALTER TABLE public.quotes OWNER TO postgres;
-ALTER TABLE ONLY quotes ADD CONSTRAINT quotes_pkey PRIMARY KEY (date, symb, exch);
 CREATE INDEX idx_symb_exch ON quotes USING btree (symb, exch);
