@@ -115,8 +115,7 @@ insert into exchange (exch, name, curr_desc, curr_char) values ('L', 'London Sto
 {{{
 bin/get_share_names.pl
 }}}
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+  * load the quotes from yahoo with
+{{{
+bin/update-quotes.pl
+}}
