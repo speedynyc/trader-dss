@@ -2,8 +2,8 @@
 -- Name: update_williams_pcr(date, character varying, character varying, numeric); Type: FUNCTION; Schema: public; Owner: postgres
 --
 CREATE or replace FUNCTION update_williams_pcr(new_date date, new_symb character varying, new_exch character varying, new_close numeric) RETURNS void
-    LANGUAGE plpgsql
-    AS $$
+LANGUAGE plpgsql
+AS $$
     DECLARE
         wpr10 RECORD;
         wpr20 RECORD;
@@ -124,4 +124,3 @@ CREATE or replace FUNCTION update_williams_pcr(new_date date, new_symb character
 END
 $$;
 ALTER FUNCTION public.update_williams_pcr(new_date date, new_symb character varying, new_exch character varying, new_close numeric) OWNER TO postgres;
-
