@@ -41,15 +41,18 @@ while ((@row) = $sth->fetchrow_array)
     {
         $last_quote_plus = '2000-01-01';
     }
-    $last_quote_plus = DateCalc($row[3], "+ 1 day");
+    else
+    {
+        $last_quote_plus = DateCalc($row[3], "+ 1 day");
+    }
     $last_quote_plus = UnixDate($last_quote_plus, "%Y-%m-%d");
     if (Date_Cmp($last_business_day, $last_quote_plus) <= 0)
     {
         print "[INFO]Skipping $stock_code up to date\n" if ($debug);
         next;
     }
-    print "[INFO][Seeking update to], @row\n";
     sleep $sleep_time;
+    print "[INFO][Seeking update to], @row to today\n";
     $q = new Finance::QuoteHist::Yahoo(
         symbols    => [qq($stock_code.$exchange)],
         start_date => $last_quote_plus,
@@ -60,6 +63,7 @@ while ((@row) = $sth->fetchrow_array)
     foreach $row ($q->quotes())
     {
         ($symbol, $date, $open, $high, $low, $close, $volume, $adjusted) = @$row;
+        ($symbol, undef) = split(/\./, $symbol);
         print "[INFO][inserting]$symbol, $date, $open, $high, $low, $close, $volume, $adjusted\n";
         print "insert into quotes (date, symb, exch, open, high, low, close, volume, adj_close) values ('$date', '$stock_code', '$exchange', $open, $high, $low, $close, $volume, $adjusted)\n" if ($debug);
         $isth = $dbh->prepare("insert into quotes (date, symb, exch, open, high, low, close, volume, adj_close) values ('$date', '$stock_code', '$exchange', $open, $high, $low, $close, $volume, $adjusted)") or die $dbh->errstr;
