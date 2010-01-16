@@ -11,7 +11,7 @@ $| = 1;
 
 my $dbname   = 'trader';
 my $username = 'postgres';
-my $password = 'happy';
+my $password = '';
 my (%stock, %start_dates);
 my (@files, $file, $line);
 my ($stock_code, $date, $exchange, $open, $high, $low, $close, $volume, $adj_close);
