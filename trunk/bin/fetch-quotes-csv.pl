@@ -26,7 +26,7 @@ if ( ! -f $stock_file )
 }
 else
 {
-    open(STOCK, "+>>$stock_file") or die "unable to open $stock_file: $!\n";
+    open(STOCK, "<$stock_file") or die "unable to open $stock_file: $!\n";
     load_stock();
 }
 
