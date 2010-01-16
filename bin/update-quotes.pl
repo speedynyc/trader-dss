@@ -41,7 +41,10 @@ while ((@row) = $sth->fetchrow_array)
     {
         $last_quote_plus = '2000-01-01';
     }
-    $last_quote_plus = DateCalc($row[3], "+ 1 day");
+    else
+    {
+        $last_quote_plus = DateCalc($row[3], "+ 1 day");
+    }
     $last_quote_plus = UnixDate($last_quote_plus, "%Y-%m-%d");
     if (Date_Cmp($last_business_day, $last_quote_plus) <= 0)
     {
