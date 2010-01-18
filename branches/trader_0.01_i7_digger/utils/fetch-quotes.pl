@@ -2,7 +2,6 @@
 
 # fetch all the quotes, splits and dividends for all symbols listed in stocks.
 
-#use strict;
 use LWP::UserAgent;
 use Finance::QuoteHist::Yahoo;
 use DBI;
