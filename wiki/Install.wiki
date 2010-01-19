@@ -122,7 +122,7 @@ insert into exchange (exch, name, curr_desc, curr_char) values ('L', 'London Sto
 }}}
   * Load all the share names with
 {{{
-bin/get_share_names.pl
+bin/update-share_names.pl
 }}}
   * load the quotes from yahoo with
 {{{
