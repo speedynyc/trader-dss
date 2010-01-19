@@ -8,6 +8,7 @@ CREATE TABLE exchange (
     curr_char character varying(1)
 );
 ALTER TABLE public.exchange OWNER TO postgres;
+ALTER TABLE ONLY exchange ADD CONSTRAINT exchange_pkey PRIMARY KEY (exch);
 COMMENT ON COLUMN exchange.exch IS 'Yahoo Exchange symbol';
 COMMENT ON COLUMN exchange.name IS 'Name of the Exchange';
 COMMENT ON COLUMN exchange.curr_desc IS 'Standard acronym for the currency the exchange trades in';

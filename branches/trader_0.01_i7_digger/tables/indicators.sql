@@ -19,3 +19,4 @@ CREATE TABLE indicators (
     mapr_200 numeric(9,2)
 );
 ALTER TABLE public.indicators OWNER TO postgres;
+ALTER TABLE ONLY indicators ADD CONSTRAINT indicators_pkey PRIMARY KEY (date, symb, exch);

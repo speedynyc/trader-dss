@@ -25,6 +25,7 @@ CREATE TABLE gains (
     gain_200 numeric(9,2)
 );
 ALTER TABLE public.gains OWNER TO postgres;
+ALTER TABLE ONLY gains ADD CONSTRAINT gains_pkey PRIMARY KEY (date, symb, exch);
 COMMENT ON COLUMN gains.date IS 'Date this row refers to.';
 COMMENT ON COLUMN gains.symb IS 'symbol of the commodity being traded';
 COMMENT ON COLUMN gains.exch IS 'Exchange code';
