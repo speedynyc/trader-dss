@@ -7,3 +7,4 @@ CREATE TABLE sectors (
     name character varying(100) NOT NULL
 );
 ALTER TABLE public.sectors OWNER TO postgres;
+ALTER TABLE ONLY sectors ADD CONSTRAINT sector_pkey PRIMARY KEY (sector_id, exch);

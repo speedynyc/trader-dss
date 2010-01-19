@@ -7,3 +7,4 @@ CREATE TABLE stock_sector (
     sector_id numeric(7,0) NOT NULL
 );
 ALTER TABLE public.stock_sector OWNER TO postgres;
+ALTER TABLE ONLY stock_sector ADD CONSTRAINT symb_exch_sect PRIMARY KEY (symb, exch, sector_id);

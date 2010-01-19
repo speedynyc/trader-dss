@@ -9,3 +9,4 @@ CREATE TABLE stocks (
     last_quote date
 );
 ALTER TABLE public.stocks OWNER TO postgres;
+ALTER TABLE ONLY stocks ADD CONSTRAINT stocks_pkey PRIMARY KEY (symb, exch);

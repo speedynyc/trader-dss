@@ -43,3 +43,4 @@ CREATE TABLE simple_moving_averages (
     ma_200_sum numeric(12,2)
 );
 ALTER TABLE public.simple_moving_averages OWNER TO postgres;
+ALTER TABLE ONLY simple_moving_averages ADD CONSTRAINT simple_moving_averages_pkey PRIMARY KEY (date, symb, exch);

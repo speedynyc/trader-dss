@@ -19,3 +19,4 @@ CREATE TABLE standard_deviations_from_mean (
     volume_sd_200 numeric(9,4)
 );
 ALTER TABLE public.standard_deviations_from_mean OWNER TO postgres;
+ALTER TABLE ONLY standard_deviations_from_mean ADD CONSTRAINT standard_deviations_from_mean_pkey PRIMARY KEY (date, symb, exch);
