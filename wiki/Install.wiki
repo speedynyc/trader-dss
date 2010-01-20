@@ -55,8 +55,7 @@ initdb -E UTF8 $PGDATA
 pg_ctl -l logfile start  # ignore the warnings about the ports
 # create the trader database
 createdb trader # created the database
-createlang plpgsql trader # turn on pgsql for triggers
-psql trader -U postgres
+createlang plpgsql trader # turn on pgsql for triggerspsql trader -U postgres
 }}}
 
 == Create the tables etc ==
@@ -70,7 +69,6 @@ trader=# \i tables/sectors.sql
 trader=# \i tables/sector_quotes.sql
 trader=# \i tables/sector_quotes.sql
 trader=# \i tables/gains.sql
-trader=# \i tables/sequence_sector.sql
 trader=# \i tables/trade_dates.sql
 trader=# \i tables/indicators.sql
 trader=# \i tables/simple_moving_averages.sql
