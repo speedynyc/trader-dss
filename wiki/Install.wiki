@@ -55,7 +55,8 @@ initdb -E UTF8 $PGDATA
 pg_ctl -l logfile start  # ignore the warnings about the ports
 # create the trader database
 createdb trader # created the database
-createlang plpgsql trader # turn on pgsql for triggerspsql trader -U postgres
+createlang plpgsql trader # turn on pgsql for triggers
+psql trader -U postgres
 }}}
 
 == Create the tables etc ==
