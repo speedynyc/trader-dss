@@ -22,7 +22,7 @@ my $dbh = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password) or die $DB
 # get the base one, then get all subsequent ones
 my $res = get_page("http://uk.biz.yahoo.com/p/uk/cpi/index.html");
 get_companies($res);
-my @names = ('1', '2', '3', '4', '5', '6', '8', '@', 'q', 'x', 'y', 'z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'v', 'w');
+my @names = ('1', '2', '3', '4', '5', '6', '8', '@', 'q', 'x', 'y', 'z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z');
 
 foreach $a (@names)
 {
