@@ -2,7 +2,7 @@
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 CREATE TABLE users (
-    uid integer not null,
+    uid integer not null DEFAULT nextval(('sequence_users'::text)::regclass),
     name character varying(100) unique NOT NULL,
     passwd text
 );
