@@ -2,7 +2,7 @@
 -- Name: portfolios; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 CREATE TABLE portfolios (
-    pfid integer not null,
+    pfid integer not null DEFAULT nextval(('sequence_portfolios'::text)::regclass),
     name character varying(100) NOT NULL,
     uid integer not null,
     parcel numeric(9,2),
