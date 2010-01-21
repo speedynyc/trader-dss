@@ -127,3 +127,12 @@ bin/update-share_names.pl
 {{{
 bin/update-quotes.pl
 }}}
+
+  * setup the web interface
+{{{
+install PHP
+install Pear
+sudo pear install HTML_QuickForm
+}}}
+    * install the web pages and scripts
+    * create the first account
