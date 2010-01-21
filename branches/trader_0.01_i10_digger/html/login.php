@@ -1,4 +1,5 @@
 <?php
+    @include("checks.php");
     session_start();
     if (! isset($_SESSION['username']))
     {
@@ -14,7 +15,7 @@
             {
                 $_SESSION['username'] = pg_fetch_result($result, 0, 'name');
                 $_SESSION['uid'] = pg_fetch_result($result, 0, 'uid');
-                echo "Welcome " . $_SESSION['username'] . " uid " . $_SESSION['uid'] . "\n";
+                redirect_login_pf();
             }
         }
         else
@@ -24,6 +25,6 @@
     }
     else
     {
-        echo "Welcome back" . $_SESSION['username'] . " uid " . $_SESSION['uid'] . "\n";
+        redirect_login_pf();
     }
 ?>

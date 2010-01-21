@@ -2,15 +2,23 @@
 function redirect_login_pf()
 {
     session_start();
+    $login_page = "/login.php";
+    $portfolio_page = "/portfolio_admin.php";
     if (! isset($_SESSION['username']))
     {
-        header("Location: /login.php");
-        exit;
+        if ( $_SERVER["REQUEST_URI"] != $login_page )
+        {
+            header("Location: $login_page");
+            exit;
+        }
     }
-    if (! isset($_SESSION['pfid']))
+    elseif (! isset($_SESSION['pfid']))
     {
-        header("Location: /pf_admin.php");
-        exit;
+        if ( $_SERVER["REQUEST_URI"] != $portfolio_page )
+        {
+            header("Location: $portfolio_page");
+            exit;
+        }
     }
 }
 ?>
