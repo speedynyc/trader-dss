@@ -21,7 +21,8 @@ function validate_new_portfolio($v)
     # check that this portfolio doesn't exist
     global $pdo;
     $pf_desc = $pdo->quote($v);
-    $query = "select count(*) from portfolios where name = $pf_desc";
+    $uid = $pdo->quote($_SESSION['uid']);
+    $query = "select count(*) from portfolios where name = $pf_desc and uid = $uid;";
     $count = 0;
     foreach ($pdo->query($query) as $row)
     {
