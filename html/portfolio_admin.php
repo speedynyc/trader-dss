@@ -56,11 +56,20 @@ foreach ($pdo->query($query) as $row)
 $create_pf_form->addElement('submit','save','Create Portfolio');
 //$create_pf_form->addElement('reset', null, 'Reset Form');
 // Validate an process or display
-if ($create_pf_form->validate()) {
-    $create_pf_form->process('create_portfolio');
-} else {
+if (isset($_POST['save']))
+{
+    if ($create_pf_form->validate())
+    {
+        $create_pf_form->process('create_portfolio');
+        # even though we've saved the results we draw the form for another
+        $create_pf_form->display();
+    }
+}
+else
+{
     $create_pf_form->display();
 }
+
 
 // Define a function to process the form data
 function create_portfolio($v)
@@ -81,9 +90,8 @@ function create_portfolio($v)
     $pdo->exec("insert into portfolios (name, uid, exch, parcel, start_date, working_date) values ($pf_desc, $uid, $exchange, $parcel, $start_date, $start_date);");
     redirect_login_pf();
 }
-?>
-<hr>
-<?php
+
+print "<hr>\n";
 
 // Instantiate a new form
 $choose_pf_form = new HTML_QuickForm('choose_portfolio');
@@ -110,11 +118,11 @@ foreach ($pdo->query($query) as $row)
     }
 }
 $choose_pf_form->addElement('submit','choose','Trade!');
-if ($choose_pf_form->validate())
+if (isset($_POST['choose']))
 {
-    $data = $choose_pf_form->exportValues();
-    if (array_key_exists('portfolio', $data))
+    if ($choose_pf_form->validate())
     {
+        $data = $choose_pf_form->exportValues();
         $pfid = $data['portfolio'];
         $_SESSION['pfid'] = $pfid;
         header("Location: /trade.php");
