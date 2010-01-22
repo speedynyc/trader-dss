@@ -61,9 +61,9 @@ if (isset($_POST['save']))
     if ($create_pf_form->validate())
     {
         $create_pf_form->process('create_portfolio');
-        # even though we've saved the results we draw the form for another
-        $create_pf_form->display();
+        // even though we've saved the results we draw the form for another
     }
+    $create_pf_form->display();
 }
 else
 {
