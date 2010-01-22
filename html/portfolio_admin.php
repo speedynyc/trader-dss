@@ -95,7 +95,6 @@ print "<hr>\n";
 
 // Instantiate a new form
 $choose_pf_form = new HTML_QuickForm('choose_portfolio');
-// Add a text box
 $uid = $pdo->quote($_SESSION['uid']);
 $query = "select pfid, name, exch, parcel, start_date, working_date from portfolios where uid = $uid order by name;";
 $first_row = true;
