@@ -21,7 +21,6 @@ function check_account($v)
     $query = "select uid, name, passwd from users where name = $username and passwd = md5($passwd)";
     foreach ($pdo->query($query) as $row)
     {
-        // safe the username and uid for putting into the cookie
         $g_username = $row['name'];
         $g_uid = $row['uid'];
         $flag = true;
@@ -31,25 +30,26 @@ function check_account($v)
 }
 
 # create the form and validation rules
-$form = new HTML_QuickForm('login');
-$form->addElement('header', null, 'Login to the Trader DSS. Authorised users only');
-$form->addElement('text', 'username', 'Username:', array('size' => 30, 'maxlength' => 100));
-$form->addRule('username', 'Please enter your username', 'required');
-$form->addElement('password', 'passwd', 'Password:', array('size' => 10, 'maxlength' => 100));
-$form->addRule(array('username', 'passwd'), 'Account details incorrect', 'callback', 'check_account');
-$form->addRule('passwd', 'Must enter a password', 'required');
-$form->addElement('submit', 'login', 'Login');
+$login_form = new HTML_QuickForm('login');
+$login_form->applyFilter('__ALL__', 'trim');
+$login_form->addElement('header', null, 'Login to the Trader DSS. Authorised users only');
+$login_form->addElement('text', 'username', 'Username:', array('size' => 30, 'maxlength' => 100));
+$login_form->addRule('username', 'Please enter your username', 'required');
+$login_form->addElement('password', 'passwd', 'Password:', array('size' => 10, 'maxlength' => 100));
+$login_form->addRule(array('username', 'passwd'), 'Account details incorrect', 'callback', 'check_account');
+$login_form->addRule('passwd', 'Must enter a password', 'required');
+$login_form->addElement('submit', 'login', 'Login');
 $g_username = ''; # global to hold the username
 $g_uid = ''; # global to hold the uid
-if ($form->validate())
+if ($login_form->validate())
 {
-    $form->freeze();
+    $login_form->freeze();
     $_SESSION['username'] = $g_username;
     $_SESSION['uid'] = $g_uid;
     redirect_login_pf();
 }
 else
 {
-    $form->display();
+    $login_form->display();
 }
 ?>
