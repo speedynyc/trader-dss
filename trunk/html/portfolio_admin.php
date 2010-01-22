@@ -36,7 +36,7 @@ $create_pf_form = new HTML_QuickForm('add_portfolio');
 # trim all whitespace
 $create_pf_form->applyFilter('__ALL__', 'trim');
 // Add a text box
-$create_pf_form->addElement('header', null, 'Add or select portfolio');
+$create_pf_form->addElement('header', null, 'Add a portfolio');
 $create_pf_form->addElement('text', 'pf_desc', 'Enter Description:', array('size' => 50, 'maxlength' => 255));
 $create_pf_form->addRule('pf_desc','Please enter a portfolio description','required');
 $create_pf_form->addRule('pf_desc','That portfolio already exists','callback', 'validate_new_portfolio');
@@ -95,6 +95,7 @@ print "<hr>\n";
 
 // Instantiate a new form
 $choose_pf_form = new HTML_QuickForm('choose_portfolio');
+$choose_pf_form->addElement('header', null, 'Choose a portfolio');
 $uid = $pdo->quote($_SESSION['uid']);
 $query = "select pfid, name, exch, parcel, start_date, working_date from portfolios where uid = $uid order by name;";
 $first_row = true;
@@ -109,6 +110,7 @@ foreach ($pdo->query($query) as $row)
     if ($first_row)
     {
         $choose_pf_form->addElement('radio','portfolio','Portfolios:',"$pf_desc: $pf_exch: $pf_parcel: $pf_start_date: $pf_working_date",$pf_id);
+        $choose_pf_form->addRule('portfolio','You must select a portfolio to trade','required');
         $first_row = false;
     }
     else
