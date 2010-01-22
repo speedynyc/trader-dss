@@ -21,6 +21,7 @@ function check_account($v)
     $query = "select uid, name, passwd from users where name = $username and passwd = md5($passwd)";
     foreach ($pdo->query($query) as $row)
     {
+        // safe the username and uid for putting into the cookie
         $g_username = $row['name'];
         $g_uid = $row['uid'];
         $flag = true;

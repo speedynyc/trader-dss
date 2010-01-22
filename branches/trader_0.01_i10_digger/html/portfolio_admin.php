@@ -32,18 +32,18 @@ function validate_new_portfolio($v)
 }
 
 // Instantiate a new form
-$form = new HTML_QuickForm('add_portfolio');
+$create_pf_form = new HTML_QuickForm('add_portfolio');
 // Add a text box
-$form->addElement('header', null, 'Add or select portfolio');
-$form->addElement('text', 'pf_desc', 'Enter Description:', array('size' => 50, 'maxlength' => 255));
-$form->addRule('pf_desc','Please enter a portfolio description','required');
-$form->addRule('pf_desc','That portfolio already exists','callback', 'validate_new_portfolio');
-$form->addElement('text', 'parcel', 'Enter parcel size:', array('size' => 10, 'maxlength' => 10));
-$form->addRule('parcel','Please enter a numeric parcel size','required');
-$form->addRule('parcel','Please enter a numeric parcel size','numeric');
-$form->addElement('date', 'start_date', 'Start Date:', array('format' => 'dMY', 'minYear' => 2000, 'maxYear' => date('Y'))); 
-$form->addRule('start_date','Not a valid date','callback', 'validate_date');
-$exchanges = $form->addElement('select','exchange','Exchange:');
+$create_pf_form->addElement('header', null, 'Add or select portfolio');
+$create_pf_form->addElement('text', 'pf_desc', 'Enter Description:', array('size' => 50, 'maxlength' => 255));
+$create_pf_form->addRule('pf_desc','Please enter a portfolio description','required');
+$create_pf_form->addRule('pf_desc','That portfolio already exists','callback', 'validate_new_portfolio');
+$create_pf_form->addElement('text', 'parcel', 'Enter parcel size:', array('size' => 10, 'maxlength' => 10));
+$create_pf_form->addRule('parcel','Please enter a numeric parcel size','required');
+$create_pf_form->addRule('parcel','Please enter a numeric parcel size','numeric');
+$create_pf_form->addElement('date', 'start_date', 'Start Date:', array('format' => 'dMY', 'minYear' => 2000, 'maxYear' => date('Y'))); 
+$create_pf_form->addRule('start_date','Not a valid date','callback', 'validate_date');
+$exchanges = $create_pf_form->addElement('select','exchange','Exchange:');
 $query = "select exch, name from exchange order by name";
 foreach ($pdo->query($query) as $row)
 {
@@ -51,14 +51,15 @@ foreach ($pdo->query($query) as $row)
 }
 
 // Add a submit button
-$form->addElement('submit','save','Create Portfolio');
-$form->addElement('reset', null, 'Reset Form');
+$create_pf_form->addElement('submit','save','Create Portfolio');
+//$create_pf_form->addElement('reset', null, 'Reset Form');
 // Validate an process or display
-if ($form->validate()) {
-    $form->process('create_portfolio');
+if ($create_pf_form->validate()) {
+    $create_pf_form->process('create_portfolio');
 } else {
-    $form->display();
+    $create_pf_form->display();
 }
+
 // Define a function to process the form data
 function create_portfolio($v)
 {
@@ -75,8 +76,46 @@ function create_portfolio($v)
     {
         $start_date = $pdo->quote($row['date']);
     }
-    $working_date = $start_date;
+    $pdo->exec("insert into portfolios (name, uid, exch, parcel, start_date, working_date) values ($pf_desc, $uid, $exchange, $parcel, $start_date, $start_date);");
+    redirect_login_pf();
+}
+?>
+<hr>
+<?php
 
-    print "insert into portfolios (name, uid, exch, parcel, start_date, working_date) values ($pf_desc, $uid, $exchange, $parcel, $start_date, $start_date);\n" ;
+// Instantiate a new form
+$choose_pf_form = new HTML_QuickForm('choose_portfolio');
+// Add a text box
+$uid = $pdo->quote($_SESSION['uid']);
+$query = "select pfid, name, exch, parcel, start_date, working_date from portfolios where uid = $uid order by name;";
+$first_row = true;
+foreach ($pdo->query($query) as $row)
+{
+    $pf_id = $row['pfid'];
+    $pf_desc = $row['name'];
+    $pf_exch = $row['exch'];
+    $pf_parcel = $row['parcel'];
+    $pf_start_date = $row['start_date'];
+    $pf_working_date = $row['working_date'];
+    if ($first_row)
+    {
+        $choose_pf_form->addElement('radio','portfolio','Portfolios:',"$pf_desc: $pf_exch: $pf_parcel: $pf_start_date: $pf_working_date",$pf_id);
+        $first_row = false;
+    }
+    else
+    {
+        $choose_pf_form->addElement('radio','portfolio',null,"$pf_desc: $pf_exch: $pf_parcel: $pf_start_date: $pf_working_date",$pf_id);
+    }
+}
+$choose_pf_form->addElement('submit','choose','Trade!');
+if ($choose_pf_form->validate())
+{
+    $data = $choose_pf_form->exportValues();
+    $pfid = $data['portfolio'];
+    $_SESSION['pfid'] = $pfid;
+    header("Location: /trade.php");
+    exit;
+} else {
+    $choose_pf_form->display();
 }
 ?>
