@@ -33,6 +33,8 @@ function validate_new_portfolio($v)
 
 // Instantiate a new form
 $create_pf_form = new HTML_QuickForm('add_portfolio');
+# trim all whitespace
+$create_pf_form->applyFilter('__ALL__', 'trim');
 // Add a text box
 $create_pf_form->addElement('header', null, 'Add or select portfolio');
 $create_pf_form->addElement('text', 'pf_desc', 'Enter Description:', array('size' => 50, 'maxlength' => 255));
@@ -111,11 +113,20 @@ $choose_pf_form->addElement('submit','choose','Trade!');
 if ($choose_pf_form->validate())
 {
     $data = $choose_pf_form->exportValues();
-    $pfid = $data['portfolio'];
-    $_SESSION['pfid'] = $pfid;
-    header("Location: /trade.php");
-    exit;
-} else {
+    if (array_key_exists('portfolio', $data))
+    {
+        $pfid = $data['portfolio'];
+        $_SESSION['pfid'] = $pfid;
+        header("Location: /trade.php");
+        exit;
+    }
+    else
+    {
+        $choose_pf_form->display();
+    }
+}
+else
+{
     $choose_pf_form->display();
 }
 ?>
