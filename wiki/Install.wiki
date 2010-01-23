@@ -26,6 +26,7 @@ install HTML::TreeBuilder
 install HTML::TableExtract
 install LWP
 install Regexp::Common
+install Finance::QuoteHist
 install Finance::QuoteHist::Yahoo
 install DBI
 install DBD::Pg
