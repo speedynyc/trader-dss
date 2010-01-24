@@ -9,13 +9,15 @@ AS $$
     BEGIN
         -- Maintain the date range that this symbol has traded over so we don't have to search a big list of dates
         --   before we know if it's worth while considering a stock
+        -- Also useful when working out the date ranges for new quotes to download
         select first_quote, last_quote into rec_first_last from stocks where symb = new_symb and exch = new_exch;
         IF NOT FOUND THEN
-            insert into stocks ( symb, exch, name, first_quote, last_quote ) values ( new_symb, new_exch, 'Unknown Name', new_date, new_date);
+            insert into stocks ( symb, exch, name, first_quote, last_quote ) values ( new_symb, new_exch, 'Stock record created by quote insert not stock insert. Fix my name', new_date, new_date);
         ELSE
             IF new_date < rec_first_last.first_quote or rec_first_last.first_quote IS NULL THEN
                 update stocks set first_quote = new_date where symb = new_symb and exch = new_exch;
-            ELSIF new_date > rec_first_last.last_quote or rec_first_last.last_quote IS NULL THEN
+            END IF;
+            IF new_date > rec_first_last.last_quote or rec_first_last.last_quote IS NULL THEN
                 update stocks set last_quote = new_date where symb = new_symb and exch = new_exch;
             END IF;
         END IF;
