@@ -82,6 +82,16 @@ $limit = $sql_input_form->addElement('select','sql_limit','limit:');
 $limit->addOption('1', '1');
 $limit->addOption('10', '10');
 $limit->addOption('100', '100');
+$chart_period = $sql_input_form->addElement('select','chart_period','Chart Period:');
+$chart_period->addOption('1 week', '7');
+$chart_period->addOption('1 month', '30');
+$chart_period->addOption('2 months', '60');
+$chart_period->addOption('3 months', '90');
+$chart_period->addOption('6 months', '180');
+$chart_period->addOption('1 year', '365');
+$chart_period->addOption('2 years', '7305');
+$chart_period->addOption('5 years', '1825');
+$chart_period->addOption('10 years', '3650');
 $sql_input_form->addElement('submit','execute_sql','Run Query');
 if (isset($_POST['execute_sql']))
 {
@@ -96,6 +106,7 @@ if (isset($_POST['execute_sql']))
         $sql_order = $data['sql_order'];
         $sql_order_dir = $data['sql_order_dir'];
         $sql_limit = $data['sql_limit'];
+        $chart_period = $data['chart_period'];
         $query = "select $sql_colums from $sql_from where ($sql_where) and (quotes.date = '$pf_working_date' and quotes.exch = '$pf_exch') order by $sql_order $sql_order_dir limit $sql_limit;";
         try {
             $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
@@ -117,16 +128,21 @@ if (isset($_POST['execute_sql']))
                 $first = false;
                 foreach ($headers as $index)
                 {
-                    print "<td>$index</td>";
+                    print "<td>$index</td>\n";
                 }
-                print '</tr>';
+                print "<td>Chart</td></tr>\n";
             }
-            print '<tr>';
+            print "<tr>";
             foreach ($headers as $index)
             {
-                print "<td>$row[$index]</td>";
+                if ($index == 'symb')
+                {
+                    $symbol = $row[$index];
+                }
+                print "<td>$row[$index]</td>\n";
             }
-            print '</td>';
+            print "<td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symbol&TimeRange=$chart_period&working_date=$pf_working_date&exch=$pf_exch&ChartSize=M&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td>";
+            print "</tr>\n";
         }
         print '</table>';
     }
