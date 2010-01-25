@@ -18,8 +18,12 @@ function validate_date($v) {
 
 function validate_new_portfolio($v)
 {
-    # check that this portfolio doesn't exist
-    global $pdo;
+    // check that this portfolio doesn't exist
+    try {
+        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
     $pf_desc = $pdo->quote($v);
     $uid = $pdo->quote($_SESSION['uid']);
     $query = "select count(*) from portfolios where name = $pf_desc and uid = $uid;";
@@ -29,6 +33,23 @@ function validate_new_portfolio($v)
         $count = $row['count'];
     }
     return $count == 0;
+}
+
+function get_exch_desc($v)
+{
+    // return the description of the given exchange
+    try {
+        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $exch = $pdo->quote($v);
+    $query = "select name from exchange where exch = $exch";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['name'];
+    }
+    return 'Unknown Exchange';
 }
 
 // Instantiate a new form
@@ -54,7 +75,6 @@ foreach ($pdo->query($query) as $row)
 
 // Add a submit button
 $create_pf_form->addElement('submit','save','Create Portfolio');
-//$create_pf_form->addElement('reset', null, 'Reset Form');
 // Validate an process or display
 if (isset($_POST['save']))
 {
@@ -93,7 +113,7 @@ function create_portfolio($v)
 
 print "<hr>\n";
 
-// Instantiate a new form
+// Instantiate a new form tp choose the portfolio to work with
 $choose_pf_form = new HTML_QuickForm('choose_portfolio');
 $choose_pf_form->addElement('header', null, 'Choose a portfolio');
 $uid = $pdo->quote($_SESSION['uid']);
@@ -103,19 +123,19 @@ foreach ($pdo->query($query) as $row)
 {
     $pf_id = $row['pfid'];
     $pf_desc = $row['name'];
-    $pf_exch = $row['exch'];
+    $pf_exch = get_exch_desc($row['exch']);
     $pf_parcel = $row['parcel'];
     $pf_start_date = $row['start_date'];
     $pf_working_date = $row['working_date'];
     if ($first_row)
     {
-        $choose_pf_form->addElement('radio','portfolio','Portfolios:',"$pf_desc: $pf_exch: $pf_parcel: $pf_start_date: $pf_working_date",$pf_id);
+        $choose_pf_form->addElement('radio','portfolio','Portfolios:',"$pf_desc<td>$pf_exch</td> <td>$pf_parcel</td> <td>$pf_start_date</td> <td>$pf_working_date</td>",$pf_id);
         $choose_pf_form->addRule('portfolio','You must select a portfolio to trade','required');
         $first_row = false;
     }
     else
     {
-        $choose_pf_form->addElement('radio','portfolio',null,"$pf_desc: $pf_exch: $pf_parcel: $pf_start_date: $pf_working_date",$pf_id);
+        $choose_pf_form->addElement('radio','portfolio',null,"$pf_desc<td>$pf_exch</td> <td>$pf_parcel</td> <td>$pf_start_date</td> <td>$pf_working_date</td>",$pf_id);
     }
 }
 $choose_pf_form->addElement('submit','choose','Trade!');
