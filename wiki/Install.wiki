@@ -1,4 +1,4 @@
-# A rough install guide for the Trader Decision Support System
+#summary A rough install guide for the Trader Decision Support System
 
 = Introduction =
 
@@ -124,7 +124,7 @@ insert into exchange (exch, name, curr_desc, curr_char) values ('L', 'London Sto
 {{{
 bin/update-share_names.pl
 }}}
-  * load the quotes from yahoo with
+  * Load the quotes from with. Beware, this may take days!
 {{{
 bin/update-quotes.pl
 }}}
