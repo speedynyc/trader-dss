@@ -9,7 +9,7 @@ use DBI;
 use strict;
 
 $| = 1;
-my $debug = 1;
+my $debug = 0;
 my $sleep_time = 3;
 
 Date_Init("DateFormat=non-US");
@@ -38,7 +38,6 @@ $dbh = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password) or die $DBI::
 
 print "select symb,exch,first_quote,last_quote from stocks where exch = '$exchange' and ((last_quote > '$six_months_ago' and last_quote < '$last_business_day') or last_quote is null) order by symb;\n" if ($debug);
 $sth = $dbh->prepare("select symb,exch,first_quote,last_quote from stocks where exch = '$exchange' and ((last_quote > '$six_months_ago' and last_quote < '$last_business_day') or last_quote is null) order by symb;") or die $dbh->errstr;
-exit;
 $sth->execute or die $dbh->errstr;
 while ((@row) = $sth->fetchrow_array)
 {
