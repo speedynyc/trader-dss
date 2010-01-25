@@ -9,7 +9,7 @@ use DBI;
 use strict;
 
 $| = 1;
-my $debug = 0;
+my $debug = 1;
 my $sleep_time = 3;
 
 Date_Init("DateFormat=non-US");
@@ -27,13 +27,18 @@ my $stopfile = 'stop';
 my $pausefile = 'pause';
 
 my $last_business_day = DateCalc("today","- 1 business day");
+my $six_months_ago = DateCalc("today","- 6 months");
 $last_business_day = Date_PrevWorkDay($last_business_day, -1);
 print "[INFO]last business day is " . UnixDate($last_business_day, "%Y-%m-%d") . "\n" if ($debug);
+print "[INFO]six months ago is " . UnixDate($six_months_ago, "%Y-%m-%d") . "\n" if ($debug);
+$last_business_day = UnixDate($last_business_day, "%Y-%m-%d");
+$six_months_ago = UnixDate($six_months_ago, "%Y-%m-%d");
 
 $dbh = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password) or die $DBI::errstr;
 
-print "select symb,exch,first_quote,last_quote from stocks where exch = \"$exchange\" order by symb;\n" if ($debug);
-$sth = $dbh->prepare("select symb,exch,first_quote,last_quote from stocks where exch = '$exchange' order by symb;") or die $dbh->errstr;
+print "select symb,exch,first_quote,last_quote from stocks where exch = '$exchange' and ((last_quote > '$six_months_ago' and last_quote < '$last_business_day') or last_quote is null) order by symb;\n" if ($debug);
+$sth = $dbh->prepare("select symb,exch,first_quote,last_quote from stocks where exch = '$exchange' and ((last_quote > '$six_months_ago' and last_quote < '$last_business_day') or last_quote is null) order by symb;") or die $dbh->errstr;
+exit;
 $sth->execute or die $dbh->errstr;
 while ((@row) = $sth->fetchrow_array)
 {
@@ -52,11 +57,6 @@ while ((@row) = $sth->fetchrow_array)
     }
     $last_quote_plus = UnixDate($last_quote_plus, "%Y-%m-%d");
     $first_quote = $last_quote_plus unless ($first_quote);
-    if (Date_Cmp($last_business_day, $last_quote_plus) <= 0)
-    {
-        print "[INFO]Skipping $stock_code up to date\n" if ($debug);
-        next;
-    }
     sleep $sleep_time;
     print "[INFO][Updating]$stock_code.$exchange, have $first_quote to $last_quote. Retrieving $last_quote_plus to today\n";
     $q = new Finance::QuoteHist(
