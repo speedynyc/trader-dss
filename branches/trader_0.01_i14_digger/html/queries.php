@@ -17,7 +17,52 @@ if (isset($_SESSION['qid']))
     $q_id = $_SESSION['qid'];
 }
 
-#print "OK $username ($uid), Lets get to trading portfolio $pfid!\n";
+try {
+    $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+} catch (PDOException $e) {
+    die("ERROR: Cannot connect: " . $e->getMessage());
+}
+
+$select_query_form = new HTML_QuickForm('select_query');
+$query = "select count(*) as count from queries where uid = '$uid';";
+$result = $pdo->query($query);
+$row = $result->fetch(PDO::FETCH_ASSOC);
+print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
+if ($row['count'] > 0)
+{
+    $first = true;
+    $query = "select qid, name from queries where uid = $uid;";
+    $result = $pdo->query($query);
+    $choose_query = $select_query_form->addElement('select','choose_query','Select Query to Edit:');
+    while ($row = $result->fetch(PDO::FETCH_ASSOC))
+    {
+        $q_name = $row['name'];
+        $q_qid = $row['qid'];
+        $choose_query->addOption($q_name, $q_qid);
+    }
+    $select_query_form->addElement('submit','edit_query','Load Query');
+    $select_query_form->display();
+    print "</td></tr>\n";
+}
+
+if (isset($_POST['edit_query']))
+{
+    $data = $select_query_form->exportValues();
+    $q_id = $data['choose_query'];
+    $query = "select * from queries where qid = $q_id;";
+    $result = $pdo->query($query);
+    $row = $result->fetch(PDO::FETCH_ASSOC);
+    $_SESSION['sql_name']      = $sql_name = $row['name'];
+    $_SESSION['sql_select']    = $sql_select = $row['sql_select'];
+    $_SESSION['sql_from']      = $sql_from   = $row['sql_from'];
+    $_SESSION['sql_where']     = $sql_where  = $row['sql_where'];
+    $_SESSION['sql_order']     = $sql_order  = $row['sql_order'];
+    $_SESSION['sql_order_dir'] = $sql_order_dir = $row['sql_order_dir'];
+    $_SESSION['sql_limit']     = $sql_limit  = $row['sql_limit'];
+    $_SESSION['chart_period']  = $chart_period = $row['chart_period'];
+    $_SESSION['qid']           = $q_id;
+}
+
 $sql_input_form = new HTML_QuickForm('sql_input');
 $sql_input_form->applyFilter('__ALL__', 'trim');
 $sql_input_form->addElement('header', null, "Save queries for later use.");
@@ -49,102 +94,85 @@ $chart_period->addOption('5 years', '1825');
 $chart_period->addOption('10 years', '3650');
 $sql_input_form->addElement('submit','use_sql','Use Query');
 $sql_input_form->addElement('submit','save_sql','Save Query');
-if ($q_id)
+if (isset($q_id))
 {
     $sql_input_form->addElement('submit','del_sql',"Delete Query $q_id");
 }
 if (isset($_SESSION['sql_select']))
 {
     $sql_input_form->setDefaults(array(
-        'sql_select' => $_SESSION['sql_select'],
-        'sql_from'   => $_SESSION['sql_from'],
-        'sql_where'  => $_SESSION['sql_where'],
-        'sql_order'  => $_SESSION['sql_order'],
-        'sql_order_dir' => $_SESSION['sql_order_dir'],
-        'sql_limit'  => $_SESSION['sql_limit]']));
+                'sql_name' => $_SESSION['sql_name'],
+                'sql_select' => $_SESSION['sql_select'],
+                'sql_from'   => $_SESSION['sql_from'],
+                'sql_where'  => $_SESSION['sql_where'],
+                'sql_order'  => $_SESSION['sql_order'],
+                'sql_order_dir' => $_SESSION['sql_order_dir'],
+                'chart_period' => $_SESSION['chart_period'],
+                'sql_limit'  => $_SESSION['sql_limit']));
+}
+else
+{
+    $sql_input_form->setDefaults(array(
+                'sql_limit'  => 10,
+                'sql_order_dir' => 'desc',
+                'chart_period' => 180));
 }
 
-if (isset($_POST['execute_sql']))
+if (isset($_POST['use_sql']))
 {
     if ($sql_input_form->validate())
     {
-        print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
-        $sql_input_form->display();
-        print '</td></tr>';
-        // run the sql and return the results
         $data = $sql_input_form->exportValues();
-        $_SESSION['sql_name']      = $sql_select = $data['sql_name'];
+        $_SESSION['sql_name']      = $sql_name = $data['sql_name'];
         $_SESSION['sql_select']    = $sql_select = $data['sql_select'];
         $_SESSION['sql_from']      = $sql_from   = $data['sql_from'];
         $_SESSION['sql_where']     = $sql_where  = $data['sql_where'];
         $_SESSION['sql_order']     = $sql_order  = $data['sql_order'];
         $_SESSION['sql_order_dir'] = $sql_order_dir = $data['sql_order_dir'];
         $_SESSION['sql_limit']     = $sql_limit  = $data['sql_limit'];
-        $chart_period = $data['chart_period'];
-        $query = "select $sql_select from $sql_from where ($sql_where) and (quotes.date = '$pf_working_date' and quotes.exch = '$pf_exch') order by $sql_order $sql_order_dir limit $sql_limit;";
-        try {
-            $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
-        } catch (PDOException $e) {
-            die("ERROR: Cannot connect: " . $e->getMessage());
-        }
-        print '<tr><td>';
-        print $query;
-        print '</td></tr>';
-        print '<tr><td>';
-        print '<table border="1" cellpadding="5" cellspacing="0">' . "\n";
-        print "<tr><td>select</td><td>$sql_select</td><td>.</td></tr>\n";
-        print "<tr><td>from</td><td>$sql_from</td><td>.</td></tr>\n";
-        print "<tr><td>where</td><td>$sql_where</td><td>and (quotes.date = '$pf_working_date' and quotes.exch = '$pf_exch')</td></tr>\n";
-        print "<tr><td>order by</td><td>$sql_order</td><td>$sql_order_dir</td></tr>\n";
-        print "<tr><td>limit</td><td>$sql_limit</td><td>;</td></tr>\n";
-        print "</table>\n";
-        print '</td></tr>';
-        print '<tr><td>';
-        $first = true;
-        print '<table border="1" cellpadding="5" cellspacing="0"><tr>';
-        $result = $pdo->query($query);
-        while ($row = $result->fetch(PDO::FETCH_ASSOC))
-        {
-            if ($first)
-            {
-                // work out the index names and print them as headers
-                $headers = array_keys($row);
-                $first = false;
-                foreach ($headers as $index)
-                {
-                    print "<td>$index</td>\n";
-                }
-                print "<td>Chart</td></tr>\n";
-            }
-            print "<tr>";
-            foreach ($headers as $index)
-            {
-                if ($index == 'symb')
-                {
-                    $symbol = $row[$index];
-                }
-                print "<td>$row[$index]</td>\n";
-            }
-            print "<td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symbol&TimeRange=$chart_period&working_date=$pf_working_date&exch=$pf_exch&ChartSize=M&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td>";
-            print "</tr>\n";
-        }
-        print '</table>';
-        print '</td></tr>';
-        print '</table>';
-    }
-    else
-    {
-        print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
-        $sql_input_form->display();
-        print '</td></tr>';
-        print '</table>';
+        $_SESSION['chart_period']  = $chart_period = $data['chart_period'];
+        header("Location: /select.php");
     }
 }
-else
+elseif (isset($_POST['save_sql']))
 {
-    print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
-    $sql_input_form->display();
-    print '</td></tr>';
-    print '</table>';
+    if ($sql_input_form->validate())
+    {
+        $data = $sql_input_form->exportValues();
+        $_SESSION['sql_name']      = $sql_name = $data['sql_name'];
+        $_SESSION['sql_select']    = $sql_select = $data['sql_select'];
+        $_SESSION['sql_from']      = $sql_from   = $data['sql_from'];
+        $_SESSION['sql_where']     = $sql_where  = $data['sql_where'];
+        $_SESSION['sql_order']     = $sql_order  = $data['sql_order'];
+        $_SESSION['sql_order_dir'] = $sql_order_dir = $data['sql_order_dir'];
+        $_SESSION['sql_limit']     = $sql_limit  = $data['sql_limit'];
+        $_SESSION['chart_period']  = $chart_period = $data['chart_period'];
+        // do we have a qid? if so save these to that
+        $query = "insert into queries (uid, name, sql_select, sql_from, sql_where, sql_order, sql_order_dir, sql_limit, chart_period) values ('$uid', '$sql_name', '$sql_select', '$sql_from', '$sql_where', '$sql_order', '$sql_order_dir', '$sql_limit', '$chart_period');";
+        $pdo->exec($query);
+    }
 }
+elseif (isset($_POST['del_sql']))
+{
+    $query = "delete from queries where qid = $q_id;";
+    $pdo->exec($query);
+}
+
+print '<tr><td>';
+$sql_input_form->display();
+print '</td></tr>';
+// run the sql and return the results
+$data = $sql_input_form->exportValues();
+if (isset($_SESSION['sql_select']))
+{
+    $_SESSION['sql_name']      = $sql_select = $data['sql_name'];
+    $_SESSION['sql_select']    = $sql_select = $data['sql_select'];
+    $_SESSION['sql_from']      = $sql_from   = $data['sql_from'];
+    $_SESSION['sql_where']     = $sql_where  = $data['sql_where'];
+    $_SESSION['sql_order']     = $sql_order  = $data['sql_order'];
+    $_SESSION['sql_order_dir'] = $sql_order_dir = $data['sql_order_dir'];
+    $_SESSION['sql_limit']     = $sql_limit  = $data['sql_limit'];
+    $_SESSION['chart_period']  = $chart_period = $data['chart_period'];
+}
+
 ?>

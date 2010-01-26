@@ -50,7 +50,7 @@ if (isset($_SESSION['sql_select']))
                 'sql_where'  => $_SESSION['sql_where'],
                 'sql_order'  => $_SESSION['sql_order'],
                 'sql_order_dir' => $_SESSION['sql_order_dir'],
-                'sql_limit'  => $_SESSION['sql_limit]'],
+                'sql_limit'  => $_SESSION['sql_limit'],
                 'chart_period' => $_SESSION['chart_period']));
 }
 else
@@ -65,7 +65,7 @@ if (isset($_POST['execute_sql']))
 {
     if ($sql_input_form->validate())
     {
-        print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
+        print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td align="center">';
         $sql_input_form->display();
         print '</td></tr>';
         // run the sql and return the results
@@ -130,7 +130,7 @@ if (isset($_POST['execute_sql']))
     }
     else
     {
-        print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
+        print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td align="center">';
         $sql_input_form->display();
         print '</td></tr>';
         print '</table>';
@@ -138,7 +138,7 @@ if (isset($_POST['execute_sql']))
 }
 else
 {
-    print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
+    print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td align="center">';
     $sql_input_form->display();
     print '</td></tr>';
     print '</table>';

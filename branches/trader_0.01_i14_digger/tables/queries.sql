@@ -14,4 +14,4 @@ CREATE TABLE queries (
     chart_period integer
 );
 ALTER TABLE public.queries OWNER TO postgres;
-ALTER TABLE ONLY queries ADD CONSTRAINT queries_pkey PRIMARY KEY (qid);
+ALTER TABLE ONLY queries ADD CONSTRAINT queries_pkey PRIMARY KEY (qid, name);
