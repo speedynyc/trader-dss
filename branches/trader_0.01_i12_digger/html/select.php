@@ -67,8 +67,8 @@ $pf_exch = get_pf_exch($pfid);
 $sql_input_form = new HTML_QuickForm('sql_input');
 $sql_input_form->applyFilter('__ALL__', 'trim');
 $sql_input_form->addElement('header', null, "SQL to select stocks for '$pfname' working date $pf_working_date");
-$sql_input_form->addElement('textarea', 'sql_colums', 'select:', 'wrap="soft" rows="1" cols="50"');
-$sql_input_form->addRule('sql_colums','Must select columns','required');
+$sql_input_form->addElement('textarea', 'sql_select', 'select:', 'wrap="soft" rows="1" cols="50"');
+$sql_input_form->addRule('sql_select','Must select columns','required');
 $sql_input_form->addElement('textarea', 'sql_from', 'from:', 'wrap="soft" rows="2" cols="50"');
 $sql_input_form->addRule('sql_from','Must select tables','required');
 $sql_input_form->addElement('textarea', 'sql_where', 'where:', 'wrap="soft" rows="3" cols="50"');
@@ -93,6 +93,16 @@ $chart_period->addOption('2 years', '7305');
 $chart_period->addOption('5 years', '1825');
 $chart_period->addOption('10 years', '3650');
 $sql_input_form->addElement('submit','execute_sql','Run Query');
+if (isset($_SESSION['sql_select]']))
+{
+    $sql_input_form->setDefaults(array(
+        'sql_select' => $_SESSION['sql_select'],
+        'sql_from'   => $_SESSION['sql_from'],
+        'sql_where'  => $_SESSION['sql_where'],
+        'sql_order'  => $_SESSION['sql_order'],
+        'sql_order_dir' => $_SESSION['sql_order_dir'],
+        'sql_limit'  => $_SESSION['sql_limit]']));
+}
 if (isset($_POST['execute_sql']))
 {
     if ($sql_input_form->validate())
@@ -100,25 +110,39 @@ if (isset($_POST['execute_sql']))
         $sql_input_form->display();
         // run the sql and return the results
         $data = $sql_input_form->exportValues();
-        $sql_colums = $data['sql_colums'];
+        $sql_select = $data['sql_select'];
+        $_SESSION['sql_select'] = $data['sql_select'];
         $sql_from = $data['sql_from'];
+        $_SESSION['sql_from'] = $data['sql_from'];
         $sql_where = $data['sql_where'];
+        $_SESSION['sql_where'] = $data['sql_where'];
         $sql_order = $data['sql_order'];
+        $_SESSION['sql_order'] = $data['sql_order'];
         $sql_order_dir = $data['sql_order_dir'];
+        $_SESSION['sql_order_dir'] = $data['sql_order_dir'];
         $sql_limit = $data['sql_limit'];
+        $_SESSION['sql_limit'] = $data['sql_limit'];
         $chart_period = $data['chart_period'];
-        $query = "select $sql_colums from $sql_from where ($sql_where) and (quotes.date = '$pf_working_date' and quotes.exch = '$pf_exch') order by $sql_order $sql_order_dir limit $sql_limit;";
+        $query = "select $sql_select from $sql_from where ($sql_where) and (quotes.date = '$pf_working_date' and quotes.exch = '$pf_exch') order by $sql_order $sql_order_dir limit $sql_limit;";
         try {
             $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
         } catch (PDOException $e) {
             die("ERROR: Cannot connect: " . $e->getMessage());
         }
-        print "executing '$query'";
-#$stmt = $pdo->prepare($query);
+        print "<hr>\n";
+        print $query;
+        print "<hr>\n";
+        print '<table border="1" cellpadding="5" cellspacing="0">' . "\n";
+        print "<tr><td>select</td><td>$sql_select</td><td>.</td></tr>\n";
+        print "<tr><td>from</td><td>$sql_from</td><td>.</td></tr>\n";
+        print "<tr><td>where</td><td>$sql_where</td><td>and (quotes.date = '$pf_working_date' and quotes.exch = '$pf_exch')</td></tr>\n";
+        print "<tr><td>order by</td><td>$sql_order</td><td>$sql_order_dir</td></tr>\n";
+        print "<tr><td>limit</td><td>$sql_limit</td><td>;</td></tr>\n";
+        print "</table>\n";
+        print "<hr>\n";
         $first = true;
         print '<table border="1" cellpadding="5" cellspacing="0"><tr>';
         $result = $pdo->query($query);
-        //$row = $result->fetch(PDO::FETCH_ASSOC);
         while ($row = $result->fetch(PDO::FETCH_ASSOC))
         {
             if ($first)

@@ -146,7 +146,7 @@ if (isset($_POST['choose']))
         $data = $choose_pf_form->exportValues();
         $pfid = $data['portfolio'];
         $_SESSION['pfid'] = $pfid;
-        header("Location: /trade.php");
+        header("Location: /select.php");
         exit;
     }
     else
