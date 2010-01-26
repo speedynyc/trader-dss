@@ -139,7 +139,7 @@ function draw_trader_header($active_page, $allow_others)
     }
     if ($active_page == 'queries')
     {
-        draw_cell($active_page, '/queries.php', $inactive_colour, true);
+        draw_cell($active_page, '/queries.php', $active_colour, true);
     }
     else
     {
@@ -148,4 +148,56 @@ function draw_trader_header($active_page, $allow_others)
     print "</tr></table>\n";
 
 }
+
+function get_pf_name($v)
+{
+    // setup the DB connection for use in this script
+    try {
+        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($v);
+    $query = "select name from portfolios where pfid = $pf_id;";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['name'];
+    }
+    return 'Unknown Portfolio';
+}
+
+function get_pf_exch($v)
+{
+    // setup the DB connection for use in this script
+    try {
+        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($v);
+    $query = "select exch from portfolios where pfid = $pf_id;";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['exch'];
+    }
+    return 'X';
+}
+
+function get_pf_working_date($v)
+{
+    // setup the DB connection for use in this script
+    try {
+        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($v);
+    $query = "select working_date from portfolios where pfid = $pf_id;";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['working_date'];
+    }
+    return '200-01-01';
+}
+
 ?>
