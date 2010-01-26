@@ -5,57 +5,6 @@ draw_trader_header('select');
 // Load the HTML_QuickForm module
 require 'HTML/QuickForm.php';
 
-function get_pf_name($v)
-{
-    // setup the DB connection for use in this script
-    try {
-        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($v);
-    $query = "select name from portfolios where pfid = $pf_id;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['name'];
-    }
-    return 'Unknown Portfolio';
-}
-
-function get_pf_working_date($v)
-{
-    // setup the DB connection for use in this script
-    try {
-        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($v);
-    $query = "select working_date from portfolios where pfid = $pf_id;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['working_date'];
-    }
-    return '200-01-01';
-}
-
-function get_pf_exch($v)
-{
-    // setup the DB connection for use in this script
-    try {
-        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($v);
-    $query = "select exch from portfolios where pfid = $pf_id;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['exch'];
-    }
-    return 'X';
-}
-
 $username = $_SESSION['username'];
 $uid = $_SESSION['uid'];
 $pfid = $_SESSION['pfid'];
@@ -64,7 +13,6 @@ $pf_working_date = get_pf_working_date($pfid);
 $pf_exch = get_pf_exch($pfid);
 
 
-#print "OK $username ($uid), Lets get to trading portfolio $pfid!\n";
 $sql_input_form = new HTML_QuickForm('sql_input');
 $sql_input_form->applyFilter('__ALL__', 'trim');
 $sql_input_form->addElement('header', null, "SQL to select stocks for '$pfname' working date $pf_working_date");
@@ -97,18 +45,27 @@ $sql_input_form->addElement('submit','execute_sql','Run Query');
 if (isset($_SESSION['sql_select']))
 {
     $sql_input_form->setDefaults(array(
-        'sql_select' => $_SESSION['sql_select'],
-        'sql_from'   => $_SESSION['sql_from'],
-        'sql_where'  => $_SESSION['sql_where'],
-        'sql_order'  => $_SESSION['sql_order'],
-        'sql_order_dir' => $_SESSION['sql_order_dir'],
-        'sql_limit'  => $_SESSION['sql_limit]']));
+                'sql_select' => $_SESSION['sql_select'],
+                'sql_from'   => $_SESSION['sql_from'],
+                'sql_where'  => $_SESSION['sql_where'],
+                'sql_order'  => $_SESSION['sql_order'],
+                'sql_order_dir' => $_SESSION['sql_order_dir'],
+                'sql_limit'  => $_SESSION['sql_limit'],
+                'chart_period' => $_SESSION['chart_period']));
 }
+else
+{
+    $sql_input_form->setDefaults(array(
+                'sql_limit'  => 10,
+                'sql_order_dir' => 'desc',
+                'chart_period' => 180));
+}
+
 if (isset($_POST['execute_sql']))
 {
     if ($sql_input_form->validate())
     {
-        print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
+        print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td align="center">';
         $sql_input_form->display();
         print '</td></tr>';
         // run the sql and return the results
@@ -119,7 +76,7 @@ if (isset($_POST['execute_sql']))
         $_SESSION['sql_order']     = $sql_order  = $data['sql_order'];
         $_SESSION['sql_order_dir'] = $sql_order_dir = $data['sql_order_dir'];
         $_SESSION['sql_limit']     = $sql_limit  = $data['sql_limit'];
-        $chart_period = $data['chart_period'];
+        $_SESSION['chart_period']  = $chart_period = $data['chart_period'];
         $query = "select $sql_select from $sql_from where ($sql_where) and (quotes.date = '$pf_working_date' and quotes.exch = '$pf_exch') order by $sql_order $sql_order_dir limit $sql_limit;";
         try {
             $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
@@ -173,7 +130,7 @@ if (isset($_POST['execute_sql']))
     }
     else
     {
-        print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
+        print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td align="center">';
         $sql_input_form->display();
         print '</td></tr>';
         print '</table>';
@@ -181,7 +138,7 @@ if (isset($_POST['execute_sql']))
 }
 else
 {
-    print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
+    print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td align="center">';
     $sql_input_form->display();
     print '</td></tr>';
     print '</table>';
