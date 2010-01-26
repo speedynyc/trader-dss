@@ -1,7 +1,7 @@
 <?php
 @include("checks.php");
 redirect_login_pf();
-draw_trader_header('select');
+draw_trader_header('queries');
 // Load the HTML_QuickForm module
 require 'HTML/QuickForm.php';
 
@@ -12,10 +12,16 @@ $pfname = get_pf_name($pfid);
 $pf_working_date = get_pf_working_date($pfid);
 $pf_exch = get_pf_exch($pfid);
 
+if (isset($_SESSION['qid']))
+{
+    $q_id = $_SESSION['qid'];
+}
 
+#print "OK $username ($uid), Lets get to trading portfolio $pfid!\n";
 $sql_input_form = new HTML_QuickForm('sql_input');
 $sql_input_form->applyFilter('__ALL__', 'trim');
-$sql_input_form->addElement('header', null, "SQL to select stocks for '$pfname' working date $pf_working_date");
+$sql_input_form->addElement('header', null, "Save queries for later use.");
+$sql_input_form->addElement('textarea', 'sql_name', 'Query Description:', 'wrap="soft" rows="1" cols="50"');
 $sql_input_form->addElement('textarea', 'sql_select', 'select:', 'wrap="soft" rows="1" cols="50"');
 $sql_input_form->addRule('sql_select','Must select columns','required');
 $sql_input_form->addElement('textarea', 'sql_from', 'from:', 'wrap="soft" rows="2" cols="50"');
@@ -41,24 +47,21 @@ $chart_period->addOption('1 year', '365');
 $chart_period->addOption('2 years', '7305');
 $chart_period->addOption('5 years', '1825');
 $chart_period->addOption('10 years', '3650');
-$sql_input_form->addElement('submit','execute_sql','Run Query');
+$sql_input_form->addElement('submit','use_sql','Use Query');
+$sql_input_form->addElement('submit','save_sql','Save Query');
+if ($q_id)
+{
+    $sql_input_form->addElement('submit','del_sql',"Delete Query $q_id");
+}
 if (isset($_SESSION['sql_select']))
 {
     $sql_input_form->setDefaults(array(
-                'sql_select' => $_SESSION['sql_select'],
-                'sql_from'   => $_SESSION['sql_from'],
-                'sql_where'  => $_SESSION['sql_where'],
-                'sql_order'  => $_SESSION['sql_order'],
-                'sql_order_dir' => $_SESSION['sql_order_dir'],
-                'sql_limit'  => $_SESSION['sql_limit]'],
-                'chart_period' => $_SESSION['chart_period']));
-}
-else
-{
-    $sql_input_form->setDefaults(array(
-                'sql_limit'  => 10,
-                'sql_order_dir' => 'desc',
-                'chart_period' => 180));
+        'sql_select' => $_SESSION['sql_select'],
+        'sql_from'   => $_SESSION['sql_from'],
+        'sql_where'  => $_SESSION['sql_where'],
+        'sql_order'  => $_SESSION['sql_order'],
+        'sql_order_dir' => $_SESSION['sql_order_dir'],
+        'sql_limit'  => $_SESSION['sql_limit]']));
 }
 
 if (isset($_POST['execute_sql']))
@@ -70,13 +73,14 @@ if (isset($_POST['execute_sql']))
         print '</td></tr>';
         // run the sql and return the results
         $data = $sql_input_form->exportValues();
+        $_SESSION['sql_name']      = $sql_select = $data['sql_name'];
         $_SESSION['sql_select']    = $sql_select = $data['sql_select'];
         $_SESSION['sql_from']      = $sql_from   = $data['sql_from'];
         $_SESSION['sql_where']     = $sql_where  = $data['sql_where'];
         $_SESSION['sql_order']     = $sql_order  = $data['sql_order'];
         $_SESSION['sql_order_dir'] = $sql_order_dir = $data['sql_order_dir'];
         $_SESSION['sql_limit']     = $sql_limit  = $data['sql_limit'];
-        $_SESSION['chart_period']  = $chart_period = $data['chart_period'];
+        $chart_period = $data['chart_period'];
         $query = "select $sql_select from $sql_from where ($sql_where) and (quotes.date = '$pf_working_date' and quotes.exch = '$pf_exch') order by $sql_order $sql_order_dir limit $sql_limit;";
         try {
             $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
