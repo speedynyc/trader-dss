@@ -1,6 +1,7 @@
 <?php
 @include("checks.php");
 redirect_login_pf();
+draw_trader_header('select');
 // Load the HTML_QuickForm module
 require 'HTML/QuickForm.php';
 
@@ -93,7 +94,7 @@ $chart_period->addOption('2 years', '7305');
 $chart_period->addOption('5 years', '1825');
 $chart_period->addOption('10 years', '3650');
 $sql_input_form->addElement('submit','execute_sql','Run Query');
-if (isset($_SESSION['sql_select]']))
+if (isset($_SESSION['sql_select']))
 {
     $sql_input_form->setDefaults(array(
         'sql_select' => $_SESSION['sql_select'],
@@ -107,21 +108,17 @@ if (isset($_POST['execute_sql']))
 {
     if ($sql_input_form->validate())
     {
+        print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
         $sql_input_form->display();
+        print '</td></tr>';
         // run the sql and return the results
         $data = $sql_input_form->exportValues();
-        $sql_select = $data['sql_select'];
-        $_SESSION['sql_select'] = $data['sql_select'];
-        $sql_from = $data['sql_from'];
-        $_SESSION['sql_from'] = $data['sql_from'];
-        $sql_where = $data['sql_where'];
-        $_SESSION['sql_where'] = $data['sql_where'];
-        $sql_order = $data['sql_order'];
-        $_SESSION['sql_order'] = $data['sql_order'];
-        $sql_order_dir = $data['sql_order_dir'];
-        $_SESSION['sql_order_dir'] = $data['sql_order_dir'];
-        $sql_limit = $data['sql_limit'];
-        $_SESSION['sql_limit'] = $data['sql_limit'];
+        $_SESSION['sql_select']    = $sql_select = $data['sql_select'];
+        $_SESSION['sql_from']      = $sql_from   = $data['sql_from'];
+        $_SESSION['sql_where']     = $sql_where  = $data['sql_where'];
+        $_SESSION['sql_order']     = $sql_order  = $data['sql_order'];
+        $_SESSION['sql_order_dir'] = $sql_order_dir = $data['sql_order_dir'];
+        $_SESSION['sql_limit']     = $sql_limit  = $data['sql_limit'];
         $chart_period = $data['chart_period'];
         $query = "select $sql_select from $sql_from where ($sql_where) and (quotes.date = '$pf_working_date' and quotes.exch = '$pf_exch') order by $sql_order $sql_order_dir limit $sql_limit;";
         try {
@@ -129,9 +126,10 @@ if (isset($_POST['execute_sql']))
         } catch (PDOException $e) {
             die("ERROR: Cannot connect: " . $e->getMessage());
         }
-        print "<hr>\n";
+        print '<tr><td>';
         print $query;
-        print "<hr>\n";
+        print '</td></tr>';
+        print '<tr><td>';
         print '<table border="1" cellpadding="5" cellspacing="0">' . "\n";
         print "<tr><td>select</td><td>$sql_select</td><td>.</td></tr>\n";
         print "<tr><td>from</td><td>$sql_from</td><td>.</td></tr>\n";
@@ -139,7 +137,8 @@ if (isset($_POST['execute_sql']))
         print "<tr><td>order by</td><td>$sql_order</td><td>$sql_order_dir</td></tr>\n";
         print "<tr><td>limit</td><td>$sql_limit</td><td>;</td></tr>\n";
         print "</table>\n";
-        print "<hr>\n";
+        print '</td></tr>';
+        print '<tr><td>';
         $first = true;
         print '<table border="1" cellpadding="5" cellspacing="0"><tr>';
         $result = $pdo->query($query);
@@ -169,14 +168,22 @@ if (isset($_POST['execute_sql']))
             print "</tr>\n";
         }
         print '</table>';
+        print '</td></tr>';
+        print '</table>';
     }
     else
     {
+        print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
         $sql_input_form->display();
+        print '</td></tr>';
+        print '</table>';
     }
 }
 else
 {
+    print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
     $sql_input_form->display();
+    print '</td></tr>';
+    print '</table>';
 }
 ?>
