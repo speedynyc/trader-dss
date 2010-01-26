@@ -2,7 +2,7 @@
 // This script displays the login screen, sets the session cookie with the username and uid then redirects to the profile admin page
 require 'HTML/QuickForm.php';
 @include("checks.php");
-redirect_login_pf();    # start session and redirect depending on cookie values
+session_start();
 
 function check_account($v)
 {
@@ -29,6 +29,15 @@ function check_account($v)
     return $flag;
 }
 
+if (isset($_SESSION['username']))
+{
+    // save the username to use as the defualt and then wipe the cookie clean
+    $default_username = $_SESSION['username'];
+    #unset($_SESSION['uid']);
+    #unset($_SESSION['username']);
+    #unset($_SESSION['pfid']);
+}
+
 # create the form and validation rules
 $login_form = new HTML_QuickForm('login');
 $login_form->applyFilter('__ALL__', 'trim');
@@ -39,17 +48,24 @@ $login_form->addElement('password', 'passwd', 'Password:', array('size' => 10, '
 $login_form->addRule(array('username', 'passwd'), 'Account details incorrect', 'callback', 'check_account');
 $login_form->addRule('passwd', 'Must enter a password', 'required');
 $login_form->addElement('submit', 'login', 'Login');
+if (isset($default_username))
+{
+    $login_form->setDefaults(array('username' => $default_username));
+}
 $g_username = ''; # global to hold the username
 $g_uid = ''; # global to hold the uid
 if ($login_form->validate())
 {
-    $login_form->freeze();
     $_SESSION['username'] = $g_username;
     $_SESSION['uid'] = $g_uid;
+    unset($_SESSION['pfid']);
     redirect_login_pf();
 }
 else
 {
+    draw_trader_header('login',false);
+    print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
     $login_form->display();
+    print '</td></tr></table>';
 }
 ?>

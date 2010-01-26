@@ -1,6 +1,7 @@
 <?php
 @include("checks.php");
 redirect_login_pf();
+draw_trader_header('portfolios');
 // Load the HTML_QuickForm module
 require 'HTML/QuickForm.php';
 
@@ -83,11 +84,15 @@ if (isset($_POST['save']))
         $create_pf_form->process('create_portfolio');
         // even though we've saved the results we draw the form for another
     }
+    print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
     $create_pf_form->display();
+    print '</td></tr>';
 }
 else
 {
+    print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
     $create_pf_form->display();
+    print '</td></tr>';
 }
 
 
@@ -110,8 +115,6 @@ function create_portfolio($v)
     $pdo->exec("insert into portfolios (name, uid, exch, parcel, start_date, working_date) values ($pf_desc, $uid, $exchange, $parcel, $start_date, $start_date);");
     redirect_login_pf();
 }
-
-print "<hr>\n";
 
 // Instantiate a new form tp choose the portfolio to work with
 $choose_pf_form = new HTML_QuickForm('choose_portfolio');
@@ -151,11 +154,15 @@ if (isset($_POST['choose']))
     }
     else
     {
+        print '<tr><td>';
         $choose_pf_form->display();
+        print '</td></tr></table>';
     }
 }
 else
 {
+    print '<tr><td>';
     $choose_pf_form->display();
+    print '</td></tr></table>';
 }
 ?>
