@@ -102,6 +102,7 @@ if (isset($_POST['execute_sql']))
         */
         print '<tr><td>';
         $first = true;
+        print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="stocks" id="stocks">';
         print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr>';
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         try 
@@ -114,7 +115,8 @@ if (isset($_POST['execute_sql']))
                     // work out the index names and print them as headers
                     $headers = array_keys($row);
                     $first = false;
-                    print "<td>symb</td>\n";
+                    print "<td>symb\n";
+                    print '<input name="add_to_cart" value="Put into carts" type="submit" /></td>';
                     foreach ($headers as $index)
                     {
                         if ($index != 'symb')
@@ -133,7 +135,8 @@ if (isset($_POST['execute_sql']))
                 {
                     $symbol = $row['symb'];
                 }
-                print "<td><input type=\"checkbox\" name=\"$symbol\">$symbol</td>\n";
+                print "<td><input type=\"checkbox\" name=\"buy[]\" value=\"$symbol\">Buy $symbol<br>\n";
+                print "<input type=\"checkbox\" name=\"watch[]\" value=\"$symbol\">Watch $symbol</td>\n";
                 foreach ($headers as $index)
                 {
                     if ($index != 'symb')
@@ -144,6 +147,7 @@ if (isset($_POST['execute_sql']))
                 print "<td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symbol&TimeRange=$chart_period&working_date=$pf_working_date&exch=$pf_exch&ChartSize=M&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td>";
                 print "</tr>\n";
             }
+            print '</form>';
         }
         catch (PDOException $e)
         {
@@ -161,6 +165,36 @@ if (isset($_POST['execute_sql']))
         print '</table>';
     }
 }
+elseif (isset($_POST['add_to_cart']))
+{
+    print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td align="center">';
+    $sql_input_form->display();
+    print '</td></tr>';
+    print '</table>';
+    // add them to the shopping cart or watch list
+    print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td align="center">';
+    if (isset($_POST['buy']))
+    {
+        $buy = $_POST['buy'];
+        print '<tr>';
+        foreach ($buy as $index)
+        {
+            print '<td>' . $index . '</td>';
+        }
+    }
+    print '</tr>';
+    if (isset($_POST['watch']))
+    {
+        $watch = $_POST['watch'];
+        print '<tr>';
+        foreach ($watch as $index)
+        {
+            print '<td>' . $index . '</td>';
+        }
+    }
+    print '</tr>';
+    print '</table>';
+}
 else
 {
     print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td align="center">';
@@ -168,4 +202,5 @@ else
     print '</td></tr>';
     print '</table>';
 }
+
 ?>
