@@ -1,9 +1,10 @@
 <?php
-@include("checks.php");
+include("checks.php");
 redirect_login_pf();
 draw_trader_header('queries');
 // Load the HTML_QuickForm module
 require 'HTML/QuickForm.php';
+global $db_hostname, $db_database, $db_user, $db_password;
 
 $username = $_SESSION['username'];
 $uid = $_SESSION['uid'];
@@ -18,7 +19,8 @@ if (isset($_SESSION['qid']))
 }
 
 try {
-    $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+    $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    #$pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
 } catch (PDOException $e) {
     die("ERROR: Cannot connect: " . $e->getMessage());
 }

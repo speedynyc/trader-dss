@@ -1,9 +1,10 @@
 <?php
-@include("checks.php");
+include("checks.php");
 redirect_login_pf();
 draw_trader_header('select');
 // Load the HTML_QuickForm module
 require 'HTML/QuickForm.php';
+global $db_hostname, $db_database, $db_user, $db_password;
 
 $username = $_SESSION['username'];
 $uid = $_SESSION['uid'];
@@ -79,7 +80,7 @@ if (isset($_POST['execute_sql']))
         $_SESSION['chart_period']  = $chart_period = $data['chart_period'];
         $query = "select $sql_select from $sql_from where ($sql_where) and (quotes.date = '$pf_working_date' and quotes.exch = '$pf_exch') order by $sql_order $sql_order_dir limit $sql_limit;";
         try {
-            $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+            $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
         } catch (PDOException $e) {
             die("ERROR: Cannot connect: " . $e->getMessage());
         }
@@ -101,6 +102,7 @@ if (isset($_POST['execute_sql']))
         */
         print '<tr><td>';
         $first = true;
+        print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="stocks" id="stocks">';
         print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr>';
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         try 
@@ -113,24 +115,39 @@ if (isset($_POST['execute_sql']))
                     // work out the index names and print them as headers
                     $headers = array_keys($row);
                     $first = false;
+                    print "<td>symb\n";
+                    print '<input name="add_to_cart" value="Put into carts" type="submit" /></td>';
                     foreach ($headers as $index)
                     {
-                        print "<td>$index</td>\n";
+                        if ($index != 'symb')
+                        {
+                            print "<td>$index</td>\n";
+                        }
                     }
                     print "<td>Chart</td></tr>\n";
                 }
                 print "<tr>";
+                if (! isset($row['symb']))
+                {
+                    die('<tr><td><font color="red">The Query must include the field "symb"</font></td></tr></table>');
+                }
+                else
+                {
+                    $symbol = $row['symb'];
+                }
+                print "<td><input type=\"checkbox\" name=\"buy[]\" value=\"$symbol\">Buy $symbol<br>\n";
+                print "<input type=\"checkbox\" name=\"watch[]\" value=\"$symbol\">Watch $symbol</td>\n";
                 foreach ($headers as $index)
                 {
-                    if ($index == 'symb')
+                    if ($index != 'symb')
                     {
-                        $symbol = $row[$index];
+                        print "<td>$row[$index]</td>\n";
                     }
-                    print "<td>$row[$index]</td>\n";
                 }
                 print "<td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symbol&TimeRange=$chart_period&working_date=$pf_working_date&exch=$pf_exch&ChartSize=M&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td>";
                 print "</tr>\n";
             }
+            print '</form>';
         }
         catch (PDOException $e)
         {
@@ -148,6 +165,40 @@ if (isset($_POST['execute_sql']))
         print '</table>';
     }
 }
+elseif (isset($_POST['add_to_cart']))
+{
+    print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td align="center">';
+    $sql_input_form->display();
+    print '</td></tr>';
+    print '</table>';
+    // add them to the shopping cart or watch list
+    print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td align="center">';
+    if (isset($_POST['buy']))
+    {
+        $buy = $_POST['buy'];
+        foreach ($buy as $symbol)
+        {
+            if (add_to_cart('cart', $symbol))
+            {
+                print "<tr><td>Added $symbol to buy</td></td>";
+            }
+        }
+    }
+    print '</tr>';
+    if (isset($_POST['watch']))
+    {
+        $watch = $_POST['watch'];
+        foreach ($watch as $symbol)
+        {
+            if (add_to_cart('watch', $symbol))
+            {
+                print "<tr><td>Added $symbol to watch</td></td>";
+            }
+        }
+    }
+    print '</tr>';
+    print '</table>';
+}
 else
 {
     print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td align="center">';
@@ -155,4 +206,5 @@ else
     print '</td></tr>';
     print '</table>';
 }
+
 ?>
