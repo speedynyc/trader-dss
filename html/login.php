@@ -8,11 +8,12 @@ function check_account($v)
 {
     // this function is called with the username and password in the array $v
     // validate the account details from the database
-    global $g_username;
-    global $g_uid;
+    global $g_username, $g_uid;
+    global $db_hostname, $db_database, $db_user, $db_password;
     $flag = false;
     try {
-        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+        #$pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
     } catch (PDOException $e) {
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
@@ -41,7 +42,7 @@ if (isset($_SESSION['username']))
 # create the form and validation rules
 $login_form = new HTML_QuickForm('login');
 $login_form->applyFilter('__ALL__', 'trim');
-$login_form->addElement('header', null, 'Login to the Trader DSS. Authorised users only');
+$login_form->addElement('header', null, 'Login to the <a href="http://code.google.com/p/trader-dss/">Trader DSS</a>. Authorised users only');
 $login_form->addElement('text', 'username', 'Username:', array('size' => 30, 'maxlength' => 100));
 $login_form->addRule('username', 'Please enter your username', 'required');
 $login_form->addElement('password', 'passwd', 'Password:', array('size' => 10, 'maxlength' => 100));

@@ -1,4 +1,98 @@
 <?php
+
+$db_hostname = 'localhost';
+$db_database = 'trader';
+$db_user     = 'postgres';
+$db_password = 'happy';
+
+function add_to_cart($table, $symb)
+{
+    // adds all symbols in the given list to the given table
+    global $db_hostname, $db_database, $db_user, $db_password;
+    $pfid = $_SESSION['pfid'];
+    $date = get_pf_working_date($pfid);
+    $exch = get_pf_exch($pfid);
+    $close = get_stock_close($symb, $date, $exch);
+    $parcel = get_pf_parcel_size($pfid);
+    if ($close < $parcel)
+    {
+        $qty = round($parcel/$close);
+    }
+    else
+    {
+        $qty = 1;
+    }
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $query = "insert into $table (pfid, date, symb, volume) values ('$pfid', '$date', '$symb', '$qty');";
+    try 
+    {
+        $pdo->exec($query);
+        return true;
+    }
+    catch (PDOException $e)
+    {
+        print('<font color="red">' . $e->getMessage() . '</font>');
+        return false;
+    }
+}
+
+function is_in_cart($table, $symb)
+{
+    // checks if the given symbol is already in the given cart
+    global $db_hostname, $db_database, $db_user, $db_password;
+    $pfid = $_SESSION['pfid'];
+    $date = get_pf_working_date($pfid);
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $query = "select count(*) from $table were pfid = '$pfid' and symb = '$symb';";
+    try 
+    {
+        $result = $pdo->query($query);
+        return true;
+    }
+    catch (PDOException $e)
+    {
+        print('<font color="red">' . $e->getMessage() . '</font>');
+        return false;
+    }
+    $row = $result->fetch(PDO::FETCH_ASSOC);
+    return ($row['count'] > 0);
+}
+
+function del_from_cart($table, $symb)
+{
+    // removes a symbol from a cart
+    $pfid = $_SESSION['pfid'];
+    $date = get_pf_working_date($pfid);
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $query = "delete from $table where symb = '$symb' and date = '$date' and pfid = '$fpid';";
+    try 
+    {
+        $pdo->exec($query);
+        return true;
+    }
+    catch (PDOException $e)
+    {
+        print('<font color="red">' . $e->getMessage() . '</font>');
+        return false;
+    }
+}
+
 function redirect_login_pf()
 {
     /* the idea here is to redirect to the login or porftolio selection page when 
@@ -149,15 +243,16 @@ function draw_trader_header($active_page, $allow_others)
 
 }
 
-function get_pf_name($v)
+function get_pf_name($pfid)
 {
     // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
     try {
-        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
     } catch (PDOException $e) {
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
-    $pf_id = $pdo->quote($v);
+    $pf_id = $pdo->quote($pfid);
     $query = "select name from portfolios where pfid = $pf_id;";
     foreach ($pdo->query($query) as $row)
     {
@@ -166,15 +261,16 @@ function get_pf_name($v)
     return 'Unknown Portfolio';
 }
 
-function get_pf_exch($v)
+function get_pf_exch($pfid)
 {
     // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
     try {
-        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
     } catch (PDOException $e) {
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
-    $pf_id = $pdo->quote($v);
+    $pf_id = $pdo->quote($pfid);
     $query = "select exch from portfolios where pfid = $pf_id;";
     foreach ($pdo->query($query) as $row)
     {
@@ -183,21 +279,79 @@ function get_pf_exch($v)
     return 'X';
 }
 
-function get_pf_working_date($v)
+function get_pf_parcel_size($pfid)
 {
     // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
     try {
-        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
     } catch (PDOException $e) {
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
-    $pf_id = $pdo->quote($v);
+    $pf_id = $pdo->quote($pfid);
+    $query = "select parcel from portfolios where pfid = $pf_id;";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['parcel'];
+    }
+    return '1';
+}
+
+function get_pf_working_date($pfid)
+{
+    // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($pfid);
     $query = "select working_date from portfolios where pfid = $pf_id;";
     foreach ($pdo->query($query) as $row)
     {
         return $row['working_date'];
     }
     return '200-01-01';
+}
+
+function get_symb_name($symb, $exch)
+{
+    // retrieve any field from a table indexed on symb, date, exch
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $query = "select name from stocks where symb = '$symb' and exch = '$exch';";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['name'];
+    }
+    return false;
+}
+
+function get_stock_close($symb, $date, $exch)
+{
+    return get_table_field('quotes', 'close', $symb, $date, $exch);
+}
+
+function get_table_field($table, $field, $symb, $date, $exch)
+{
+    // retrieve any field from a table indexed on symb, date, exch
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $query = "select $field from $table where symb = '$symb' and date = '$date' and exch = '$exch';";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row[$field];
+    }
+    return false;
 }
 
 ?>

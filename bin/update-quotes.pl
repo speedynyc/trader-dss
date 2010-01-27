@@ -36,8 +36,9 @@ $six_months_ago = UnixDate($six_months_ago, "%Y-%m-%d");
 
 $dbh = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password) or die $DBI::errstr;
 
-print "select symb,exch,first_quote,last_quote from stocks where exch = '$exchange' and ((last_quote > '$six_months_ago' and last_quote < '$last_business_day') or last_quote is null) order by symb;\n" if ($debug);
-$sth = $dbh->prepare("select symb,exch,first_quote,last_quote from stocks where exch = '$exchange' and ((last_quote > '$six_months_ago' and last_quote < '$last_business_day') or last_quote is null) order by symb;") or die $dbh->errstr;
+my $query = "select symb,exch,first_quote,last_quote from stocks where exch = '$exchange' and ((last_quote > '$six_months_ago' and last_quote < '$last_business_day') or last_quote is null) order by symb;\n";
+print "$query\n" if ($debug);
+$sth = $dbh->prepare("$query") or die $dbh->errstr;
 $sth->execute or die $dbh->errstr;
 while ((@row) = $sth->fetchrow_array)
 {
@@ -71,9 +72,10 @@ while ((@row) = $sth->fetchrow_array)
         ($symbol, $date, $open, $high, $low, $close, $volume, $adjusted) = @$row;
         ($symbol, undef) = split(/\./, $symbol);
         $adjusted = $close if (not defined($adjusted));
-        print "[INFO][inserting]$symbol, $date, $open, $high, $low, $close, $volume, $adjusted\n";
-        print "insert into quotes (date, symb, exch, open, high, low, close, volume, adj_close) values ('$date', '$stock_code', '$exchange', $open, $high, $low, $close, $volume, $adjusted)\n" if ($debug);
-        $isth = $dbh->prepare("insert into quotes (date, symb, exch, open, high, low, close, volume, adj_close) values ('$date', '$stock_code', '$exchange', $open, $high, $low, $close, $volume, $adjusted)") or die $dbh->errstr;
+        print "[INFO][inserting $total_inserts]$symbol, $date, $open, $high, $low, $close, $volume, $adjusted\n";
+        $query = "insert into quotes (date, symb, exch, open, high, low, close, volume, adj_close) values ('$date', '$stock_code', '$exchange', $open, $high, $low, $close, $volume, $adjusted);";
+        print "$query\n" if ($debug);
+        $isth = $dbh->prepare($query) or die $dbh->errstr;
         $isth->execute or die $dbh->errstr;
         ++$total_inserts;
     }
