@@ -1,0 +1,39 @@
+#summary Getting Started.
+= Introduction =
+
+A brief tutorial to get you started
+
+= Goals =
+Trader has a number of goals.
+
+  * Fun to implement and use
+  * A testbed for technical analysis and trading schemes
+  * A training ground for trading
+  * A complete data warehouse of stock prices and technical indicators
+
+= Concepts =
+ 
+  * A portfolio is a collection of stocks you've (virtually) traded. 
+    * It can only contain shares from a single exchange. 
+    * It has a current working date which doesn't change until you choose to move forward in time one trading day in a step. You cannot travel backwards in time (surprise!)
+    * Portfolios also have a parcel size. That's the value of the minimum trade you want to make in that portfolio. It's not enforced though.
+  * A query is written in SQL and can be named and saved for later use. 
+    * Queries are hard to write and debug. 
+    * You need to understand the indicators and the database structure to write them.
+    * A query must include the 'quotes' table so that the current date and exchange can be filtered on. *Might be better just to have 'date' and 'exch' fields used*
+    * A query must include the 'symb' field named as 'symb' so that the chart can be drawn.
+  * *not yet implemented* A chart is a graph of stock information and indicators. They can be named and saved then combined with a query to help make trading decisions.
+
+= Getting started =
+  * login via the 'login.php' page and select the 'portfolios' tab.
+  * Create a portfolio.
+  * Try a query or two. Here's one to get you started
+||*Select*||quotes.date as date, quotes.symb as symb, quotes.exch as exch, close, volume, wpr_10, wpr_20, mapr_10, mapr_20, mapr_30, mapr_50||
+||*From*||quotes, indicators b||
+||*Where*||(quotes.date = b.date AND quotes.symb = b.symb AND quotes.exch = b.exch) and (volume > 0 and mapr_50 > 0) and close < 20||
+||*Order by*||b.mapr_50||
+||*Limit*||10||
+||*Chart Period*||1 year||
+    * This should show you shares less than 20 that are trending up ordered by the amount they've increased in the last 50 days.
+  * To save this query, click on the 'queries' tab, name it and save it.
+    * You can now use this query with any portfolio by loading it after you've selected a portfolio.
