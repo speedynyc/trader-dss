@@ -16,11 +16,11 @@ $pf_exch = get_pf_exch($pfid);
 $sql_input_form = new HTML_QuickForm('sql_input');
 $sql_input_form->applyFilter('__ALL__', 'trim');
 $sql_input_form->addElement('header', null, "SQL to select stocks for '$pfname' working date $pf_working_date");
-$sql_input_form->addElement('textarea', 'sql_select', 'select:', 'wrap="soft" rows="1" cols="50"');
+$sql_input_form->addElement('textarea', 'sql_select', 'select:', 'wrap="soft" rows="3" cols="50"');
 $sql_input_form->addRule('sql_select','Must select columns','required');
-$sql_input_form->addElement('textarea', 'sql_from', 'from:', 'wrap="soft" rows="2" cols="50"');
+$sql_input_form->addElement('textarea', 'sql_from', 'from:', 'wrap="soft" rows="1" cols="50"');
 $sql_input_form->addRule('sql_from','Must select tables','required');
-$sql_input_form->addElement('textarea', 'sql_where', 'where:', 'wrap="soft" rows="3" cols="50"');
+$sql_input_form->addElement('textarea', 'sql_where', 'where:', 'wrap="soft" rows="4" cols="50"');
 $sql_input_form->addRule('sql_where','Must include where clause','required');
 $sql_input_form->addElement('textarea', 'sql_order', 'order by:', 'wrap="soft" rows="1" cols="50"');
 $sql_input_form->addRule('sql_order','Must order the output','required');
@@ -83,46 +83,58 @@ if (isset($_POST['execute_sql']))
         } catch (PDOException $e) {
             die("ERROR: Cannot connect: " . $e->getMessage());
         }
+        print '<tr>';
+        print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr>';
+        print '<td><b>SQL</b></td>';
+        print "<td>$query</td></tr></table>\n";
+        /*
         print '<tr><td>';
-        print $query;
-        print '</td></tr>';
-        print '<tr><td>';
-        print '<table border="1" cellpadding="5" cellspacing="0">' . "\n";
-        print "<tr><td>select</td><td>$sql_select</td><td>.</td></tr>\n";
+        print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr>';
+        print '<td><b>Added</b></td><td><b>Entered</b></td><td><b>Added</b></td></tr><tr>';
+        print "<td>select</td><td>$sql_select</td><td>.</td></tr>\n";
         print "<tr><td>from</td><td>$sql_from</td><td>.</td></tr>\n";
         print "<tr><td>where</td><td>$sql_where</td><td>and (quotes.date = '$pf_working_date' and quotes.exch = '$pf_exch')</td></tr>\n";
         print "<tr><td>order by</td><td>$sql_order</td><td>$sql_order_dir</td></tr>\n";
         print "<tr><td>limit</td><td>$sql_limit</td><td>;</td></tr>\n";
         print "</table>\n";
         print '</td></tr>';
+        */
         print '<tr><td>';
         $first = true;
-        print '<table border="1" cellpadding="5" cellspacing="0"><tr>';
-        $result = $pdo->query($query);
-        while ($row = $result->fetch(PDO::FETCH_ASSOC))
+        print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr>';
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        try 
         {
-            if ($first)
+            $result = $pdo->query($query);
+            while ($row = $result->fetch(PDO::FETCH_ASSOC))
             {
-                // work out the index names and print them as headers
-                $headers = array_keys($row);
-                $first = false;
+                if ($first)
+                {
+                    // work out the index names and print them as headers
+                    $headers = array_keys($row);
+                    $first = false;
+                    foreach ($headers as $index)
+                    {
+                        print "<td>$index</td>\n";
+                    }
+                    print "<td>Chart</td></tr>\n";
+                }
+                print "<tr>";
                 foreach ($headers as $index)
                 {
-                    print "<td>$index</td>\n";
+                    if ($index == 'symb')
+                    {
+                        $symbol = $row[$index];
+                    }
+                    print "<td>$row[$index]</td>\n";
                 }
-                print "<td>Chart</td></tr>\n";
+                print "<td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symbol&TimeRange=$chart_period&working_date=$pf_working_date&exch=$pf_exch&ChartSize=M&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td>";
+                print "</tr>\n";
             }
-            print "<tr>";
-            foreach ($headers as $index)
-            {
-                if ($index == 'symb')
-                {
-                    $symbol = $row[$index];
-                }
-                print "<td>$row[$index]</td>\n";
-            }
-            print "<td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symbol&TimeRange=$chart_period&working_date=$pf_working_date&exch=$pf_exch&ChartSize=M&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td>";
-            print "</tr>\n";
+        }
+        catch (PDOException $e)
+        {
+            print('<tr><td><font color="red">' . $e->getMessage() . '</font></td></tr>');
         }
         print '</table>';
         print '</td></tr>';
