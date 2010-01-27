@@ -42,7 +42,7 @@ if (isset($_SESSION['username']))
 # create the form and validation rules
 $login_form = new HTML_QuickForm('login');
 $login_form->applyFilter('__ALL__', 'trim');
-$login_form->addElement('header', null, 'Login to the Trader DSS. Authorised users only');
+$login_form->addElement('header', null, 'Login to the <a href="http://code.google.com/p/trader-dss/">Trader DSS</a>. Authorised users only');
 $login_form->addElement('text', 'username', 'Username:', array('size' => 30, 'maxlength' => 100));
 $login_form->addRule('username', 'Please enter your username', 'required');
 $login_form->addElement('password', 'passwd', 'Password:', array('size' => 10, 'maxlength' => 100));
