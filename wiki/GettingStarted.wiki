@@ -20,7 +20,7 @@ Trader has a number of goals.
   * A query is written in SQL and can be named and saved for later use. 
     * Queries are hard to write and debug. 
     * You need to understand the indicators and the database structure to write them.
-    * A query must include the 'quotes' table so that the current date and exchange can be filtered on. *Might be better just to have 'date' and 'exch' fields used*
+    * A query must include the 'quotes' table so that the current date and exchange can be filtered on. [http://code.google.com/p/trader-dss/issues/detail?id=26 Issue 26]
     * A query must include the 'symb' field named as 'symb' so that the chart can be drawn.
   * *not yet implemented* A chart is a graph of stock information and indicators. They can be named and saved then combined with a query to help make trading decisions.
 
