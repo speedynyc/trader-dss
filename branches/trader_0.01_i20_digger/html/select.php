@@ -1,9 +1,10 @@
 <?php
-@include("checks.php");
+include("checks.php");
 redirect_login_pf();
 draw_trader_header('select');
 // Load the HTML_QuickForm module
 require 'HTML/QuickForm.php';
+global $db_hostname, $db_database, $db_user, $db_password;
 
 $username = $_SESSION['username'];
 $uid = $_SESSION['uid'];
@@ -79,7 +80,8 @@ if (isset($_POST['execute_sql']))
         $_SESSION['chart_period']  = $chart_period = $data['chart_period'];
         $query = "select $sql_select from $sql_from where ($sql_where) and (quotes.date = '$pf_working_date' and quotes.exch = '$pf_exch') order by $sql_order $sql_order_dir limit $sql_limit;";
         try {
-            $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+            $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+            #$pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
         } catch (PDOException $e) {
             die("ERROR: Cannot connect: " . $e->getMessage());
         }

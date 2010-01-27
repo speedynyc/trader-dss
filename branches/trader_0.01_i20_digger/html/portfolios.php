@@ -1,13 +1,15 @@
 <?php
-@include("checks.php");
+include("checks.php");
 redirect_login_pf();
 draw_trader_header('portfolios');
 // Load the HTML_QuickForm module
 require 'HTML/QuickForm.php';
+global $db_hostname, $db_database, $db_user, $db_password;
 
 // setup the DB connection for use in this script
 try {
-    $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+    #$pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+    $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
 } catch (PDOException $e) {
     die("ERROR: Cannot connect: " . $e->getMessage());
 }
@@ -20,8 +22,10 @@ function validate_date($v) {
 function validate_new_portfolio($v)
 {
     // check that this portfolio doesn't exist
+    global $db_hostname, $db_database, $db_user, $db_password;
     try {
-        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+        #$pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
     } catch (PDOException $e) {
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
@@ -39,8 +43,10 @@ function validate_new_portfolio($v)
 function get_exch_desc($v)
 {
     // return the description of the given exchange
+    global $db_hostname, $db_database, $db_user, $db_password;
     try {
-        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+        #$pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
     } catch (PDOException $e) {
         die("ERROR: Cannot connect: " . $e->getMessage());
     }

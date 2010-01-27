@@ -8,11 +8,12 @@ function check_account($v)
 {
     // this function is called with the username and password in the array $v
     // validate the account details from the database
-    global $g_username;
-    global $g_uid;
+    global $g_username, $g_uid;
+    global $db_hostname, $db_database, $db_user, $db_password;
     $flag = false;
     try {
-        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+        #$pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
     } catch (PDOException $e) {
         die("ERROR: Cannot connect: " . $e->getMessage());
     }

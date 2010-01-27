@@ -1,4 +1,10 @@
 <?php
+
+$db_hostname = 'localhost';
+$db_database = 'trader';
+$db_user     = 'postgres';
+$db_password = 'happy';
+
 function redirect_login_pf()
 {
     /* the idea here is to redirect to the login or porftolio selection page when 
@@ -152,8 +158,10 @@ function draw_trader_header($active_page, $allow_others)
 function get_pf_name($v)
 {
     // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
     try {
-        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+        #$pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
     } catch (PDOException $e) {
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
@@ -169,8 +177,10 @@ function get_pf_name($v)
 function get_pf_exch($v)
 {
     // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
     try {
-        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+        #$pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
     } catch (PDOException $e) {
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
@@ -186,8 +196,10 @@ function get_pf_exch($v)
 function get_pf_working_date($v)
 {
     // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
     try {
-        $pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+        #$pdo = new PDO("pgsql:host=localhost;dbname=trader", "postgres", "happy");
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
     } catch (PDOException $e) {
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
