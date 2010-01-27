@@ -176,20 +176,24 @@ elseif (isset($_POST['add_to_cart']))
     if (isset($_POST['buy']))
     {
         $buy = $_POST['buy'];
-        print '<tr>';
-        foreach ($buy as $index)
+        foreach ($buy as $symbol)
         {
-            print '<td>' . $index . '</td>';
+            if (add_to_cart('cart', $symbol))
+            {
+                print "<tr><td>Added $symbol to buy</td></td>";
+            }
         }
     }
     print '</tr>';
     if (isset($_POST['watch']))
     {
         $watch = $_POST['watch'];
-        print '<tr>';
-        foreach ($watch as $index)
+        foreach ($watch as $symbol)
         {
-            print '<td>' . $index . '</td>';
+            if (add_to_cart('watch', $symbol))
+            {
+                print "<tr><td>Added $symbol to watch</td></td>";
+            }
         }
     }
     print '</tr>';
