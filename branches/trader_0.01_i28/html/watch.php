@@ -45,46 +45,6 @@ function draw_table($pfid, $pf_working_date, $pf_exch, $pf_nam)
     print '</form>';
 }
 
-function update_cart($cart, $pfid, $pf_working_date)
-{
-    global $pdo;
-    $query = "select * from $cart where date <= '$pf_working_date' and pfid = '$pfid';";
-    foreach ($pdo->query($query) as $row)
-    {
-        $symb = $row['symb'];
-        if (isset($_POST["buy_volume_$symb"]))
-        {
-            $volume = $_POST["buy_volume_$symb"];
-            if (is_numeric($volume))
-            {
-                $update = "update $cart set volume = '$volume' where pfid = '$pfid' and date = '$pf_working_date' and symb = '$symb';";
-                try 
-                {
-                    $pdo->exec($update);
-                }
-                catch (PDOException $e)
-                {
-                    tr_warn('update_cart:' . $update . ':' . $e->getMessage());
-                }
-            }
-        }
-        if (isset($_POST["buy_comment_$symb"]))
-        {
-            $comment = $_POST["buy_comment_$symb"];
-            $update = "update $cart set comment = '$comment' where pfid = '$pfid' and date = '$pf_working_date' and symb = '$symb';";
-            try 
-            {
-                $pdo->exec($update);
-            }
-            catch (PDOException $e)
-            {
-                tr_warn('update_cart:' . $update . ':' . $e->getMessage());
-            }
-        }
-
-    }
-}
-
 #if (isset($_POST['recalc']))
 #{
     update_cart('watch', $pfid, $pf_working_date);

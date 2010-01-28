@@ -10,6 +10,54 @@ function tr_warn($message='No message!')
     print('<font color="red">' . $message . '</font>');
 }
 
+function update_cart($cart, $pfid, $pf_working_date)
+{
+    // this function is probably only going to be used by trade and watch so really shouldn't be here
+    global $db_hostname, $db_database, $db_user, $db_password;
+    $pf_working_date = get_pf_working_date($pfid);
+    $exch = get_pf_exch($pfid);
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $query = "select * from $cart where date <= '$pf_working_date' and pfid = '$pfid';";
+    foreach ($pdo->query($query) as $row)
+    {
+        $symb = $row['symb'];
+        if (isset($_POST["buy_volume_$symb"]))
+        {
+            $volume = $_POST["buy_volume_$symb"];
+            if (is_numeric($volume))
+            {
+                $update = "update $cart set volume = '$volume' where pfid = '$pfid' and date = '$pf_working_date' and symb = '$symb';";
+                try 
+                {
+                    $pdo->exec($update);
+                }
+                catch (PDOException $e)
+                {
+                    tr_warn('update_cart:' . $update . ':' . $e->getMessage());
+                }
+            }
+        }
+        if (isset($_POST["buy_comment_$symb"]))
+        {
+            $comment = $_POST["buy_comment_$symb"];
+            $update = "update $cart set comment = '$comment' where pfid = '$pfid' and date = '$pf_working_date' and symb = '$symb';";
+            try 
+            {
+                $pdo->exec($update);
+            }
+            catch (PDOException $e)
+            {
+                tr_warn('update_cart:' . $update . ':' . $e->getMessage());
+            }
+        }
+    }
+}
+
 function add_to_cart($table, $symb, $comment = '', $volume = 0)
 {
     // adds all symbols in the given list to the given table
