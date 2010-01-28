@@ -5,6 +5,11 @@ $db_database = 'trader';
 $db_user     = 'postgres';
 $db_password = 'happy';
 
+function tr_warn($message='No message!')
+{
+    print('<font color="red">' . $message . '</font>');
+}
+
 function add_to_cart($table, $symb)
 {
     // adds all symbols in the given list to the given table
@@ -16,7 +21,7 @@ function add_to_cart($table, $symb)
     $parcel = get_pf_parcel_size($pfid);
     if ($close < $parcel)
     {
-        $qty = round($parcel/$close);
+        $qty = (int)($parcel/$close);
     }
     else
     {
@@ -36,7 +41,7 @@ function add_to_cart($table, $symb)
     }
     catch (PDOException $e)
     {
-        print('<font color="red">add_to_cart:' . $query . ':' . $e->getMessage() . '</font>');
+        tr_warn('add_to_cart:' . $query . ':' . $e->getMessage());
         return false;
     }
 }
@@ -60,7 +65,7 @@ function is_in_cart($table, $symb)
     }
     catch (PDOException $e)
     {
-        print('<font color="red">is_in_cart:' . $query . ':' . $e->getMessage() . '</font>');
+        tr_warn('is_in_cart:' . $query . ':' . $e->getMessage());
         return false;
     }
     $row = $result->fetch(PDO::FETCH_ASSOC);
@@ -79,7 +84,7 @@ function del_from_cart($table, $symb)
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $query = "delete from $table where symb = '$symb' and date = '$date' and pfid = '$fpid';";
+    $query = "delete from $table where symb = '$symb' and date = '$date' and pfid = '$pfid';";
     try 
     {
         $pdo->exec($query);
@@ -87,7 +92,7 @@ function del_from_cart($table, $symb)
     }
     catch (PDOException $e)
     {
-        print('<font color="red">del_from_cart:' . $query . ':' . $e->getMessage() . '</font>');
+        tr_warn('del_from_cart:' . $query . ':' . $e->getMessage());
         return false;
     }
 }
@@ -239,7 +244,6 @@ function draw_trader_header($active_page, $allow_others=true)
         draw_cell('queries', '/queries.php', $inactive_colour, $allow_others);
     }
     print "</tr></table>\n";
-
 }
 
 function get_pf_name($pfid)

@@ -3,7 +3,6 @@ include("checks.php");
 redirect_login_pf();
 draw_trader_header('trade');
 // Load the HTML_QuickForm module
-require 'HTML/QuickForm.php';
 global $db_hostname, $db_database, $db_user, $db_password;
 
 $username = $_SESSION['username'];
@@ -13,18 +12,93 @@ $pfname = get_pf_name($pfid);
 $pf_working_date = get_pf_working_date($pfid);
 $pf_exch = get_pf_exch($pfid);
 
-print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
-print "<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Volume</td><td>Value</td></tr>";
 try {
     $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
 } catch (PDOException $e) {
     die("ERROR: Cannot connect: " . $e->getMessage());
 }
-$query = "select * from cart where date <= '$pf_working_date' and pfid = '$pfid';";
-foreach ($pdo->query($query) as $row)
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+function draw_table($pfid, $pf_working_date, $pf_exch, $pf_nam)
 {
-    $symb_name = get_symb_name($row['symb'], $pf_exch);
-    $close = get_stock_close($row['symb'], $pf_working_date, $pf_exch);
-    $value = round($close*$row['volume'], 2);
-    print '<tr><td>' . $row['symb'] . "</td><td>$symb_name</td><td>" . $row['comment'] . '</td><td>' . $row['volume'] . "</td><td>$value</td></tr>\n";
+    global $pdo;
+    print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="cart" id="cart">';
+    print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
+    print "<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Volume</td><td>Value</td></tr>";
+    $query = "select * from cart where date <= '$pf_working_date' and pfid = '$pfid';";
+    foreach ($pdo->query($query) as $row)
+    {
+        $symb = $row['symb'];
+        $symb_name = get_symb_name($symb, $pf_exch);
+        $close = get_stock_close($symb, $pf_working_date, $pf_exch);
+        $value = round($close*$row['volume'], 2);
+        print "<tr><td><input type=\"checkbox\" name=\"mark[]\" value=\"$symb\">$symb</td>\n";
+        print "<td>$symb_name</td>\n";
+        print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"buy_comment_$symb\">" . $row['comment'] . '</textarea></td>';
+        print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"10\" name=\"buy_volume_$symb\">" . $row['volume'] . '</textarea></td>';
+        print "<td>$value</td></tr>\n";
+    }
+    print '<tr><td colspan="10"><input name="recalc" value="Update" type="submit"/></td></tr>';
+    print '<tr><td colspan="10"><input name="delete" value="Delete" type="submit"/></td></tr>';
+    print '</table>';
+    print '</form>';
 }
+
+function update_cart($pfid, $pf_working_date)
+{
+    global $pdo;
+    $query = "select * from cart where date <= '$pf_working_date' and pfid = '$pfid';";
+    foreach ($pdo->query($query) as $row)
+    {
+        $symb = $row['symb'];
+        if (isset($_POST["buy_volume_$symb"]))
+        {
+            $volume = $_POST["buy_volume_$symb"];
+            if (is_numeric($volume))
+            {
+                $update = "update cart set volume = '$volume' where pfid = '$pfid' and date = '$pf_working_date' and symb = '$symb';";
+                try 
+                {
+                    $pdo->exec($update);
+                }
+                catch (PDOException $e)
+                {
+                    tr_warn('update_cart:' . $update . ':' . $e->getMessage());
+                }
+            }
+        }
+        if (isset($_POST["buy_comment_$symb"]))
+        {
+            $comment = $_POST["buy_comment_$symb"];
+            $update = "update cart set comment = '$comment' where pfid = '$pfid' and date = '$pf_working_date' and symb = '$symb';";
+            try 
+            {
+                $pdo->exec($update);
+            }
+            catch (PDOException $e)
+            {
+                tr_warn('update_cart:' . $update . ':' . $e->getMessage());
+            }
+        }
+
+    }
+}
+
+if (isset($_POST['recalc']))
+{
+    update_cart($pfid, $pf_working_date);
+}
+elseif(isset($_POST['delete']))
+{
+    if (isset($_POST['mark']))
+    {
+        $marked = $_POST['mark'];
+        foreach ($marked as $symb)
+        {
+            del_from_cart('cart', $symb);
+        }
+    }
+}
+
+
+draw_table($pfid, $pf_working_date, $pf_exch, $pf_name);
