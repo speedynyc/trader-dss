@@ -40,14 +40,15 @@ function draw_table($pfid, $pf_working_date, $pf_exch, $pf_nam)
     }
     print '<tr><td colspan="10"><input name="recalc" value="Update" type="submit"/></td></tr>';
     print '<tr><td colspan="10"><input name="delete" value="Delete" type="submit"/></td></tr>';
+    print '<tr><td colspan="10"><input name="watch" value="Move to Watch list" type="submit"/></td></tr>';
     print '</table>';
     print '</form>';
 }
 
-function update_cart($pfid, $pf_working_date)
+function update_cart($cart, $pfid, $pf_working_date)
 {
     global $pdo;
-    $query = "select * from cart where date <= '$pf_working_date' and pfid = '$pfid';";
+    $query = "select * from $cart where date <= '$pf_working_date' and pfid = '$pfid';";
     foreach ($pdo->query($query) as $row)
     {
         $symb = $row['symb'];
@@ -56,7 +57,7 @@ function update_cart($pfid, $pf_working_date)
             $volume = $_POST["buy_volume_$symb"];
             if (is_numeric($volume))
             {
-                $update = "update cart set volume = '$volume' where pfid = '$pfid' and date = '$pf_working_date' and symb = '$symb';";
+                $update = "update $cart set volume = '$volume' where pfid = '$pfid' and date = '$pf_working_date' and symb = '$symb';";
                 try 
                 {
                     $pdo->exec($update);
@@ -70,7 +71,7 @@ function update_cart($pfid, $pf_working_date)
         if (isset($_POST["buy_comment_$symb"]))
         {
             $comment = $_POST["buy_comment_$symb"];
-            $update = "update cart set comment = '$comment' where pfid = '$pfid' and date = '$pf_working_date' and symb = '$symb';";
+            $update = "update $cart set comment = '$comment' where pfid = '$pfid' and date = '$pf_working_date' and symb = '$symb';";
             try 
             {
                 $pdo->exec($update);
@@ -86,7 +87,7 @@ function update_cart($pfid, $pf_working_date)
 
 if (isset($_POST['recalc']))
 {
-    update_cart($pfid, $pf_working_date);
+    update_cart('watch', $pfid, $pf_working_date);
 }
 elseif(isset($_POST['delete']))
 {
@@ -96,6 +97,21 @@ elseif(isset($_POST['delete']))
         foreach ($marked as $symb)
         {
             del_from_cart('cart', $symb);
+        }
+    }
+}
+elseif(isset($_POST['watch']))
+{
+    if (isset($_POST['mark']))
+    {
+        $marked = $_POST['mark'];
+        foreach ($marked as $symb)
+        {
+            if (! is_in_cart('watch', $symb))
+            {
+                add_to_cart('watch', $symb, $_POST["buy_comment_$symb"], $_POST["buy_volume_$symb"]);
+                del_from_cart('cart', $symb);
+            }
         }
     }
 }

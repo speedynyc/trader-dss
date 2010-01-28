@@ -10,22 +10,35 @@ function tr_warn($message='No message!')
     print('<font color="red">' . $message . '</font>');
 }
 
-function add_to_cart($table, $symb)
+function add_to_cart($table, $symb, $comment = '', $volume = 0)
 {
     // adds all symbols in the given list to the given table
     global $db_hostname, $db_database, $db_user, $db_password;
     $pfid = $_SESSION['pfid'];
     $date = get_pf_working_date($pfid);
+    $name = get_pf_name($pfid);
     $exch = get_pf_exch($pfid);
     $close = get_stock_close($symb, $date, $exch);
     $parcel = get_pf_parcel_size($pfid);
-    if ($close < $parcel)
+    if ($comment == '')
     {
-        $qty = (int)($parcel/$close);
+        tr_warn("$name: $date");
+        $comment = "$name: $date";
+    }
+    if ($volume != 0)
+    {
+        $qty = $volume;
     }
     else
     {
-        $qty = 1;
+        if ($close < $parcel)
+        {
+            $qty = (int)($parcel/$close);
+        }
+        else
+        {
+            $qty = 1;
+        }
     }
     try {
         $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
@@ -33,7 +46,7 @@ function add_to_cart($table, $symb)
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $query = "insert into $table (pfid, date, symb, volume) values ('$pfid', '$date', '$symb', '$qty');";
+    $query = "insert into $table (pfid, date, symb, volume, comment) values ('$pfid', '$date', '$symb', '$qty', '$comment');";
     try 
     {
         $pdo->exec($query);
