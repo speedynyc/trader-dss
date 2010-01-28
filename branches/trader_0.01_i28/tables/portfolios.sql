@@ -6,7 +6,10 @@ CREATE TABLE portfolios (
     name character varying(100) NOT NULL,
     exch character varying(6) NOT NULL,
     uid integer not null,
-    parcel numeric(9,2),
+    parcel numeric(12,2),
+    balance numeric(12,2),
+    holdings numeric(12,2),
+    pot numeric(12,2),
     start_date date not null,
     working_date date not null,
     unique (uid, exch, name)

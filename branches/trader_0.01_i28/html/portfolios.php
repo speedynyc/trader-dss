@@ -71,6 +71,9 @@ $create_pf_form->addRule('pf_desc','That portfolio already exists','callback', '
 $create_pf_form->addElement('text', 'parcel', 'Enter parcel size:', array('size' => 10, 'maxlength' => 10));
 $create_pf_form->addRule('parcel','Please enter a numeric parcel size','required');
 $create_pf_form->addRule('parcel','Please enter a numeric parcel size','numeric');
+$create_pf_form->addElement('text', 'opening', 'Enter Opening Balance:', array('size' => 10, 'maxlength' => 10));
+$create_pf_form->addRule('opening','Please enter a numeric balance','required');
+$create_pf_form->addRule('opening','Please enter a numeric balance','numeric');
 $create_pf_form->addElement('date', 'start_date', 'Start Date:', array('format' => 'dMY', 'minYear' => 2000, 'maxYear' => date('Y'))); 
 $create_pf_form->addRule('start_date','Not a valid date','callback', 'validate_date');
 $exchanges = $create_pf_form->addElement('select','exchange','Exchange:');
@@ -113,12 +116,13 @@ function create_portfolio($v)
     $parcel = $pdo->quote($v['parcel']);
     $start_date = sprintf("%04d-%02d-%02d", $v['start_date']['Y'], $v['start_date']['M'], $v['start_date']['d']);
     $start_date = $pdo->quote($start_date);
+    $opening_balance = $pdo->quote($v['opening']);
     $query = "select date from trade_dates where date >= $start_date order by date asc limit 1;";
     foreach ($pdo->query($query) as $row)
     {
         $start_date = $pdo->quote($row['date']);
     }
-    $pdo->exec("insert into portfolios (name, uid, exch, parcel, start_date, working_date) values ($pf_desc, $uid, $exchange, $parcel, $start_date, $start_date);");
+    $pdo->exec("insert into portfolios (name, uid, exch, parcel, start_date, working_date, balance, holdings, pot) values ($pf_desc, $uid, $exchange, $parcel, $start_date, $start_date, $opening_balance, 0, 0);");
     redirect_login_pf();
 }
 
@@ -147,7 +151,7 @@ foreach ($pdo->query($query) as $row)
         $choose_pf_form->addElement('radio','portfolio',null,"$pf_desc<td>$pf_exch</td> <td>$pf_parcel</td> <td>$pf_start_date</td> <td>$pf_working_date</td>",$pf_id);
     }
 }
-$choose_pf_form->addElement('submit','choose','Trade!');
+$choose_pf_form->addElement('submit','choose','Select Shares');
 if (isset($_POST['choose']))
 {
     if ($choose_pf_form->validate())

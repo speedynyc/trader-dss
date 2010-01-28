@@ -36,11 +36,28 @@ function draw_table($pfid, $pf_working_date, $pf_exch, $pf_nam)
         print "<td>$symb_name</td>\n";
         print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"buy_comment_$symb\">" . $row['comment'] . '</textarea></td>';
         print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"10\" name=\"buy_volume_$symb\">" . $row['volume'] . '</textarea></td>';
-        print "<td>$value</td></tr>\n";
+        print "<td>$value</td>\n";
+        if (isset($_POST['chart']))
+        {
+            print "<td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symb&TimeRange=180&working_date=$pf_working_date&exch=$pf_exch&ChartSize=S&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td>";
+        }
+        else
+        {
+            print "<td>.</td>";
+        }
+        print "</tr>\n";
     }
     print '<tr><td colspan="10"><input name="recalc" value="Update" type="submit"/></td></tr>';
     print '<tr><td colspan="10"><input name="delete" value="Delete" type="submit"/></td></tr>';
     print '<tr><td colspan="10"><input name="cart" value="Move to Shopping cart" type="submit"/></td></tr>';
+    if (isset($_POST['chart']))
+    {
+        print "<tr><td colspan=\"10\"><input type=\"checkbox\" name=\"chart\" value=\"chart\">Draw Charts</td>\n";
+    }
+    else
+    {
+        print "<tr><td colspan=\"10\"><input type=\"checkbox\" name=\"chart\" value=\"chart\">Draw Charts</td>\n";
+    }
     print '</table>';
     print '</form>';
 }
