@@ -36,7 +36,7 @@ function add_to_cart($table, $symb)
     }
     catch (PDOException $e)
     {
-        print('<font color="red">' . $e->getMessage() . '</font>');
+        print('<font color="red">add_to_cart:' . $query . ':' . $e->getMessage() . '</font>');
         return false;
     }
 }
@@ -53,15 +53,14 @@ function is_in_cart($table, $symb)
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $query = "select count(*) from $table were pfid = '$pfid' and symb = '$symb';";
+    $query = "select count(*) from $table where pfid = '$pfid' and symb = '$symb';";
     try 
     {
         $result = $pdo->query($query);
-        return true;
     }
     catch (PDOException $e)
     {
-        print('<font color="red">' . $e->getMessage() . '</font>');
+        print('<font color="red">is_in_cart:' . $query . ':' . $e->getMessage() . '</font>');
         return false;
     }
     $row = $result->fetch(PDO::FETCH_ASSOC);
@@ -88,7 +87,7 @@ function del_from_cart($table, $symb)
     }
     catch (PDOException $e)
     {
-        print('<font color="red">' . $e->getMessage() . '</font>');
+        print('<font color="red">del_from_cart:' . $query . ':' . $e->getMessage() . '</font>');
         return false;
     }
 }
@@ -139,7 +138,7 @@ function draw_cell($cell_desc, $cell_link, $cell_colour, $cell_selectable)
     print "</td>\n";
 }
 
-function draw_trader_header($active_page, $allow_others)
+function draw_trader_header($active_page, $allow_others=true)
 {
     // dray the header with a table linking the trader pages like tabs in a notebook
     // session infomation is used to communicate between the tabs

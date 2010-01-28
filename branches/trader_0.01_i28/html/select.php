@@ -135,8 +135,22 @@ if (isset($_POST['execute_sql']))
                 {
                     $symbol = $row['symb'];
                 }
-                print "<td><input type=\"checkbox\" name=\"buy[]\" value=\"$symbol\">Buy $symbol<br>\n";
-                print "<input type=\"checkbox\" name=\"watch[]\" value=\"$symbol\">Watch $symbol</td>\n";
+                if (is_in_cart('cart', $symbol))
+                {
+                    print "<td>Buying: $symbol<br>\n";
+                }
+                else
+                {
+                    print "<td><input type=\"checkbox\" name=\"buy[]\" value=\"$symbol\">Buy $symbol<br>\n";
+                }
+                if (is_in_cart('watch', $symbol))
+                {
+                    print "Watching: $symbol<br>\n";
+                }
+                else
+                {
+                    print "<input type=\"checkbox\" name=\"watch[]\" value=\"$symbol\">Watch $symbol</td>\n";
+                }
                 foreach ($headers as $index)
                 {
                     if ($index != 'symb')
