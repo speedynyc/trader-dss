@@ -25,7 +25,7 @@ function draw_table($pfid, $pf_working_date, $pf_exch, $pf_nam)
     print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="cart" id="cart">';
     print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
     print "<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Volume</td><td>Value</td></tr>";
-    $query = "select * from cart where date <= '$pf_working_date' and pfid = '$pfid';";
+    $query = "select * from cart where date <= '$pf_working_date' and pfid = '$pfid' order by symb;";
     foreach ($pdo->query($query) as $row)
     {
         $symb = $row['symb'];
@@ -85,11 +85,12 @@ function update_cart($cart, $pfid, $pf_working_date)
     }
 }
 
-if (isset($_POST['recalc']))
-{
-    update_cart('watch', $pfid, $pf_working_date);
-}
-elseif(isset($_POST['delete']))
+#if (isset($_POST['recalc']))
+#{
+    update_cart('cart', $pfid, $pf_working_date);
+#}
+#elseif(isset($_POST['delete']))
+if(isset($_POST['delete']))
 {
     if (isset($_POST['mark']))
     {
