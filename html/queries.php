@@ -33,7 +33,7 @@ print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>
 if ($row['count'] > 0)
 {
     $first = true;
-    $query = "select qid, name from queries where uid = $uid;";
+    $query = "select qid, name from queries where uid = $uid order by name;";
     $result = $pdo->query($query);
     $choose_query = $select_query_form->addElement('select','choose_query','Select Query to Edit:');
     while ($row = $result->fetch(PDO::FETCH_ASSOC))
