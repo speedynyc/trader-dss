@@ -16,13 +16,14 @@ my $dbname   = 'trader';
 my $username = 'postgres';
 my $password = '';
 my $total_added=0;
+my $exch = 'L';
 
 my $dbh = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password) or die $DBI::errstr;
 
 # get the base one, then get all subsequent ones
 my $res = get_page("http://uk.biz.yahoo.com/p/uk/cpi/index.html");
 get_companies($res);
-my @names = ('1', '2', '3', '4', '5', '6', '8', '@', 'q', 'x', 'y', 'z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z');
+my @names = ('1', '2', '3', '4', '5', '6', '8', '9', '0', '@', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z');
 
 foreach $a (@names)
 {
@@ -60,12 +61,12 @@ sub get_page
     if ($res->is_success)
     {
         $content = $res->content;
-        print "[INFO]Got $page\n" if ($debug);
+        print "[INFO]Got $page\n";
         return $content;
     }
     else
     {
-        warn "[WARN]Couldn't get $page\n";
+        #warn "[WARN]Couldn't get $page\n";
         return '0';
     }
 }
@@ -94,11 +95,11 @@ sub get_companies
                     }
                     if ($found_companies_table)
                     {
-                        print "   ", join(',', @$row), "\n" if ($found_companies_table and $debug);
+                        #print "   ", join(',', @$row), "\n" if ($found_companies_table and $debug);
                         ($name, $symb, undef) = (@$row);
                         $symb =~ m/(\S+)\.L/;
                         $symb = $1;
-                        add_to_db($symb, $name);
+                        add_to_db($symb, $name, $exch);
                     }
                 }
                 last if ($found_companies_table);
@@ -112,24 +113,25 @@ sub get_companies
 sub add_to_db
 {
     my $symb = shift;
-    my $exch = 'L';
     my $name = shift;
+    my $exch = shift;
     $name =~ s/\'/\'\'/g;
     my ($sth, @row);
-    print "$symb, $exch, $name\n";
-    $sth = $dbh->prepare("select symb from stocks where symb = \'$symb\'");
+    #print "$symb, $exch, $name\n";
+    $sth = $dbh->prepare("select symb from stocks where symb = \'$symb\' and exch = \'$exch\'");
     $sth->execute or die $dbh->errstr;
     while ((@row) = $sth->fetchrow_array)
     {
         if ($row[0] eq $symb)
         {
-            print "[INFO]Stock $symb already in stocks\n";
+            print "[INFO]Stock $symb , $name, $exch already in stocks\n";
             return;
         }
     }
+    ++$total_added;
+    print "[INFO][Add Symb $total_added]$symb, $name, $exch\n";
     print "insert into stocks values(\'$symb\',\'$name\',\'$exch\')\n" if ($debug);
     $sth = $dbh->prepare("insert into stocks values(\'$symb\',\'$name\',\'$exch\')") or die $dbh->errstr;
     $sth->execute or die $dbh->errstr;
     $sth->finish;
-    ++$total_added;
 }
