@@ -1,7 +1,7 @@
 <?php
 // This script displays the login screen, sets the session cookie with the username and uid then redirects to the profile admin page
 require 'HTML/QuickForm.php';
-@include("checks.php");
+include("trader-functions.php");
 session_start();
 
 function check_account($v)
