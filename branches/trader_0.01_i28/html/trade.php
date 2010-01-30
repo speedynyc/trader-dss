@@ -24,7 +24,12 @@ function draw_table($pfid, $pf_working_date, $pf_exch, $pf_nam)
     global $pdo;
     print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="cart" id="cart">';
     print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
-    print "<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Volume</td><td>Value</td><td>Chart</td></tr>";
+    print '<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Volume</td><td>Value</td>';
+    if (isset($_POST['chart']))
+    {
+        print '<td>Chart</td></tr>';
+    }
+    print '</tr>';
     $query = "select * from cart where date <= '$pf_working_date' and pfid = '$pfid' order by symb;";
     foreach ($pdo->query($query) as $row)
     {
@@ -41,10 +46,6 @@ function draw_table($pfid, $pf_working_date, $pf_exch, $pf_nam)
         {
             print "<td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symb&TimeRange=180&working_date=$pf_working_date&exch=$pf_exch&ChartSize=S&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td>";
         }
-        else
-        {
-            print "<td>.</td>";
-        }
         print "</tr>\n";
     }
     print '<tr><td colspan="10"><input name="recalc" value="Update" type="submit"/></td></tr>';
@@ -52,7 +53,7 @@ function draw_table($pfid, $pf_working_date, $pf_exch, $pf_nam)
     print '<tr><td colspan="10"><input name="watch" value="Move to Watch list" type="submit"/></td></tr>';
     if (isset($_POST['chart']))
     {
-        print "<tr><td colspan=\"10\"><input type=\"checkbox\" name=\"chart\" value=\"chart\">Draw Charts</td>\n";
+        print "<tr><td colspan=\"10\"><input type=\"checkbox\" name=\"chart\" value=\"chart\" checked>Draw Charts</td>\n";
     }
     else
     {

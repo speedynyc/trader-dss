@@ -42,6 +42,7 @@ $chart_period->addOption('1 year', '365');
 $chart_period->addOption('2 years', '7305');
 $chart_period->addOption('5 years', '1825');
 $chart_period->addOption('10 years', '3650');
+$sql_input_form->addElement('checkbox', 'chart', 'Draw Charts');
 $sql_input_form->addElement('submit','execute_sql','Run Query');
 if (isset($_SESSION['sql_select']))
 {
@@ -124,9 +125,17 @@ if (isset($_POST['execute_sql']))
                             print "<td>$index</td>\n";
                         }
                     }
-                    print "<td>Chart</td></tr>\n";
+                    if (isset($_POST['chart']))
+                    {
+                        print "<td>Chart</td>\n";
+                    }
+                    else
+                    {
+                        print '</tr>';
+                    }
                 }
                 print "<tr>";
+                // setup the first row of the table with the symbol details and the chance to add it to the cart or watch list
                 if (! isset($row['symb']))
                 {
                     die('<tr><td><font color="red">The Query must include the field "symb"</font></td></tr></table>');
@@ -134,32 +143,40 @@ if (isset($_POST['execute_sql']))
                 else
                 {
                     $symbol = $row['symb'];
-                }
-                if (is_in_cart('cart', $symbol))
-                {
-                    print "<td>Buying: $symbol<br>\n";
-                }
-                else
-                {
-                    print "<td><input type=\"checkbox\" name=\"buy[]\" value=\"$symbol\">Buy $symbol<br>\n";
-                }
-                if (is_in_cart('watch', $symbol))
-                {
-                    print "Watching: $symbol<br>\n";
-                }
-                else
-                {
-                    print "<input type=\"checkbox\" name=\"watch[]\" value=\"$symbol\">Watch $symbol</td>\n";
-                }
-                foreach ($headers as $index)
-                {
-                    if ($index != 'symb')
+                    $name = get_symb_name($symbol, $pf_exch);
+                    print '<tr><td><table border="0" cellpadding="0" cellspacing="0" align="left"><tr>';
+                    print "<td>$symbol: $name</td></tr>";
+                    if (is_in_cart('cart', $symbol))
                     {
-                        print "<td>$row[$index]</td>\n";
+                        print "<tr><td>Buying:</td></tr>\n";
                     }
+                    else
+                    {
+                        print "<tr><td><input type=\"checkbox\" name=\"buy[]\" value=\"$symbol\">Buy</td></tr>\n";
+                    }
+                    if (is_in_cart('watch', $symbol))
+                    {
+                        print "<tr><td>Watching:</td></tr>\n";
+                    }
+                    else
+                    {
+                        print "<tr><td><input type=\"checkbox\" name=\"watch[]\" value=\"$symbol\">Watch</td></tr>\n";
+                    }
+                    print '</table>';
+                    // print the rest of the selected rows into the table
+                    foreach ($headers as $index)
+                    {
+                        if ($index != 'symb')
+                        {
+                            print "<td>$row[$index]</td>\n";
+                        }
+                    }
+                    if (isset($_POST['chart']))
+                    {
+                        print "<td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symbol&TimeRange=$chart_period&working_date=$pf_working_date&exch=$pf_exch&ChartSize=M&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td>";
+                    }
+                    print "</tr>\n";
                 }
-                print "<td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symbol&TimeRange=$chart_period&working_date=$pf_working_date&exch=$pf_exch&ChartSize=M&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td>";
-                print "</tr>\n";
             }
             print '</form>';
         }
