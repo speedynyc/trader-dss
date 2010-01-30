@@ -10,7 +10,7 @@ use strict;
 
 $| = 1;
 my $debug = 0;
-my $sleep_time = 3;
+my $sleep_time = 15;
 
 Date_Init("DateFormat=non-US");
 
@@ -60,6 +60,12 @@ while ((@row) = $sth->fetchrow_array)
     sleep $sleep_time;
     print "[INFO][Updating]$stock_code.$exchange, have $first_quote to $last_quote. Retrieving $last_quote_plus to today\n";
     $q = new Finance::QuoteHist(
+            lineup     => [qw(
+                Finance::QuoteHist::Yahoo
+                Finance::QuoteHist::Google
+                Finance::QuoteHist::MSN
+                Finance::QuoteHist::QuoteMedia
+                )],
         symbols    => [qq($stock_code.$exchange)],
         start_date => $last_quote_plus,
         end_date   => 'today',
