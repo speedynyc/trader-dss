@@ -1,5 +1,5 @@
 <?php
-include("checks.php");
+include("trader-functions.php");
 redirect_login_pf();
 draw_trader_header('booty');
 // Load the HTML_QuickForm module
