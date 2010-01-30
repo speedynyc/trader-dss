@@ -58,6 +58,74 @@ function update_cart($cart, $pfid, $pf_working_date)
     }
 }
 
+function buy_stock($symb, $comment = '', $volume = 0)
+{
+    // adds all symbols in the given list to the given table
+    global $db_hostname, $db_database, $db_user, $db_password;
+    $pfid = $_SESSION['pfid'];
+    $date = get_pf_working_date($pfid);
+    $exch = get_pf_exch($pfid);
+    $close = get_stock_close($symb, $date, $exch);
+    if ($comment == '')
+    {
+        $comment = "$name: $date";
+    }
+    if ($volume != 0)
+    {
+        $qty = $volume;
+    }
+    else
+    {
+        // this means that a volume of '0' buys one parcel's worth.
+        // is that what we want?
+        if ($close < $parcel)
+        {
+            $qty = (int)($parcel/$close);
+        }
+        else
+        {
+            $qty = 1;
+        }
+    }
+    // add the trade to the trades table
+    $total = $qty * $close;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $query = "select cash_in_hand from pf_summary where pfid = '$pfid' and date = '$date';";
+    foreach ($pdo->query($query) as $row)
+    {
+        $cash_in_hand = $row['cash_in_hand'];
+    }
+    $query = "select holdings from pf_summary where pfid = '$pfid' and date = '$date';";
+    foreach ($pdo->query($query) as $row)
+    {
+        $holdings = $row['holdings'];
+    }
+    tr_warn("$cash_in_hand = $cash_in_hand - $total");
+    $cash_in_hand = $cash_in_hand - $total;
+    $holdings = $holdings + $total;
+    try 
+    {
+        $pdo->beginTransaction();
+        $query = "insert into trades (pfid, date, symb, price, volume, comment) values ('$pfid', '$date', '$symb', '$close', '$qty', '$comment');";
+        $pdo->exec($query);
+        // update the pf_summary with the trade
+        $query = "update pf_summary set cash_in_hand = '$cash_in_hand', holdings = '$holdings' where date = '$date' and pfid = '$pfid';";
+        $pdo->exec($query);
+        $pdo->commit();
+    }
+    catch (PDOException $e)
+    {
+        tr_warn('buy_stock:' . $query . ':' . $e->getMessage());
+        return false;
+    }
+    return true;
+}
+
 function add_to_cart($table, $symb, $comment = '', $volume = 0)
 {
     // adds all symbols in the given list to the given table

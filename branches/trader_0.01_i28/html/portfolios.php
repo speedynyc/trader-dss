@@ -122,7 +122,26 @@ function create_portfolio($v)
     {
         $start_date = $pdo->quote($row['date']);
     }
-    $pdo->exec("insert into portfolios (name, uid, exch, parcel, start_date, working_date, balance, holdings, pot) values ($pf_desc, $uid, $exchange, $parcel, $start_date, $start_date, $opening_balance, 0, 0);");
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // need to create the portfolio and add the first entry into summary as a transaction so that if one fails all do
+    try{
+        $pdo->beginTransaction();
+        $query = "insert into portfolios (name, uid, exch, parcel, start_date, working_date) values ($pf_desc, $uid, $exchange, $parcel, $start_date, $start_date);";
+        $pdo->exec($query);
+        $query = "select pfid from portfolios where uid = '$uid' and name = $pf_desc and exch = $exchange;";
+        foreach ($pdo->query($query) as $row)
+        {
+            $pf_id = $pdo->quote($row['pfid']);
+        }
+        $query = "insert into pf_summary (pfid, date, cash_in_hand, holdings) values ($pf_id, $start_date, $opening_balance, 0);";
+        $pdo->exec($query);
+        $pdo->commit();
+    }
+    catch (PDOException $e)
+    {
+        $pdo->rollBack();
+        tr_warn('create_portfolio:' . $query . ':' . $e->getMessage());
+    }
     redirect_login_pf();
 }
 

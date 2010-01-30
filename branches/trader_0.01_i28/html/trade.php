@@ -7,10 +7,10 @@ global $db_hostname, $db_database, $db_user, $db_password;
 
 $username = $_SESSION['username'];
 $uid = $_SESSION['uid'];
-$pfid = $_SESSION['pfid'];
-$pfname = get_pf_name($pfid);
-$pf_working_date = get_pf_working_date($pfid);
-$pf_exch = get_pf_exch($pfid);
+$pf_id = $_SESSION['pfid'];
+$pf_name = get_pf_name($pf_id);
+$pf_working_date = get_pf_working_date($pf_id);
+$pf_exch = get_pf_exch($pf_id);
 
 try {
     $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
@@ -19,7 +19,7 @@ try {
 }
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-function draw_table($pfid, $pf_working_date, $pf_exch, $pf_nam)
+function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
 {
     global $pdo;
     print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="cart" id="cart">';
@@ -30,7 +30,7 @@ function draw_table($pfid, $pf_working_date, $pf_exch, $pf_nam)
         print '<td>Chart</td></tr>';
     }
     print '</tr>';
-    $query = "select * from cart where date <= '$pf_working_date' and pfid = '$pfid' order by symb;";
+    $query = "select * from cart where date <= '$pf_working_date' and pfid = '$pf_id' order by symb;";
     foreach ($pdo->query($query) as $row)
     {
         $symb = $row['symb'];
@@ -59,13 +59,14 @@ function draw_table($pfid, $pf_working_date, $pf_exch, $pf_nam)
     {
         print "<tr><td colspan=\"10\"><input type=\"checkbox\" name=\"chart\" value=\"chart\">Draw Charts</td>\n";
     }
+    print '<tr><td colspan="10"><input name="buy" value="Buy" type="submit"/></td></tr>';
     print '</table>';
     print '</form>';
 }
 
 #if (isset($_POST['recalc']))
 #{
-    update_cart('cart', $pfid, $pf_working_date);
+    update_cart('cart', $pf_id, $pf_working_date);
 #}
 #elseif(isset($_POST['delete']))
 if(isset($_POST['delete']))
@@ -88,7 +89,23 @@ elseif(isset($_POST['watch']))
         {
             if (! is_in_cart('watch', $symb))
             {
-                add_to_cart('watch', $symb, $_POST["buy_comment_$symb"], $_POST["buy_volume_$symb"]);
+                if (add_to_cart('watch', $symb, $_POST["buy_comment_$symb"], $_POST["buy_volume_$symb"]))
+                {
+                    del_from_cart('cart', $symb);
+                }
+            }
+        }
+    }
+}
+elseif(isset($_POST['buy']))
+{
+    if (isset($_POST['mark']))
+    {
+        $marked = $_POST['mark'];
+        foreach ($marked as $symb)
+        {
+            if (buy_stock($symb, $_POST["buy_comment_$symb"], $_POST["buy_volume_$symb"]))
+            {
                 del_from_cart('cart', $symb);
             }
         }
@@ -96,4 +113,4 @@ elseif(isset($_POST['watch']))
 }
 
 
-draw_table($pfid, $pf_working_date, $pf_exch, $pf_name);
+draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name);
