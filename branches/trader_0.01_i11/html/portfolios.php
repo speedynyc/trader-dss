@@ -117,12 +117,12 @@ function create_portfolio($v)
     $start_date = sprintf("%04d-%02d-%02d", $v['start_date']['Y'], $v['start_date']['M'], $v['start_date']['d']);
     $start_date = $pdo->quote($start_date);
     $opening_balance = $pdo->quote($v['opening']);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $query = "select date from trade_dates where date >= $start_date order by date asc limit 1;";
     foreach ($pdo->query($query) as $row)
     {
         $start_date = $pdo->quote($row['date']);
     }
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     // need to create the portfolio and add the first entry into summary as a transaction so that if one fails all do
     try{
         $pdo->beginTransaction();
