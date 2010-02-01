@@ -7,7 +7,39 @@ $db_password = 'happy';
 
 function tr_warn($message='No message!')
 {
-    print('<font color="red">' . $message . '</font>');
+    print('<font color="red">' . $message . '</font><br>');
+}
+
+function update_holdings($pfid)
+{
+    // this function is probably only going to be used by trade and watch so really shouldn't be here
+    global $db_hostname, $db_database, $db_user, $db_password;
+    $pf_working_date = get_pf_working_date($pfid);
+    $exch = get_pf_exch($pfid);
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $query = "select * from holdings where pfid = '$pfid' order by symb;";
+    foreach ($pdo->query($query) as $row)
+    {
+        $hid = $row['hid'];
+        if (isset($_POST["comment_$hid"]))
+        {
+            $comment = $_POST["comment_$hid"];
+            $update = "update holdings set comment = '$comment' where hid = '$hid';";
+            try 
+            {
+                $pdo->exec($update);
+            }
+            catch (PDOException $e)
+            {
+                tr_warn('update_holdings:' . $update . ':' . $e->getMessage());
+            }
+        }
+    }
 }
 
 function update_cart($cart, $pfid, $pf_working_date)
@@ -26,12 +58,13 @@ function update_cart($cart, $pfid, $pf_working_date)
     foreach ($pdo->query($query) as $row)
     {
         $symb = $row['symb'];
-        if (isset($_POST["buy_volume_$symb"]))
+        if (isset($_POST["volume_$symb"]))
         {
-            $volume = $_POST["buy_volume_$symb"];
+            $volume = $_POST["volume_$symb"];
+            $date = $_POST["date_$symb"];
             if (is_numeric($volume))
             {
-                $update = "update $cart set volume = '$volume' where pfid = '$pfid' and date = '$pf_working_date' and symb = '$symb';";
+                $update = "update $cart set volume = '$volume' where pfid = '$pfid' and date = '$date' and symb = '$symb';";
                 try 
                 {
                     $pdo->exec($update);
@@ -42,10 +75,11 @@ function update_cart($cart, $pfid, $pf_working_date)
                 }
             }
         }
-        if (isset($_POST["buy_comment_$symb"]))
+        if (isset($_POST["comment_$symb"]))
         {
-            $comment = $_POST["buy_comment_$symb"];
-            $update = "update $cart set comment = '$comment' where pfid = '$pfid' and date = '$pf_working_date' and symb = '$symb';";
+            $comment = $_POST["comment_$symb"];
+            $date = $_POST["date_$symb"];
+            $update = "update $cart set comment = '$comment' where pfid = '$pfid' and date = '$date' and symb = '$symb';";
             try 
             {
                 $pdo->exec($update);
@@ -58,10 +92,11 @@ function update_cart($cart, $pfid, $pf_working_date)
     }
 }
 
-function buy_stock($symb, $comment = '', $volume = 0)
+function sell_stock($symb, $comment = '', $volume = 0)
 {
-    // adds all symbols in the given list to the given table
+    // adds a new transaction to trades, update pf_summary and remove the stock from holdings
     global $db_hostname, $db_database, $db_user, $db_password;
+    return;
     $pfid = $_SESSION['pfid'];
     $date = get_pf_working_date($pfid);
     $exch = get_pf_exch($pfid);
@@ -120,10 +155,95 @@ function buy_stock($symb, $comment = '', $volume = 0)
     }
     catch (PDOException $e)
     {
+        tr_warn('sellstock:' . $query . ':' . $e->getMessage());
+        return false;
+    }
+    return true;
+}
+
+function buy_stock($symb, $comment = '', $volume = 0)
+{
+    // moves stock from the cart to trades and updates pf_summary
+    global $db_hostname, $db_database, $db_user, $db_password;
+    $pfid = $_SESSION['pfid'];
+    $date = get_pf_working_date($pfid);
+    $exch = get_pf_exch($pfid);
+    $close = get_stock_close($symb, $date, $exch);
+    if ($comment == '')
+    {
+        $comment = "$name: $date";
+    }
+    if ($volume != 0)
+    {
+        $qty = $volume;
+    }
+    else
+    {
+        // this means that a volume of '0' buys one parcel's worth.
+        // is that what we want?
+        if ($close < $parcel)
+        {
+            $qty = (int)($parcel/$close);
+        }
+        else
+        {
+            $qty = 1;
+        }
+    }
+    $total = $qty * $close;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // find out how much money, and stocks are in the portfolio today
+    $query = "select cash_in_hand, holdings from pf_summary where pfid = '$pfid' and date = '$date';";
+    foreach ($pdo->query($query) as $row)
+    {
+        $cash_in_hand = $row['cash_in_hand'];
+        $holdings = $row['holdings'];
+    }
+    $cash_in_hand = $cash_in_hand - $total;
+    $holdings = $holdings + $total;
+    try 
+    {
+        $pdo->beginTransaction();
+        // add the trade to the trades table
+        $query = "insert into trades (pfid, date, symb, price, volume, comment) values ('$pfid', '$date', '$symb', '$close', '$qty', '$comment');";
+        $pdo->exec($query);
+        // add the stock to the holdings table
+        $query = "insert into holdings (pfid, date, symb, price, volume, comment) values ('$pfid', '$date', '$symb', '$close', '$qty', '$comment');";
+        $pdo->exec($query);
+        // update the pf_summary with the trade
+        $query = "update pf_summary set cash_in_hand = '$cash_in_hand', holdings = '$holdings' where date = '$date' and pfid = '$pfid';";
+        $pdo->exec($query);
+        $pdo->commit();
+    }
+    catch (PDOException $e)
+    {
         tr_warn('buy_stock:' . $query . ':' . $e->getMessage());
         return false;
     }
     return true;
+}
+
+function next_trade_day($date, $exch)
+{
+    // returns the next trading day for the exchange
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $query = "select date from trade_dates where date > '$date' order by date asc limit 1;";
+    foreach ($pdo->query($query) as $row)
+    {
+        $next_date = $row['date'];
+    }
+    return $next_date;
 }
 
 function add_to_cart($table, $symb, $comment = '', $volume = 0)
@@ -132,13 +252,19 @@ function add_to_cart($table, $symb, $comment = '', $volume = 0)
     global $db_hostname, $db_database, $db_user, $db_password;
     $pfid = $_SESSION['pfid'];
     $date = get_pf_working_date($pfid);
-    $name = get_pf_name($pfid);
+    if (isset($_SESSION['sql_name']))
+    {
+        $name = $_SESSION['sql_name'];
+    }
+    else
+    {
+        $name = get_pf_name($pfid);
+    }
     $exch = get_pf_exch($pfid);
     $close = get_stock_close($symb, $date, $exch);
     $parcel = get_pf_parcel_size($pfid);
     if ($comment == '')
     {
-        tr_warn("$name: $date");
         $comment = "$name: $date";
     }
     if ($volume != 0)
@@ -180,7 +306,6 @@ function is_in_cart($table, $symb)
     // checks if the given symbol is already in the given cart
     global $db_hostname, $db_database, $db_user, $db_password;
     $pfid = $_SESSION['pfid'];
-    $date = get_pf_working_date($pfid);
     try {
         $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
     } catch (PDOException $e) {
@@ -205,7 +330,7 @@ function del_from_cart($table, $symb)
 {
     // removes a symbol from a cart
     $pfid = $_SESSION['pfid'];
-    $date = get_pf_working_date($pfid);
+    $date = $_POST["date_$symb"];
     global $db_hostname, $db_database, $db_user, $db_password;
     try {
         $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
@@ -229,9 +354,9 @@ function del_from_cart($table, $symb)
 function redirect_login_pf()
 {
     /* the idea here is to redirect to the login or porftolio selection page when 
-        the cookie doesn't contain a valid username or portfolio.
-        This will stop someone from opening a browser and getting some page other than the login page
-    */
+       the cookie doesn't contain a valid username or portfolio.
+       This will stop someone from opening a browser and getting some page other than the login page
+     */
     session_start();
     $login_page = "/login.php";
     $portfolio_page = "/portfolios.php";
@@ -393,6 +518,83 @@ function get_pf_name($pfid)
     return 'Unknown Portfolio';
 }
 
+function get_pf_opening_balance($pfid)
+{
+    // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($pfid);
+    $query = "select cash_in_hand from pf_summary where pfid = $pf_id order by date limit 1;";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['cash_in_hand'];
+    }
+    return 0;
+}
+
+function get_pf_holdings($pfid)
+{
+    // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($pfid);
+    $query = "select holdings from pf_summary where pfid = $pf_id order by date desc limit 1;";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['holdings'];
+    }
+    return 0;
+}
+
+function get_pf_cash_in_hand($pfid)
+{
+    // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($pfid);
+    $query = "select cash_in_hand from pf_summary where pfid = $pf_id order by date desc limit 1;";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['cash_in_hand'];
+    }
+    return 0;
+}
+
+function get_exch_name($pfid)
+{
+    // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($pfid);
+    $query = "select exch from portfolios where pfid = $pf_id;";
+    foreach ($pdo->query($query) as $row)
+    {
+        $exch = $row['exch'];
+    }
+    $query = "select name from exchange where exch = '$exch';";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['name'];
+    }
+    return 'Exchange not found';
+}
+
 function get_pf_exch($pfid)
 {
     // setup the DB connection for use in this script
@@ -448,7 +650,7 @@ function get_pf_working_date($pfid)
 }
 
 function get_symb_name($symb, $exch)
-{
+{   
     // retrieve any field from a table indexed on symb, date, exch
     global $db_hostname, $db_database, $db_user, $db_password;
     try {
@@ -460,6 +662,108 @@ function get_symb_name($symb, $exch)
     foreach ($pdo->query($query) as $row)
     {
         return $row['name'];
+    }
+    return false;
+}   
+
+function is_in_portfolio($symb, $pfid)
+{
+    // lookup holdings to see if the symbol's there
+    return is_in_cart('holdings', $symb);
+}
+
+function gain($symb, $exch, $pfid, $pf_working_date)
+{
+    // work out how much the symbol has gained since it was bought
+    // there might be several in holdings so average them all
+    global $db_hostname, $db_database, $db_user, $db_password;
+    $t_volume = 0;
+    $t_price = 0;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $close = get_stock_close($symb, $pf_working_date, $exch);
+    $query = "select price, volume from holdings where symb = '$symb';";
+    foreach ($pdo->query($query) as $row)
+    {
+        $t_volume = $t_volume + $row['volume'];
+        $t_price = $t_price + ($row['volume'] * $row['price']);
+    }
+    $avg_price = $t_price / $t_volume;
+    if ( $t_volume < 0 )
+    {
+        // we're shorting
+        if ($close > $avg_price)
+        {
+            return -1;
+        }
+        elseif ($close < $avg_price)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        // we're going long
+        if ($close > $avg_price)
+        {
+            return 1;
+        }
+        elseif ($close < $avg_price)
+        {
+            return -1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+}
+
+function get_symb_name_coloured($symb, $exch, $pfid, $pf_working_date)
+{
+    // retrieve any field from a table indexed on symb, date, exch
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    if (isset($_SESSION['pfid']))
+    {
+        // work out if the symbol is already in the portfolio and if it's winning or losing
+        if (is_in_portfolio($symb, $pfid))
+        {
+            $gain = gain($symb, $exch, $pfid, $pf_working_date);
+            if ( $gain == 0 )
+            {
+                $colour = 'orange';
+            }
+            elseif ($gain > 0 )
+            {
+                $colour = 'green';
+            }
+            else
+            {
+                $colour = 'red';
+            }
+        }
+        else
+        {
+            $colour = 'black';
+        }
+    }
+    $query = "select name from stocks where symb = '$symb' and exch = '$exch';";
+    foreach ($pdo->query($query) as $row)
+    {
+        return "<font color=\"$colour\">" . $row['name'] . '</font>';
     }
     return false;
 }

@@ -82,6 +82,7 @@ if (isset($_POST['execute_sql']))
         $query = "select $sql_select from $sql_from where ($sql_where) and (quotes.date = '$pf_working_date' and quotes.exch = '$pf_exch') order by $sql_order $sql_order_dir limit $sql_limit;";
         try {
             $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
             die("ERROR: Cannot connect: " . $e->getMessage());
         }
@@ -105,7 +106,6 @@ if (isset($_POST['execute_sql']))
         $first = true;
         print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="stocks" id="stocks">';
         print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr>';
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         try 
         {
             $result = $pdo->query($query);
@@ -143,7 +143,7 @@ if (isset($_POST['execute_sql']))
                 else
                 {
                     $symbol = $row['symb'];
-                    $name = get_symb_name($symbol, $pf_exch);
+                    $name = get_symb_name_coloured($symbol, $pf_exch, $pfid, $pf_working_date);
                     print '<tr><td><table border="0" cellpadding="0" cellspacing="0" align="left"><tr>';
                     print "<td>$symbol: $name</td></tr>";
                     if (is_in_cart('cart', $symbol))
@@ -168,7 +168,15 @@ if (isset($_POST['execute_sql']))
                     {
                         if ($index != 'symb')
                         {
-                            print "<td>$row[$index]</td>\n";
+                            if (isset($_POST['chart']))
+                            {
+                                print "<td><table><tr><td>$index</td></tr>";
+                                print "<tr><td>$row[$index]</td></tr></table></td>\n";
+                            }
+                            else
+                            {
+                                print "<td>$row[$index]</td>\n";
+                            }
                         }
                     }
                     if (isset($_POST['chart']))
