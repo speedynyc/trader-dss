@@ -34,9 +34,9 @@ if (isset($_SESSION['username']))
 {
     // save the username to use as the defualt and then wipe the cookie clean
     $default_username = $_SESSION['username'];
-    #unset($_SESSION['uid']);
-    #unset($_SESSION['username']);
-    #unset($_SESSION['pfid']);
+    unset($_SESSION['uid']);
+    unset($_SESSION['username']);
+    unset($_SESSION['pfid']);
 }
 
 # create the form and validation rules
