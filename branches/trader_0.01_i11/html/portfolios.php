@@ -194,7 +194,7 @@ function create_choose_form()
             $choose_pf_form->addElement('radio','portfolio',null,"$pf_desc<td>$pf_exch</td> <td>$pf_parcel</td> <td>$pf_start_date</td> <td>$pf_working_date</td>",$pf_id);
         }
     }
-    $choose_pf_form->addElement('submit','choose','Select Shares');
+    $choose_pf_form->addElement('submit','choose','Trade with Portfolio');
     $choose_pf_form->addElement('submit','delete','Delete Portfolio');
 }
 

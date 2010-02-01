@@ -518,6 +518,83 @@ function get_pf_name($pfid)
     return 'Unknown Portfolio';
 }
 
+function get_pf_opening_balance($pfid)
+{
+    // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($pfid);
+    $query = "select cash_in_hand from pf_summary where pfid = $pf_id order by date limit 1;";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['cash_in_hand'];
+    }
+    return 0;
+}
+
+function get_pf_holdings($pfid)
+{
+    // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($pfid);
+    $query = "select holdings from pf_summary where pfid = $pf_id order by date desc limit 1;";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['holdings'];
+    }
+    return 0;
+}
+
+function get_pf_cash_in_hand($pfid)
+{
+    // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($pfid);
+    $query = "select cash_in_hand from pf_summary where pfid = $pf_id order by date desc limit 1;";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['cash_in_hand'];
+    }
+    return 0;
+}
+
+function get_exch_name($pfid)
+{
+    // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($pfid);
+    $query = "select exch from portfolios where pfid = $pf_id;";
+    foreach ($pdo->query($query) as $row)
+    {
+        $exch = $row['exch'];
+    }
+    $query = "select name from exchange where exch = '$exch';";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['name'];
+    }
+    return 'Exchange not found';
+}
+
 function get_pf_exch($pfid)
 {
     // setup the DB connection for use in this script
