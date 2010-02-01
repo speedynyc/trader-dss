@@ -536,6 +536,42 @@ function get_pf_opening_balance($pfid)
     return 0;
 }
 
+function get_pf_opening_date($pfid)
+{
+    // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($pfid);
+    $query = "select date from pf_summary where pfid = $pf_id order by date limit 1;";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['date'];
+    }
+    return 0;
+}
+
+function get_pf_days_traded($pfid)
+{
+    // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($pfid);
+    $query = "select count(*) as days from pf_summary where pfid = $pf_id;";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['days'];
+    }
+    return 0;
+}
+
 function get_pf_holdings($pfid)
 {
     // setup the DB connection for use in this script
