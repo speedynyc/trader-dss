@@ -42,7 +42,7 @@ function update_holdings($pfid)
     }
 }
 
-function update_cart($cart, $pfid, $pf_working_date)
+function update_cart($cart, $pfid)
 {
     // this function is probably only going to be used by trade and watch so really shouldn't be here
     global $db_hostname, $db_database, $db_user, $db_password;
