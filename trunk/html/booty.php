@@ -22,7 +22,14 @@ try {
 
 function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name)
 {
-    global $pdo, $next_trade_day;
+    global $pdo, $next_trade_day, $pf_name;
+    $pf_opening_balance = get_pf_opening_balance($pf_id);
+    $pf_opening_date = get_pf_opening_date($pf_id);
+    $pf_days_traded = get_pf_days_traded($pf_id);
+    $pf_cash_in_hand = get_pf_cash_in_hand($pf_id);
+    $pf_holdings = get_pf_holdings($pf_id);
+    $pf_total = sprintf("%.2f", $pf_cash_in_hand + $pf_holdings);
+    $pf_exchange_name = get_exch_name($pf_id);
     print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="cart" id="cart">';
     print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
     print '<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Date</td><td>Volume</td><td>Buy Price</td><td>close</td><td>gain</td><td>Value</td>';
@@ -95,8 +102,18 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name)
     print '<tr><td colspan="10"><input name="update" value="Update" type="submit"/></td></tr>';
     print '<tr><td colspan="10"><input name="sell" value="Sell" type="submit"/></td></tr>';
     print '<tr><td colspan="10"><input name="next_day" value="Go to the next day, '.$next_trade_day.'" type="submit"/></td></tr>';
-    print "<tr><td colspan=\"10\"><img src=\"/cgi-bin/portfolio_chart.php?pfid=$pf_id\"/></td></tr>";
     print '</table>';
+    print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
+    print "<tr><td align=\"left\">Portfolio:</td><td>$pf_name</td></tr>\n";
+    print "<tr><td align=\"left\">Exchange:</td><td>$pf_exchange_name</td></tr>\n";
+    print "<tr><td align=\"left\">Opening date:</td><td align=\"right\">$pf_opening_date</td>\n";
+    print "<tr><td align=\"left\">Days Traded:</td><td align=\"right\">$pf_days_traded</td>\n";
+    print "<tr><td align=\"left\">Opening Balance:</td><td align=\"right\">$pf_opening_balance</td>\n";
+    print "<tr><td align=\"left\">Cash In Hand:</td><td align=\"right\">$pf_cash_in_hand</td>\n";
+    print "<tr><td align=\"left\">Holdings:</td><td align=\"right\">$pf_holdings</td>\n";
+    print "<tr><td align=\"left\">Total:</td><td align=\"right\">$pf_total</td>\n";
+
+    print "<tr><td colspan=\"10\"><img src=\"/cgi-bin/portfolio_chart.php?pfid=$pf_id\"/></td></tr>";
     print '</form>';
 }
 
@@ -123,12 +140,7 @@ elseif(isset($_POST['next_day']))
         $query = "update portfolios set working_date = '$next_trade_day' where pfid = '$pf_id';";
         $pdo->exec($query);
         // copy the row forward for pf_summary
-        $query = "select * from pf_summary where pfid = '$pf_id' and date = '$pf_working_date';";
-        foreach ($pdo->query($query) as $row)
-        {
-            $cash_in_hand = $row['cash_in_hand'];
-        }
-        #$query = "select holdings.symb, quotes.close * holdings.volume as value, holdings.price * holdings.volume as cost from holdings, quotes where holdings.symb = quotes.symb and quotes.date = '$next_trade_day' and holdings.pfid = '$pf_id';";
+        $cash_in_hand = get_pf_cash_in_hand($pf_id);
         $query = "select sum(quotes.close * holdings.volume) as value, sum(holdings.price * holdings.volume) as cost from holdings, quotes where holdings.symb = quotes.symb and quotes.date = '$next_trade_day' and holdings.pfid = '$pf_id';";
         foreach ($pdo->query($query) as $row)
         {
