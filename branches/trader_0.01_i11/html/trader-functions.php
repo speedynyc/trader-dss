@@ -12,7 +12,34 @@ function tr_warn($message='No message!')
 
 function update_trades($pfid)
 {
-    // saves comments to the table
+    // this function is probably only going to be used by trade and watch so really shouldn't be here
+    global $db_hostname, $db_database, $db_user, $db_password;
+    $pf_working_date = get_pf_working_date($pfid);
+    $exch = get_pf_exch($pfid);
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $query = "select * from trades where pfid = '$pfid' order by symb;";
+    foreach ($pdo->query($query) as $row)
+    {
+        $trid = $row['trid'];
+        if (isset($_POST["buy_comment_$trid"]))
+        {
+            $comment = $_POST["buy_comment_$trid"];
+            $update = "update trades set comment = '$comment' where trid = '$trid';";
+            try 
+            {
+                $pdo->exec($update);
+            }
+            catch (PDOException $e)
+            {
+                tr_warn('update_cart:' . $update . ':' . $e->getMessage());
+            }
+        }
+    }
 }
 
 function update_cart($cart, $pfid, $pf_working_date)
@@ -161,7 +188,6 @@ function buy_stock($symb, $comment = '', $volume = 0)
             $qty = 1;
         }
     }
-    // add the trade to the trades table
     $total = $qty * $close;
     try {
         $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
@@ -169,22 +195,19 @@ function buy_stock($symb, $comment = '', $volume = 0)
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $query = "select cash_in_hand from pf_summary where pfid = '$pfid' and date = '$date';";
+    // find out how much money, and stocks are in the portfolio today
+    $query = "select cash_in_hand, holdings from pf_summary where pfid = '$pfid' and date = '$date';";
     foreach ($pdo->query($query) as $row)
     {
         $cash_in_hand = $row['cash_in_hand'];
-    }
-    $query = "select holdings from pf_summary where pfid = '$pfid' and date = '$date';";
-    foreach ($pdo->query($query) as $row)
-    {
         $holdings = $row['holdings'];
     }
-    tr_warn("$cash_in_hand = $cash_in_hand - $total");
     $cash_in_hand = $cash_in_hand - $total;
     $holdings = $holdings + $total;
     try 
     {
         $pdo->beginTransaction();
+        // add the trade to the trades table
         $query = "insert into trades (pfid, date, symb, price, volume, comment) values ('$pfid', '$date', '$symb', '$close', '$qty', '$comment');";
         $pdo->exec($query);
         // update the pf_summary with the trade
@@ -210,10 +233,10 @@ function next_trade_day($date, $exch)
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $query = "select date from trade_dates where date > $date order by date asc limit 1;";
+    $query = "select date from trade_dates where date > '$date' order by date asc limit 1;";
     foreach ($pdo->query($query) as $row)
     {
-        $next_date = $pdo->quote($row['date']);
+        $next_date = $row['date'];
     }
     return $next_date;
 }
@@ -224,13 +247,19 @@ function add_to_cart($table, $symb, $comment = '', $volume = 0)
     global $db_hostname, $db_database, $db_user, $db_password;
     $pfid = $_SESSION['pfid'];
     $date = get_pf_working_date($pfid);
-    $name = get_pf_name($pfid);
+    if (isset($_SESSION['sql_name']))
+    {
+        $name = $_SESSION['sql_name'];
+    }
+    else
+    {
+        $name = get_pf_name($pfid);
+    }
     $exch = get_pf_exch($pfid);
     $close = get_stock_close($symb, $date, $exch);
     $parcel = get_pf_parcel_size($pfid);
     if ($comment == '')
     {
-        tr_warn("$name: $date");
         $comment = "$name: $date";
     }
     if ($volume != 0)

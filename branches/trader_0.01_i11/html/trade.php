@@ -24,7 +24,7 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
     global $pdo;
     print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="cart" id="cart">';
     print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
-    print '<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Volume</td><td>Value</td>';
+    print '<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Volume</td><td>Close</td><td>Value</td>';
     if (isset($_POST['chart']))
     {
         print '<td>Chart</td></tr>';
@@ -41,6 +41,7 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
         print "<td>$symb_name</td>\n";
         print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"buy_comment_$symb\">" . $row['comment'] . '</textarea></td>';
         print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"10\" name=\"buy_volume_$symb\">" . $row['volume'] . '</textarea></td>';
+        print "<td>$close</td>\n";
         print "<td>$value</td>\n";
         if (isset($_POST['chart']))
         {
