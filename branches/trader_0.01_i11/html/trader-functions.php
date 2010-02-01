@@ -10,7 +10,7 @@ function tr_warn($message='No message!')
     print('<font color="red">' . $message . '</font>');
 }
 
-function update_trades($pfid)
+function update_holdings($pfid)
 {
     // this function is probably only going to be used by trade and watch so really shouldn't be here
     global $db_hostname, $db_database, $db_user, $db_password;
@@ -22,21 +22,21 @@ function update_trades($pfid)
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $query = "select * from trades where pfid = '$pfid' order by symb;";
+    $query = "select * from holdings where pfid = '$pfid' order by symb;";
     foreach ($pdo->query($query) as $row)
     {
-        $trid = $row['trid'];
-        if (isset($_POST["buy_comment_$trid"]))
+        $hid = $row['hid'];
+        if (isset($_POST["comment_$hid"]))
         {
-            $comment = $_POST["buy_comment_$trid"];
-            $update = "update trades set comment = '$comment' where trid = '$trid';";
+            $comment = $_POST["comment_$hid"];
+            $update = "update holdings set comment = '$comment' where hid = '$hid';";
             try 
             {
                 $pdo->exec($update);
             }
             catch (PDOException $e)
             {
-                tr_warn('update_cart:' . $update . ':' . $e->getMessage());
+                tr_warn('update_holdings:' . $update . ':' . $e->getMessage());
             }
         }
     }
@@ -58,12 +58,13 @@ function update_cart($cart, $pfid, $pf_working_date)
     foreach ($pdo->query($query) as $row)
     {
         $symb = $row['symb'];
-        if (isset($_POST["buy_volume_$symb"]))
+        if (isset($_POST["volume_$symb"]))
         {
-            $volume = $_POST["buy_volume_$symb"];
+            $volume = $_POST["volume_$symb"];
+            $date = $_POST["date_$symb"];
             if (is_numeric($volume))
             {
-                $update = "update $cart set volume = '$volume' where pfid = '$pfid' and date = '$pf_working_date' and symb = '$symb';";
+                $update = "update $cart set volume = '$volume' where pfid = '$pfid' and date = '$date' and symb = '$symb';";
                 try 
                 {
                     $pdo->exec($update);
@@ -74,10 +75,11 @@ function update_cart($cart, $pfid, $pf_working_date)
                 }
             }
         }
-        if (isset($_POST["buy_comment_$symb"]))
+        if (isset($_POST["comment_$symb"]))
         {
-            $comment = $_POST["buy_comment_$symb"];
-            $update = "update $cart set comment = '$comment' where pfid = '$pfid' and date = '$pf_working_date' and symb = '$symb';";
+            $comment = $_POST["comment_$symb"];
+            $date = $_POST["date_$symb"];
+            $update = "update $cart set comment = '$comment' where pfid = '$pfid' and date = '$date' and symb = '$symb';";
             try 
             {
                 $pdo->exec($update);
@@ -92,7 +94,7 @@ function update_cart($cart, $pfid, $pf_working_date)
 
 function sell_stock($symb, $comment = '', $volume = 0)
 {
-    // adds a new transaction to trades and updates pf_summary
+    // adds a new transaction to trades, update pf_summary and remove the stock from holdings
     global $db_hostname, $db_database, $db_user, $db_password;
     return;
     $pfid = $_SESSION['pfid'];
@@ -153,7 +155,7 @@ function sell_stock($symb, $comment = '', $volume = 0)
     }
     catch (PDOException $e)
     {
-        tr_warn('buy_stock:' . $query . ':' . $e->getMessage());
+        tr_warn('sellstock:' . $query . ':' . $e->getMessage());
         return false;
     }
     return true;
@@ -209,6 +211,9 @@ function buy_stock($symb, $comment = '', $volume = 0)
         $pdo->beginTransaction();
         // add the trade to the trades table
         $query = "insert into trades (pfid, date, symb, price, volume, comment) values ('$pfid', '$date', '$symb', '$close', '$qty', '$comment');";
+        $pdo->exec($query);
+        // add the stock to the holdings table
+        $query = "insert into holdings (pfid, date, symb, price, volume, comment) values ('$pfid', '$date', '$symb', '$close', '$qty', '$comment');";
         $pdo->exec($query);
         // update the pf_summary with the trade
         $query = "update pf_summary set cash_in_hand = '$cash_in_hand', holdings = '$holdings' where date = '$date' and pfid = '$pfid';";
@@ -301,7 +306,6 @@ function is_in_cart($table, $symb)
     // checks if the given symbol is already in the given cart
     global $db_hostname, $db_database, $db_user, $db_password;
     $pfid = $_SESSION['pfid'];
-    $date = get_pf_working_date($pfid);
     try {
         $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
     } catch (PDOException $e) {
@@ -326,7 +330,7 @@ function del_from_cart($table, $symb)
 {
     // removes a symbol from a cart
     $pfid = $_SESSION['pfid'];
-    $date = get_pf_working_date($pfid);
+    $date = $_POST["date_$symb"];
     global $db_hostname, $db_database, $db_user, $db_password;
     try {
         $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);

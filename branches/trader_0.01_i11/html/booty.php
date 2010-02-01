@@ -25,23 +25,24 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name)
     global $pdo, $next_trade_day;
     print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="cart" id="cart">';
     print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
-    print '<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Volume</td><td>Buy Price</td><td>close</td><td>gain</td><td>Value</td>';
+    print '<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Date</td><td>Volume</td><td>Buy Price</td><td>close</td><td>gain</td><td>Value</td>';
     if (isset($_POST['chart']))
     {
         print '<td>Chart</td></tr>';
     }
     print '</tr>';
-    $query = "select * from trades where pfid = '$pf_id' order by symb;";
+    $query = "select * from holdings where pfid = '$pf_id' order by symb;";
     foreach ($pdo->query($query) as $row)
     {
         $symb = $row['symb'];
-        $trid = $row['trid'];
+        $hid = $row['hid'];
         $symb_name = get_symb_name($symb, $pf_exch);
         $price = $row['price'];
         $close = get_stock_close($symb, $pf_working_date, $pf_exch);
         $price_diff_pc = round(100 - (($price/$close)*100), 2);
         $volume = $row['volume'];
         $value = round($close*$volume, 2);
+        $date = $row['date'];
         if ($price_diff_pc == 0)
         {
             $colour = 'black';
@@ -70,7 +71,8 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name)
         }
         print "<tr><td><input type=\"checkbox\" name=\"mark[]\" value=\"$symb\"><font color=\"$colour\">$symb</font></td>\n";
         print "<td><font color=\"$colour\">$symb_name</font></td>\n";
-        print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"buy_comment_$trid\">" . $row['comment'] . '</textarea></td>';
+        print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"comment_$hid\">" . $row['comment'] . '</textarea></td>';
+        print "<td>$date<input type=\"hidden\" name=\"date_$symb\" value=\"$date\"></td>\n";
         print "<td>" . $row['volume'] . '</td>';
         print "<td>$price</td>\n";
         print "<td>$close</td>\n";
@@ -98,7 +100,7 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name)
 }
 
 // save any changes that have been typed into the form
-update_trades($pf_id);
+update_holdings($pf_id);
 
 if(isset($_POST['delete']))
 {
@@ -144,7 +146,7 @@ elseif(isset($_POST['sell']))
         $marked = $_POST['mark'];
         foreach ($marked as $symb)
         {
-            sell_stock($symb, $_POST["buy_comment_$symb"], $_POST["buy_volume_$symb"]);
+            sell_stock($symb, $_POST["comment_$symb"], $_POST["volume_$symb"]);
         }
     }
 }

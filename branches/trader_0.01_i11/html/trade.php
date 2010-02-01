@@ -24,7 +24,7 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
     global $pdo;
     print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="cart" id="cart">';
     print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
-    print '<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Volume</td><td>Close</td><td>Value</td>';
+    print '<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Date</td><td>Volume</td><td>Close</td><td>Value</td>';
     if (isset($_POST['chart']))
     {
         print '<td>Chart</td></tr>';
@@ -34,13 +34,15 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
     foreach ($pdo->query($query) as $row)
     {
         $symb = $row['symb'];
+        $date = $row['date'];
         $symb_name = get_symb_name($symb, $pf_exch);
         $close = get_stock_close($symb, $pf_working_date, $pf_exch);
         $value = round($close*$row['volume'], 2);
         print "<tr><td><input type=\"checkbox\" name=\"mark[]\" value=\"$symb\">$symb</td>\n";
         print "<td>$symb_name</td>\n";
-        print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"buy_comment_$symb\">" . $row['comment'] . '</textarea></td>';
-        print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"10\" name=\"buy_volume_$symb\">" . $row['volume'] . '</textarea></td>';
+        print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"comment_$symb\">" . $row['comment'] . '</textarea></td>';
+        print "<td>$date<input type=\"hidden\" name=\"date_$symb\" value=\"$date\"></td>\n";
+        print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"10\" name=\"volume_$symb\">" . $row['volume'] . '</textarea></td>';
         print "<td>$close</td>\n";
         print "<td>$value</td>\n";
         if (isset($_POST['chart']))
@@ -67,7 +69,7 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
 
 #if (isset($_POST['recalc']))
 #{
-    update_cart('cart', $pf_id, $pf_working_date);
+    update_cart('cart', $pf_id);
 #}
 #elseif(isset($_POST['delete']))
 if(isset($_POST['delete']))
@@ -90,7 +92,7 @@ elseif(isset($_POST['watch']))
         {
             if (! is_in_cart('watch', $symb))
             {
-                if (add_to_cart('watch', $symb, $_POST["buy_comment_$symb"], $_POST["buy_volume_$symb"]))
+                if (add_to_cart('watch', $symb, $_POST["comment_$symb"], $_POST["volume_$symb"]))
                 {
                     del_from_cart('cart', $symb);
                 }
@@ -105,7 +107,7 @@ elseif(isset($_POST['buy']))
         $marked = $_POST['mark'];
         foreach ($marked as $symb)
         {
-            if (buy_stock($symb, $_POST["buy_comment_$symb"], $_POST["buy_volume_$symb"]))
+            if (buy_stock($symb, $_POST["comment_$symb"], $_POST["volume_$symb"]))
             {
                 del_from_cart('cart', $symb);
             }

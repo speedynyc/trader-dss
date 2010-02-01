@@ -168,7 +168,15 @@ if (isset($_POST['execute_sql']))
                     {
                         if ($index != 'symb')
                         {
-                            print "<td>$row[$index]</td>\n";
+                            if (isset($_POST['chart']))
+                            {
+                                print "<td><table><tr><td>$index</td></tr>";
+                                print "<tr><td>$row[$index]</td></tr></table></td>\n";
+                            }
+                            else
+                            {
+                                print "<td>$row[$index]</td>\n";
+                            }
                         }
                     }
                     if (isset($_POST['chart']))
