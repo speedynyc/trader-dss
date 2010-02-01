@@ -15,10 +15,10 @@ $next_trade_day = next_trade_day($pf_working_date, $pf_exch);
 
 try {
     $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die("ERROR: Cannot connect: " . $e->getMessage());
 }
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name)
 {
@@ -95,6 +95,7 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name)
     print '<tr><td colspan="10"><input name="update" value="Update" type="submit"/></td></tr>';
     print '<tr><td colspan="10"><input name="sell" value="Sell" type="submit"/></td></tr>';
     print '<tr><td colspan="10"><input name="next_day" value="Go to the next day, '.$next_trade_day.'" type="submit"/></td></tr>';
+    print "<tr><td colspan=\"10\"><img src=\"/cgi-bin/portfolio_chart.php?pfid=$pf_id\"/></td></tr>";
     print '</table>';
     print '</form>';
 }
@@ -126,7 +127,12 @@ elseif(isset($_POST['next_day']))
         foreach ($pdo->query($query) as $row)
         {
             $cash_in_hand = $row['cash_in_hand'];
-            $holdings = $row['holdings'];
+        }
+        #$query = "select holdings.symb, quotes.close * holdings.volume as value, holdings.price * holdings.volume as cost from holdings, quotes where holdings.symb = quotes.symb and quotes.date = '$next_trade_day' and holdings.pfid = '$pf_id';";
+        $query = "select sum(quotes.close * holdings.volume) as value, sum(holdings.price * holdings.volume) as cost from holdings, quotes where holdings.symb = quotes.symb and quotes.date = '$next_trade_day' and holdings.pfid = '$pf_id';";
+        foreach ($pdo->query($query) as $row)
+        {
+            $holdings = $row['value'];
         }
         // this isn't good enough, it must calculate all the current close prices and multiply them by volume and total them into holdings
         $query = "insert into pf_summary (pfid, date, cash_in_hand, holdings) values ('$pf_id', '$next_trade_day', '$cash_in_hand', '$holdings');";
