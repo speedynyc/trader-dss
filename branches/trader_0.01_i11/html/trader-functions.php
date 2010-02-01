@@ -7,7 +7,7 @@ $db_password = 'happy';
 
 function tr_warn($message='No message!')
 {
-    print('<font color="red">' . $message . '</font>');
+    print('<font color="red">' . $message . '</font><br>');
 }
 
 function update_holdings($pfid)
@@ -354,9 +354,9 @@ function del_from_cart($table, $symb)
 function redirect_login_pf()
 {
     /* the idea here is to redirect to the login or porftolio selection page when 
-        the cookie doesn't contain a valid username or portfolio.
-        This will stop someone from opening a browser and getting some page other than the login page
-    */
+       the cookie doesn't contain a valid username or portfolio.
+       This will stop someone from opening a browser and getting some page other than the login page
+     */
     session_start();
     $login_page = "/login.php";
     $portfolio_page = "/portfolios.php";
@@ -573,7 +573,7 @@ function get_pf_working_date($pfid)
 }
 
 function get_symb_name($symb, $exch)
-{
+{   
     // retrieve any field from a table indexed on symb, date, exch
     global $db_hostname, $db_database, $db_user, $db_password;
     try {
@@ -585,6 +585,108 @@ function get_symb_name($symb, $exch)
     foreach ($pdo->query($query) as $row)
     {
         return $row['name'];
+    }
+    return false;
+}   
+
+function is_in_portfolio($symb, $pfid)
+{
+    // lookup holdings to see if the symbol's there
+    return is_in_cart('holdings', $symb);
+}
+
+function gain($symb, $exch, $pfid, $pf_working_date)
+{
+    // work out how much the symbol has gained since it was bought
+    // there might be several in holdings so average them all
+    global $db_hostname, $db_database, $db_user, $db_password;
+    $t_volume = 0;
+    $t_price = 0;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $close = get_stock_close($symb, $pf_working_date, $exch);
+    $query = "select price, volume from holdings where symb = '$symb';";
+    foreach ($pdo->query($query) as $row)
+    {
+        $t_volume = $t_volume + $row['volume'];
+        $t_price = $t_price + ($row['volume'] * $row['price']);
+    }
+    $avg_price = $t_price / $t_volume;
+    if ( $t_volume < 0 )
+    {
+        // we're shorting
+        if ($close > $avg_price)
+        {
+            return -1;
+        }
+        elseif ($close < $avg_price)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        // we're going long
+        if ($close > $avg_price)
+        {
+            return 1;
+        }
+        elseif ($close < $avg_price)
+        {
+            return -1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+}
+
+function get_symb_name_coloured($symb, $exch, $pfid, $pf_working_date)
+{
+    // retrieve any field from a table indexed on symb, date, exch
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    if (isset($_SESSION['pfid']))
+    {
+        // work out if the symbol is already in the portfolio and if it's winning or losing
+        if (is_in_portfolio($symb, $pfid))
+        {
+            $gain = gain($symb, $exch, $pfid, $pf_working_date);
+            if ( $gain == 0 )
+            {
+                $colour = 'orange';
+            }
+            elseif ($gain > 0 )
+            {
+                $colour = 'green';
+            }
+            else
+            {
+                $colour = 'red';
+            }
+        }
+        else
+        {
+            $colour = 'black';
+        }
+    }
+    $query = "select name from stocks where symb = '$symb' and exch = '$exch';";
+    foreach ($pdo->query($query) as $row)
+    {
+        return "<font color=\"$colour\">" . $row['name'] . '</font>';
     }
     return false;
 }
