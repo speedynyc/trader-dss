@@ -195,7 +195,7 @@ function create_choose_form()
         }
     }
     $choose_pf_form->addElement('submit','choose','Trade with Portfolio');
-    $choose_pf_form->addElement('submit','delete','Delete Portfolio');
+    $choose_pf_form->addElement('submit','delete','Delete Portfolio', 'onclick="return confirm(\'Delete portfolio\nAre you Sure?\')"');
 }
 
 // this isn't good enough. The forms need to be instanciated here to process the values,
