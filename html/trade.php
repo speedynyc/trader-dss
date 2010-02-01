@@ -71,7 +71,6 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
 #{
     update_cart('cart', $pf_id);
 #}
-#elseif(isset($_POST['delete']))
 if(isset($_POST['delete']))
 {
     if (isset($_POST['mark']))
