@@ -11,7 +11,8 @@ CREATE TABLE queries (
     sql_order text,
     sql_order_dir char(4),
     sql_limit integer,
-    chart_period integer
+    chart_period integer,
+    unique (uid, name)
 );
 ALTER TABLE public.queries OWNER TO postgres;
 ALTER TABLE ONLY queries ADD CONSTRAINT queries_pkey PRIMARY KEY (qid, name);
