@@ -34,9 +34,13 @@ if (isset($_SESSION['username']))
 {
     // save the username to use as the defualt and then wipe the cookie clean
     $default_username = $_SESSION['username'];
-    unset($_SESSION['uid']);
-    unset($_SESSION['username']);
-    unset($_SESSION['pfid']);
+    session_unset();
+    # save the default username to the session so it's there even after a reload
+    $_SESSION['loginname'] = $default_username;
+}
+if (isset($_SESSION['loginname']))
+{
+    $default_username = $_SESSION['loginname'];
 }
 
 # create the form and validation rules
