@@ -26,31 +26,101 @@ try {
 }
 
 $select_query_form = new HTML_QuickForm('select_query');
-$query = "select count(*) as count from queries where uid = '$uid';";
-$result = $pdo->query($query);
-$row = $result->fetch(PDO::FETCH_ASSOC);
-print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
-if ($row['count'] > 0)
+$sql_input_form = new HTML_QuickForm('sql_input');
+
+function create_select_query_form()
 {
-    $first = true;
-    $query = "select qid, name from queries where uid = $uid order by name;";
+    global $db_hostname, $db_database, $db_user, $db_password, $pdo, $uid;
+    global $select_query_form, $q_id;
+    $query = "select count(*) as count from queries where uid = '$uid';";
     $result = $pdo->query($query);
-    $choose_query = $select_query_form->addElement('select','choose_query','Select Query to Edit:');
-    while ($row = $result->fetch(PDO::FETCH_ASSOC))
+    $row = $result->fetch(PDO::FETCH_ASSOC);
+    if ($row['count'] > 0)
     {
-        $q_name = $row['name'];
-        $q_qid = $row['qid'];
-        $choose_query->addOption($q_name, $q_qid);
+        $first = true;
+        $query = "select qid, name from queries where uid = $uid order by name;";
+        $result = $pdo->query($query);
+        $choose_query = $select_query_form->addElement('select','choose_query','Select Query to Edit:');
+        while ($row = $result->fetch(PDO::FETCH_ASSOC))
+        {
+            $q_name = $row['name'];
+            $q_qid = $row['qid'];
+            if (isset($q_id) and $q_qid == $q_id)
+            {
+                $choose_query->addOption($q_name, $q_qid, "selected");
+            }
+            else
+            {
+                $choose_query->addOption($q_name, $q_qid);
+            }
+        }
+        $select_query_form->addElement('submit','edit_query','Load Query');
     }
-    $select_query_form->addElement('submit','edit_query','Load Query');
-    $select_query_form->display();
-    print "</td></tr>\n";
 }
+
+function create_sql_input_form()
+{
+    global $sql_input_form, $q_id;
+    $sql_input_form->applyFilter('__ALL__', 'trim');
+    $sql_input_form->addElement('header', null, "Save queries for later use.");
+    $sql_input_form->addElement('textarea', 'sql_name', 'Query Description:', 'wrap="soft" rows="1" cols="50"');
+    $sql_input_form->addElement('textarea', 'sql_select', 'select:', 'wrap="soft" rows="3" cols="50"');
+    $sql_input_form->addRule('sql_select','Must select columns','required');
+    $sql_input_form->addElement('textarea', 'sql_from', 'from:', 'wrap="soft" rows="1" cols="50"');
+    $sql_input_form->addRule('sql_from','Must select tables','required');
+    $sql_input_form->addElement('textarea', 'sql_where', 'where:', 'wrap="soft" rows="4" cols="50"');
+    $sql_input_form->addRule('sql_where','Must include where clause','required');
+    $sql_input_form->addElement('textarea', 'sql_order', 'order by:', 'wrap="soft" rows="1" cols="50"');
+    $sql_input_form->addRule('sql_order','Must order the output','required');
+    $direction = $sql_input_form->addElement('select','sql_order_dir','direction:');
+    $direction->addOption('ascending', 'asc');
+    $direction->addOption('descending', 'desc');
+    $limit = $sql_input_form->addElement('select','sql_limit','limit:');
+    $limit->addOption('1', '1');
+    $limit->addOption('10', '10');
+    $limit->addOption('100', '100');
+    $chart_period = $sql_input_form->addElement('select','chart_period','Chart Period:');
+    $chart_period->addOption('1 week', '7');
+    $chart_period->addOption('1 month', '30');
+    $chart_period->addOption('2 months', '60');
+    $chart_period->addOption('3 months', '90');
+    $chart_period->addOption('6 months', '180');
+    $chart_period->addOption('1 year', '365');
+    $chart_period->addOption('2 years', '7305');
+    $chart_period->addOption('5 years', '1825');
+    $chart_period->addOption('10 years', '3650');
+    $sql_input_form->addElement('submit','use_sql','Use Query');
+    $sql_input_form->addElement('submit','save_sql','Save Query');
+    if (isset($q_id))
+    {
+        $sql_input_form->addElement('submit','del_sql',"Delete Query $q_id");
+        $sql_input_form->setDefaults(array(
+                    'sql_name' => $_SESSION['sql_name'],
+                    'sql_select' => $_SESSION['sql_select'],
+                    'sql_from'   => $_SESSION['sql_from'],
+                    'sql_where'  => $_SESSION['sql_where'],
+                    'sql_order'  => $_SESSION['sql_order'],
+                    'sql_order_dir' => $_SESSION['sql_order_dir'],
+                    'chart_period' => $_SESSION['chart_period'],
+                    'sql_limit'  => $_SESSION['sql_limit']));
+    }
+    else
+    {
+        $sql_input_form->setDefaults(array(
+                    'sql_limit'  => 10,
+                    'sql_order_dir' => 'desc',
+                    'chart_period' => 180));
+    }
+}
+
+create_select_query_form();
+create_sql_input_form();
 
 if (isset($_POST['edit_query']))
 {
     $data = $select_query_form->exportValues();
     $q_id = $data['choose_query'];
+    $_SESSION['qid'] = $q_id;
     $query = "select * from queries where qid = $q_id;";
     $result = $pdo->query($query);
     $row = $result->fetch(PDO::FETCH_ASSOC);
@@ -63,61 +133,6 @@ if (isset($_POST['edit_query']))
     $_SESSION['sql_limit']     = $sql_limit  = $row['sql_limit'];
     $_SESSION['chart_period']  = $chart_period = $row['chart_period'];
     $_SESSION['qid']           = $q_id;
-}
-
-$sql_input_form = new HTML_QuickForm('sql_input');
-$sql_input_form->applyFilter('__ALL__', 'trim');
-$sql_input_form->addElement('header', null, "Save queries for later use.");
-$sql_input_form->addElement('textarea', 'sql_name', 'Query Description:', 'wrap="soft" rows="1" cols="50"');
-$sql_input_form->addElement('textarea', 'sql_select', 'select:', 'wrap="soft" rows="3" cols="50"');
-$sql_input_form->addRule('sql_select','Must select columns','required');
-$sql_input_form->addElement('textarea', 'sql_from', 'from:', 'wrap="soft" rows="1" cols="50"');
-$sql_input_form->addRule('sql_from','Must select tables','required');
-$sql_input_form->addElement('textarea', 'sql_where', 'where:', 'wrap="soft" rows="4" cols="50"');
-$sql_input_form->addRule('sql_where','Must include where clause','required');
-$sql_input_form->addElement('textarea', 'sql_order', 'order by:', 'wrap="soft" rows="1" cols="50"');
-$sql_input_form->addRule('sql_order','Must order the output','required');
-$direction = $sql_input_form->addElement('select','sql_order_dir','direction:');
-$direction->addOption('ascending', 'asc');
-$direction->addOption('descending', 'desc');
-$limit = $sql_input_form->addElement('select','sql_limit','limit:');
-$limit->addOption('1', '1');
-$limit->addOption('10', '10');
-$limit->addOption('100', '100');
-$chart_period = $sql_input_form->addElement('select','chart_period','Chart Period:');
-$chart_period->addOption('1 week', '7');
-$chart_period->addOption('1 month', '30');
-$chart_period->addOption('2 months', '60');
-$chart_period->addOption('3 months', '90');
-$chart_period->addOption('6 months', '180');
-$chart_period->addOption('1 year', '365');
-$chart_period->addOption('2 years', '7305');
-$chart_period->addOption('5 years', '1825');
-$chart_period->addOption('10 years', '3650');
-$sql_input_form->addElement('submit','use_sql','Use Query');
-$sql_input_form->addElement('submit','save_sql','Save Query');
-if (isset($q_id))
-{
-    $sql_input_form->addElement('submit','del_sql',"Delete Query $q_id");
-}
-if (isset($_SESSION['sql_select']))
-{
-    $sql_input_form->setDefaults(array(
-                'sql_name' => $_SESSION['sql_name'],
-                'sql_select' => $_SESSION['sql_select'],
-                'sql_from'   => $_SESSION['sql_from'],
-                'sql_where'  => $_SESSION['sql_where'],
-                'sql_order'  => $_SESSION['sql_order'],
-                'sql_order_dir' => $_SESSION['sql_order_dir'],
-                'chart_period' => $_SESSION['chart_period'],
-                'sql_limit'  => $_SESSION['sql_limit']));
-}
-else
-{
-    $sql_input_form->setDefaults(array(
-                'sql_limit'  => 10,
-                'sql_order_dir' => 'desc',
-                'chart_period' => 180));
 }
 
 if (isset($_POST['use_sql']))
@@ -136,7 +151,7 @@ if (isset($_POST['use_sql']))
         header("Location: /select.php");
     }
 }
-elseif (isset($_POST['save_sql']))
+if (isset($_POST['save_sql']))
 {
     if ($sql_input_form->validate())
     {
@@ -154,27 +169,24 @@ elseif (isset($_POST['save_sql']))
         $pdo->exec($query);
     }
 }
-elseif (isset($_POST['del_sql']))
+if (isset($_POST['del_sql']))
 {
     $query = "delete from queries where qid = $q_id;";
     $pdo->exec($query);
 }
 
+$select_query_form = new HTML_QuickForm('select_query');
+$sql_input_form = new HTML_QuickForm('sql_input');
+create_select_query_form();
+create_sql_input_form();
+
+print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
+print '<tr><td>';
+$select_query_form->display();
+print "</td></tr>\n";
 print '<tr><td>';
 $sql_input_form->display();
 print '</td></tr>';
-// run the sql and return the results
-$data = $sql_input_form->exportValues();
-if (isset($_SESSION['sql_select']))
-{
-    $_SESSION['sql_name']      = $sql_select = $data['sql_name'];
-    $_SESSION['sql_select']    = $sql_select = $data['sql_select'];
-    $_SESSION['sql_from']      = $sql_from   = $data['sql_from'];
-    $_SESSION['sql_where']     = $sql_where  = $data['sql_where'];
-    $_SESSION['sql_order']     = $sql_order  = $data['sql_order'];
-    $_SESSION['sql_order_dir'] = $sql_order_dir = $data['sql_order_dir'];
-    $_SESSION['sql_limit']     = $sql_limit  = $data['sql_limit'];
-    $_SESSION['chart_period']  = $chart_period = $data['chart_period'];
-}
+print '</table>';
 
 ?>
