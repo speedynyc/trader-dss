@@ -76,7 +76,7 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name)
                 $colour = 'green';
             }
         }
-        print "<tr><td><input type=\"checkbox\" name=\"mark[]\" value=\"$symb\"><font color=\"$colour\">$symb</font></td>\n";
+        print "<tr><td><input type=\"checkbox\" name=\"mark[]\" value=\"$hid\"><font color=\"$colour\">$symb</font></td>\n";
         print "<td><font color=\"$colour\">$symb_name</font></td>\n";
         print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"comment_$hid\">" . $row['comment'] . '</textarea></td>';
         print "<td>$date<input type=\"hidden\" name=\"date_$symb\" value=\"$date\"></td>\n";
@@ -120,18 +120,7 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name)
 // save any changes that have been typed into the form
 update_holdings($pf_id);
 
-if(isset($_POST['delete']))
-{
-    if (isset($_POST['mark']))
-    {
-        $marked = $_POST['mark'];
-        foreach ($marked as $symb)
-        {
-            del_from_cart('cart', $symb);
-        }
-    }
-}
-elseif(isset($_POST['next_day']))
+if(isset($_POST['next_day']))
 {
     try 
     {
@@ -141,6 +130,7 @@ elseif(isset($_POST['next_day']))
         $pdo->exec($query);
         // copy the row forward for pf_summary
         $cash_in_hand = get_pf_cash_in_hand($pf_id);
+        // work out what the value of heach holding is with the new close price
         $query = "select sum(quotes.close * holdings.volume) as value, sum(holdings.price * holdings.volume) as cost from holdings, quotes where holdings.symb = quotes.symb and quotes.date = '$next_trade_day' and holdings.pfid = '$pf_id';";
         foreach ($pdo->query($query) as $row)
         {
@@ -162,9 +152,10 @@ elseif(isset($_POST['sell']))
     if (isset($_POST['mark']))
     {
         $marked = $_POST['mark'];
-        foreach ($marked as $symb)
+        foreach ($marked as $hid)
         {
-            sell_stock($symb, $_POST["comment_$symb"], $_POST["volume_$symb"]);
+            $symb = get_hid_symb($hid);
+            sell_stock($hid, $symb, $_POST["comment_$hid"]);
         }
     }
 }
