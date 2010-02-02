@@ -7,7 +7,7 @@ This is a rough guide to installing the Trader DSS on a Unix like operating syst
 = Details =
 
 == Perl Setup ==
-  * Install the following. The example here uses the CPAN module to do the work
+  * Install the following. The example here uses the CPAN module to do the work. _Note:_ Date::Manip 6+ requires Perl 5.10+ which isn't the default on most systems yet. If you don't have Perl 5.10 then download Date::Manip 5.x from [http://ftp.esat.net/pub/languages/perl/CPAN/authors/id/S/SB/SBECK/ CPAN] and install it by hand. 
 {{{
 perl -MCPAN -e shell
 install Compress::Zlib
