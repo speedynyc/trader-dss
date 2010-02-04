@@ -46,7 +46,7 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name)
         $symb_name = get_symb_name($symb, $pf_exch);
         $price = $row['price'];
         $close = get_stock_close($symb, $pf_working_date, $pf_exch);
-        $price_diff_pc = round(100 - (($price/$close)*100), 2);
+        $price_diff_pc = round(((($close-$price)/$price)), 2)*100;
         $volume = $row['volume'];
         $value = round($close*$volume, 2);
         $date = $row['date'];
