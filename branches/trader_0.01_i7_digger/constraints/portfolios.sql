@@ -1,1 +1,0 @@
-ALTER TABLE ONLY portfolios ADD CONSTRAINT portfolios_uid FOREIGN KEY (uid) REFERENCES users(uid) MATCH FULL;
