@@ -132,7 +132,8 @@ sudo pear install HTML_QuickForm
 }}}
 
 == install the web pages and scripts ==
-  * checkout the trunk version into `/var/www` or the root of your web server
-  * update all the scripts with your server, database, account name and password. _I really should have a config file for those things_.
-  * install [http://www.advsofteng.com/ chart director] if you're going to use that to chart your results. The current code depends on it, but I haven't released the charting script since it's based on an example included in the Chart Director source. Once I have one I've written myself, I'll release that.
-  * create the first account `insert into users (name, passwd) values ('user@email.com', hash('password string'));`
+  * checkout the trunk version into `/var/www` or the root of your web server.
+  * move the directory `bin` to your home directory.
+  * update `html/trader-functions.php` with your server, database, account name and password. _We really should have a config file for those things_.
+  * update the scripts in ~/bin with the same server, database, account and password details
+  * install [http://www.advsofteng.com/ chart director] into /var/www/ChartDirector if you're going to use that to chart your results. The current code depends on it, but the charting script hasn't been released since it's based on an example included in the Chart Director source. Once a suitable replacement has been written it will be included.
