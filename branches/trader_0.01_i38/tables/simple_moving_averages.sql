@@ -1,0 +1,46 @@
+--
+-- Name: simple_moving_averages; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+CREATE TABLE simple_moving_averages (
+    date date NOT NULL,
+    symb character varying(10) NOT NULL,
+    exch character varying(6) NOT NULL,
+    close_ma_10 numeric(9,2),
+    close_ma_20 numeric(9,2),
+    close_ma_30 numeric(9,2),
+    close_ma_50 numeric(9,2),
+    close_ma_100 numeric(9,2),
+    close_ma_200 numeric(9,2),
+    volume_ma_10 numeric(12,0),
+    volume_ma_20 numeric(12,0),
+    volume_ma_30 numeric(12,0),
+    volume_ma_50 numeric(12,0),
+    volume_ma_100 numeric(12,0),
+    volume_ma_200 numeric(12,0),
+    ma_10_diff numeric(9,2),
+    ma_20_diff numeric(9,2),
+    ma_30_diff numeric(9,2),
+    ma_50_diff numeric(9,2),
+    ma_100_diff numeric(9,2),
+    ma_200_diff numeric(9,2),
+    ma_10_dir integer,
+    ma_20_dir integer,
+    ma_30_dir integer,
+    ma_50_dir integer,
+    ma_100_dir integer,
+    ma_200_dir integer,
+    ma_10_run integer,
+    ma_20_run integer,
+    ma_30_run integer,
+    ma_50_run integer,
+    ma_100_run integer,
+    ma_200_run integer,
+    ma_10_sum numeric(12,2),
+    ma_20_sum numeric(12,2),
+    ma_30_sum numeric(12,2),
+    ma_50_sum numeric(12,2),
+    ma_100_sum numeric(12,2),
+    ma_200_sum numeric(12,2)
+);
+ALTER TABLE public.simple_moving_averages OWNER TO postgres;
+ALTER TABLE ONLY simple_moving_averages ADD CONSTRAINT simple_moving_averages_pkey PRIMARY KEY (date, symb, exch);
