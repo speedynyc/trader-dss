@@ -2,6 +2,8 @@
 require_once("../ChartDirector/lib/FinanceChart.php");
 include("../html/trader-functions.php");
 
+redirect_login_pf();
+
 # Loads the date, high, low, open, close, volume from the database
 function load_trade_data($symb, $startDate, $endDate)
 {
