@@ -1,6 +1,6 @@
 <?php
 include("../html/trader-functions.php");
-require_once("/var/www/html/ChartDirector/lib/FinanceChart.php");
+require_once("../ChartDirector/lib/FinanceChart.php");
 global $db_hostname, $db_database, $db_user, $db_password;
 try {
     $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
@@ -12,7 +12,7 @@ try {
 if (isset($_REQUEST['pfid']))
 {
     $pfid = $_REQUEST['pfid'];
-    $query = "select date, cash_in_hand, holdings from pf_summary where pfid = '$pfid';";
+    $query = "select date, cash_in_hand, holdings from pf_summary where pfid = '$pfid' order by date limit 50;";
     foreach ($pdo->query($query) as $row)
     {
         $holdings[] = $row['holdings'];
@@ -21,14 +21,14 @@ if (isset($_REQUEST['pfid']))
     }
     // Create a XYChart object of size 300 x 210 pixels. Set the background to pale yellow 
     // (0xffffc0) with a black border (0x0)
-    $c = new XYChart(320, 230);
+    $c = new XYChart(640, 480);
     // Set the plotarea at (50, 30) and of size 240 x 140 pixels. Use white (0xffffff) 
     // background. 
-    $plotAreaObj = $c->setPlotArea(50, 30, 240, 140);
+    $plotAreaObj = $c->setPlotArea(50, 30, 560, 400);
     $plotAreaObj->setBackground(0xffffff);
     // Add a legend box at (50, 185) (below of plot area) using horizontal layout. Use 8 
     // pts Arial font with Transparent background. 
-    $legendObj = $c->addLegend(50, 185, false, "", 8);
+    $legendObj = $c->addLegend(250, 445, false, "", 8);
     $legendObj->setBackground(Transparent);
     // Add a title box to the chart using 8 pts Arial Bold font, with yellow (0xffff40)
     // background and a black border (0x0)
@@ -50,6 +50,8 @@ if (isset($_REQUEST['pfid']))
     $m_otherHourFormat = "{value|h:nna}";
     $m_timeLabelSpacing = 50;
     $c->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
+    #$c->xAxis->setMultiFormat(StartOfMonthFilter(), $m_firstMonthFormat, StartOfMonthFilter(1, 0.5), $m_otherMonthFormat, 1);
+    #$c->xAxis->setMultiFormat(StartOfYearFilter(), $m_YearFormat, StartOfYearFilter(1, 0.5), $m_YearFormat, 1);
     // Add an stack area layer with three data sets 
     $layer = $c->addAreaLayer2(Stack);
     $layer->addDataSet($holdings, 0x4040ff, "Holdings");
