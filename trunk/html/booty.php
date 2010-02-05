@@ -93,13 +93,13 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name)
     }
     if (isset($_POST['chart']))
     {
-        print "<tr><td colspan=\"10\"><input type=\"checkbox\" name=\"chart\" value=\"chart\" checked>Draw Charts</td>\n";
+        print "<tr><td><input type=\"checkbox\" name=\"chart\" value=\"chart\" checked>Draw Charts</td>\n";
     }
     else
     {
-        print "<tr><td colspan=\"10\"><input type=\"checkbox\" name=\"chart\" value=\"chart\">Draw Charts</td>\n";
+        print "<tr><td><input type=\"checkbox\" name=\"chart\" value=\"chart\">Draw Charts</td>\n";
     }
-    print '<tr><td colspan="10"><input name="update" value="Update" type="submit"/></td></tr>';
+    print '<td colspan="10"><input name="update" value="Update" type="submit"/></td></tr>';
     print '<tr><td colspan="10"><input name="sell" value="Sell" type="submit"/></td></tr>';
     print '<tr><td colspan="10"><input name="next_day" value="Go to the next day, '.$next_trade_day.'" type="submit"/></td></tr>';
     print '</table>';
