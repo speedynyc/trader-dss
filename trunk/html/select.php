@@ -42,7 +42,15 @@ $chart_period->addOption('1 year', '365');
 $chart_period->addOption('2 years', '7305');
 $chart_period->addOption('5 years', '1825');
 $chart_period->addOption('10 years', '3650');
-$sql_input_form->addElement('checkbox', 'chart', 'Draw Charts');
+$checkbox = &$sql_input_form->addElement('checkbox', 'chart', 'Draw Charts');
+if ( isset($_SESSION['chart']))
+{
+    $checkbox->setChecked(true);
+}
+else
+{
+    $checkbox->setChecked(false);
+}
 $sql_input_form->addElement('submit','execute_sql','Run Query');
 if (isset($_SESSION['sql_select']))
 {
@@ -106,6 +114,17 @@ if (isset($_POST['execute_sql']))
         $first = true;
         print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="stocks" id="stocks">';
         print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr>';
+        // save the chart option to the session
+        if (isset($_POST['chart']))
+        {
+            print "<td>Chart</td>\n";
+            $_SESSION['chart'] = 1;
+        }
+        else
+        {
+            unset($_SESSION['chart']);
+            print '</tr>';
+        }
         try 
         {
             $result = $pdo->query($query);
@@ -124,14 +143,6 @@ if (isset($_POST['execute_sql']))
                         {
                             print "<td>$index</td>\n";
                         }
-                    }
-                    if (isset($_POST['chart']))
-                    {
-                        print "<td>Chart</td>\n";
-                    }
-                    else
-                    {
-                        print '</tr>';
                     }
                 }
                 print "<tr>";
@@ -168,7 +179,7 @@ if (isset($_POST['execute_sql']))
                     {
                         if ($index != 'symb')
                         {
-                            if (isset($_POST['chart']))
+                            if (isset($_SESSION['chart']))
                             {
                                 print "<td><table><tr><td>$index</td></tr>";
                                 print "<tr><td>$row[$index]</td></tr></table></td>\n";
@@ -179,7 +190,7 @@ if (isset($_POST['execute_sql']))
                             }
                         }
                     }
-                    if (isset($_POST['chart']))
+                    if (isset($_SESSION['chart']))
                     {
                         print "<td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symbol&TimeRange=$chart_period&working_date=$pf_working_date&exch=$pf_exch&ChartSize=M&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td>";
                     }

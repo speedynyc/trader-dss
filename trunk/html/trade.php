@@ -25,7 +25,7 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
     print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="cart" id="cart">';
     print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
     print '<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Date</td><td>Volume</td><td>Close</td><td>Value</td>';
-    if (isset($_POST['chart']))
+    if (isset($_SESSION['chart']))
     {
         print '<td>Chart</td></tr>';
     }
@@ -45,13 +45,13 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
         print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"10\" name=\"volume_$symb\">" . $row['volume'] . '</textarea></td>';
         print "<td>$close</td>\n";
         print "<td>$value</td>\n";
-        if (isset($_POST['chart']))
+        if (isset($_SESSION['chart']))
         {
             print "<td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symb&TimeRange=180&working_date=$pf_working_date&exch=$pf_exch&ChartSize=S&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td>";
         }
         print "</tr>\n";
     }
-    if (isset($_POST['chart']))
+    if (isset($_SESSION['chart']))
     {
         print "<tr><td><input type=\"checkbox\" name=\"chart\" value=\"chart\" checked>Draw Charts</td>\n";
     }
@@ -67,8 +67,19 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
     print '</form>';
 }
 
-update_cart('cart', $pf_id);
-if(isset($_POST['delete']))
+if (isset($_POST['recalc']))
+{
+    if (isset($_POST['chart']))
+    {
+        $_SESSION['chart'] = 1;
+    }
+    else
+    {
+        unset($_SESSION['chart']);
+    }
+    update_cart('cart', $pf_id);
+}
+elseif (isset($_POST['delete']))
 {
     if (isset($_POST['mark']))
     {
@@ -79,7 +90,7 @@ if(isset($_POST['delete']))
         }
     }
 }
-elseif(isset($_POST['watch']))
+elseif (isset($_POST['watch']))
 {
     if (isset($_POST['mark']))
     {
