@@ -1,10 +1,10 @@
 <?php
 
+# set some globals
 $db_hostname = 'localhost';
 $db_database = 'trader';
 $db_user     = 'postgres';
 $db_password = 'happy';
-$scramble_names = false;
 
 function tr_warn($message='No message!')
 {
@@ -359,6 +359,7 @@ function redirect_login_pf()
        the cookie doesn't contain a valid username or portfolio.
        This will stop someone from opening a browser and getting some page other than the login page
      */
+    global $scramble_names;
     session_start();
     $login_page = "/login.php";
     $portfolio_page = "/portfolios.php";
@@ -382,6 +383,21 @@ function redirect_login_pf()
             header("Location: $portfolio_page");
             exit;
         }
+    }
+    if (isset($_SESSION['hide']))
+    {
+        if ($_SESSION['hide'] == 't')
+        {
+            $scramble_names = true;
+        }
+        else
+        {
+            $scramble_names = false;
+        }
+    }
+    else
+    {
+        $scramble_names = false;
     }
 }
 
@@ -571,9 +587,9 @@ function get_pf_hide_names($pfid)
     $query = "select hide_names from portfolios where pfid = $pf_id;";
     foreach ($pdo->query($query) as $row)
     {
-        return ($row['hide_names'] == 't');
+        return $row['hide_names'];
     }
-    return false;
+    return 'f';
 }
 
 function get_pf_is_auto_close($pfid)
