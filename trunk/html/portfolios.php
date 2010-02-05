@@ -62,6 +62,11 @@ function get_exch_desc($v)
     return 'Unknown Exchange';
 }
 
+function check_percent($name, $value)
+{
+    // check that we've got a number between 0 and 100
+    return ($value >= 0 and $value <= 100);
+}
 
 function create_add_form()
 {
@@ -80,6 +85,13 @@ function create_add_form()
     $create_pf_form->addElement('text', 'opening', 'Enter Opening Balance:', array('size' => 10, 'maxlength' => 10));
     $create_pf_form->addRule('opening','Please enter a numeric balance','required');
     $create_pf_form->addRule('opening','Please enter a numeric balance','numeric');
+    $create_pf_form->addElement('text', 'sell_stop', 'Set Sell stop limit:', array('size' => 10, 'maxlength' => 10));
+    $create_pf_form->addRule('sell_stop','Please enter a numeric Sell Stop','required');
+    $create_pf_form->addRule('sell_stop','Please enter a numeric Sell Stop','numeric');
+    $create_pf_form->registerRule('valid_percent','function','check_percent');
+    $create_pf_form->addRule('sell_stop','Please enter a percentage','valid_percent');
+    $create_pf_form->addElement('checkbox', 'auto', 'Automatically sell on sell stop:');
+    $create_pf_form->addElement('checkbox', 'hide', 'Hide Stock Names:');
     $create_pf_form->addElement('date', 'start_date', 'Start Date:', array('format' => 'dMY', 'minYear' => 2000, 'maxYear' => date('Y'))); 
     $create_pf_form->addRule('start_date','Not a valid date','callback', 'validate_date');
     $exchanges = $create_pf_form->addElement('select','exchange','Exchange:');
@@ -91,29 +103,44 @@ function create_add_form()
     // Add a submit button
     $create_pf_form->addElement('submit','save','Create Portfolio');
 }
-// Validate an process or display
-if (isset($_POST['save']))
+
+function choose_portfolio($form)
 {
-    if ($create_pf_form->validate())
-    {
-        $create_pf_form->process('create_portfolio');
-        // even though we've saved the results we draw the form for another
-    }
+    global $pdo;
+    $pfid = $form['portfolio'];
+    $_SESSION['pfid'] = $pfid;
+    $_SESSION['hide'] = get_pf_hide_names($pfid);
 }
 
-
-// Define a function to process the form data
-function create_portfolio($v)
+// create a new portfolio
+function create_portfolio($form)
 {
     # extract and clean all the data
     global $pdo;
-    $pf_desc = $pdo->quote($v['pf_desc']);
+    $pf_desc = $pdo->quote($form['pf_desc']);
     $uid = $_SESSION['uid'];
-    $exchange = $pdo->quote($v['exchange']);
-    $parcel = $pdo->quote($v['parcel']);
-    $start_date = sprintf("%04d-%02d-%02d", $v['start_date']['Y'], $v['start_date']['M'], $v['start_date']['d']);
+    $exchange = $pdo->quote($form['exchange']);
+    $parcel = $pdo->quote($form['parcel']);
+    $start_date = sprintf("%04d-%02d-%02d", $form['start_date']['Y'], $form['start_date']['M'], $form['start_date']['d']);
     $start_date = $pdo->quote($start_date);
-    $opening_balance = $pdo->quote($v['opening']);
+    $opening_balance = $pdo->quote($form['opening']);
+    if (isset($form['hide']))
+    {
+        $hide = 't';
+    }
+    else
+    {
+        $hide = 'f';
+    }
+    if (isset($form['auto']))
+    {
+        $auto = 't';
+    }
+    else
+    {
+        $auto = 'f';
+    }
+    $sell_stop = $form['sell_stop'];
     $query = "select date from trade_dates where date >= $start_date order by date asc limit 1;";
     foreach ($pdo->query($query) as $row)
     {
@@ -122,7 +149,7 @@ function create_portfolio($v)
     // need to create the portfolio and add the first entry into summary as a transaction so that if one fails all do
     try{
         $pdo->beginTransaction();
-        $query = "insert into portfolios (name, uid, exch, parcel, start_date, working_date) values ($pf_desc, $uid, $exchange, $parcel, $start_date, $start_date);";
+        $query = "insert into portfolios (name, uid, exch, parcel, working_date, hide_names, sell_stop, auto_sell_stop) values ($pf_desc, $uid, $exchange, $parcel, $start_date, '$hide', '$sell_stop', '$auto');";
         $pdo->exec($query);
         $query = "select pfid from portfolios where uid = '$uid' and name = $pf_desc and exch = $exchange;";
         foreach ($pdo->query($query) as $row)
@@ -138,7 +165,6 @@ function create_portfolio($v)
         $pdo->rollBack();
         tr_warn('create_portfolio:' . $query . ':' . $e->getMessage());
     }
-    redirect_login_pf();
 }
 
 function delete_portfolio($pfid)
@@ -173,7 +199,7 @@ function create_choose_form()
     global $choose_pf_form, $pdo;
     $choose_pf_form->addElement('header', null, 'Choose a portfolio');
     $uid = $pdo->quote($_SESSION['uid']);
-    $query = "select pfid, name, exch, parcel, start_date, working_date from portfolios where uid = $uid order by name;";
+    $query = "select pfid, name, exch, parcel, working_date from portfolios where uid = $uid order by name;";
     $first_row = true;
     foreach ($pdo->query($query) as $row)
     {
@@ -181,7 +207,7 @@ function create_choose_form()
         $pf_desc = $row['name'];
         $pf_exch = get_exch_desc($row['exch']);
         $pf_parcel = $row['parcel'];
-        $pf_start_date = $row['start_date'];
+        $pf_start_date = get_pf_start_date($pf_id);
         $pf_working_date = $row['working_date'];
         if ($first_row)
         {
@@ -203,13 +229,24 @@ function create_choose_form()
 create_add_form();
 create_choose_form();
 
-if (isset($_POST['choose']))
+// Validate an process or display
+if (isset($_POST['save']))
+{
+    if ($create_pf_form->validate())
+    {
+        $create_pf_form->process('create_portfolio');
+        // we've added a portfolio, load a clean create_pf_form and reload the choose
+        $create_pf_form = new HTML_QuickForm('add_portfolio');
+        create_add_form();
+        $choose_pf_form = new HTML_QuickForm('choose_portfolio');
+        create_choose_form();
+    }
+}
+elseif (isset($_POST['choose']))
 {
     if ($choose_pf_form->validate())
     {
-        $data = $choose_pf_form->exportValues();
-        $pfid = $data['portfolio'];
-        $_SESSION['pfid'] = $pfid;
+        $choose_pf_form->process('choose_portfolio');
         header("Location: /queries.php");
         exit;
     }
@@ -221,20 +258,18 @@ elseif (isset($_POST['delete']))
         $data = $choose_pf_form->exportValues();
         $pfid = $data['portfolio'];
         delete_portfolio($pfid);
+        // recreate the choose form since the data has changed
+        $choose_pf_form = new HTML_QuickForm('choose_portfolio');
+        create_choose_form();
     }
 }
 
-// this is an ugly hack to re-create the forms after processing.
-// I suspect that this means that quickform isn't good enough
-$create_pf_form = new HTML_QuickForm('add_portfolio');
-$choose_pf_form = new HTML_QuickForm('choose_portfolio');
-create_add_form();
-create_choose_form();
-
+// display the forms
 print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr><td>';
 $create_pf_form->display();
 print '</td></tr>';
 print '<tr><td>';
 $choose_pf_form->display();
 print '</td></tr></table>';
+
 ?>
