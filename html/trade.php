@@ -51,26 +51,23 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
         }
         print "</tr>\n";
     }
-    print '<tr><td colspan="10"><input name="recalc" value="Update" type="submit"/></td></tr>';
-    print '<tr><td colspan="10"><input name="delete" value="Delete" type="submit"/></td></tr>';
-    print '<tr><td colspan="10"><input name="watch" value="Move to Watch list" type="submit"/></td></tr>';
     if (isset($_POST['chart']))
     {
-        print "<tr><td colspan=\"10\"><input type=\"checkbox\" name=\"chart\" value=\"chart\" checked>Draw Charts</td>\n";
+        print "<tr><td><input type=\"checkbox\" name=\"chart\" value=\"chart\" checked>Draw Charts</td>\n";
     }
     else
     {
-        print "<tr><td colspan=\"10\"><input type=\"checkbox\" name=\"chart\" value=\"chart\">Draw Charts</td>\n";
+        print "<tr><td><input type=\"checkbox\" name=\"chart\" value=\"chart\">Draw Charts</td>\n";
     }
+    print '<td colspan="10"><input name="recalc" value="Update" type="submit"/></td></tr>';
+    print '<tr><td colspan="10"><input name="delete" value="Delete" type="submit"/></td></tr>';
+    print '<tr><td colspan="10"><input name="watch" value="Move to Watch list" type="submit"/></td></tr>';
     print '<tr><td colspan="10"><input name="buy" value="Buy" type="submit"/></td></tr>';
     print '</table>';
     print '</form>';
 }
 
-#if (isset($_POST['recalc']))
-#{
-    update_cart('cart', $pf_id);
-#}
+update_cart('cart', $pf_id);
 if(isset($_POST['delete']))
 {
     if (isset($_POST['mark']))
