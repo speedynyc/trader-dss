@@ -117,13 +117,11 @@ if (isset($_POST['execute_sql']))
         // save the chart option to the session
         if (isset($_POST['chart']))
         {
-            print "<td>Chart</td>\n";
             $_SESSION['chart'] = 1;
         }
         else
         {
             unset($_SESSION['chart']);
-            print '</tr>';
         }
         try 
         {
@@ -143,6 +141,14 @@ if (isset($_POST['execute_sql']))
                         {
                             print "<td>$index</td>\n";
                         }
+                    }
+                    if (isset($_SESSION['chart']))
+                    {
+                        print "<td>Chart</td>\n";
+                    }
+                    else
+                    {
+                        print '</tr>';
                     }
                 }
                 print "<tr>";
