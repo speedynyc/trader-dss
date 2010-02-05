@@ -133,8 +133,9 @@ if (isset($_POST['edit_query']))
     $_SESSION['sql_limit']     = $sql_limit  = $row['sql_limit'];
     $_SESSION['chart_period']  = $chart_period = $row['chart_period'];
     $_SESSION['qid']           = $q_id;
+    $sql_input_form = new HTML_QuickForm('sql_input');
+    create_sql_input_form();
 }
-
 if (isset($_POST['use_sql']))
 {
     if ($sql_input_form->validate())
@@ -149,6 +150,7 @@ if (isset($_POST['use_sql']))
         $_SESSION['sql_limit']     = $sql_limit  = $data['sql_limit'];
         $_SESSION['chart_period']  = $chart_period = $data['chart_period'];
         header("Location: /select.php");
+        exit;
     }
 }
 if (isset($_POST['save_sql']))
@@ -167,18 +169,21 @@ if (isset($_POST['save_sql']))
         // do we have a qid? if so save these to that
         $query = "insert into queries (uid, name, sql_select, sql_from, sql_where, sql_order, sql_order_dir, sql_limit, chart_period) values ('$uid', '$sql_name', '$sql_select', '$sql_from', '$sql_where', '$sql_order', '$sql_order_dir', '$sql_limit', '$chart_period');";
         $pdo->exec($query);
+        // changed both forms, so reload them
+        $sql_input_form = new HTML_QuickForm('sql_input');
+        create_sql_input_form();
+        $select_query_form = new HTML_QuickForm('select_query');
+        create_select_query_form();
     }
 }
 if (isset($_POST['del_sql']))
 {
     $query = "delete from queries where qid = $q_id;";
     $pdo->exec($query);
+    $select_query_form = new HTML_QuickForm('select_query');
+    create_select_query_form();
 }
 
-$select_query_form = new HTML_QuickForm('select_query');
-$sql_input_form = new HTML_QuickForm('sql_input');
-create_select_query_form();
-create_sql_input_form();
 
 print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
 print '<tr><td>';
