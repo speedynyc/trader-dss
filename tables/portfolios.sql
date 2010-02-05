@@ -7,8 +7,10 @@ CREATE TABLE portfolios (
     exch character varying(6) NOT NULL,
     uid integer not null,
     parcel numeric(12,2),
-    start_date date not null,
     working_date date not null,
+    hide_names char(1),
+    sell_stop smallint,
+    auto_sell_stop char(1),
     unique (uid, exch, name)
 );
 ALTER TABLE public.portfolios OWNER TO postgres;

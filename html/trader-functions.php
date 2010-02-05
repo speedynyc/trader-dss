@@ -1,10 +1,10 @@
 <?php
 
+# set some globals
 $db_hostname = 'localhost';
 $db_database = 'trader';
 $db_user     = 'postgres';
 $db_password = 'happy';
-$scramble_names = false;
 
 function tr_warn($message='No message!')
 {
@@ -359,6 +359,7 @@ function redirect_login_pf()
        the cookie doesn't contain a valid username or portfolio.
        This will stop someone from opening a browser and getting some page other than the login page
      */
+    global $scramble_names;
     session_start();
     $login_page = "/login.php";
     $portfolio_page = "/portfolios.php";
@@ -382,6 +383,21 @@ function redirect_login_pf()
             header("Location: $portfolio_page");
             exit;
         }
+    }
+    if (isset($_SESSION['hide']))
+    {
+        if ($_SESSION['hide'] == 't')
+        {
+            $scramble_names = true;
+        }
+        else
+        {
+            $scramble_names = false;
+        }
+    }
+    else
+    {
+        $scramble_names = false;
     }
 }
 
@@ -555,6 +571,82 @@ function get_pf_name($pfid)
         return $row['name'];
     }
     return 'Unknown Portfolio';
+}
+
+function get_pf_hide_names($pfid)
+{
+    // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($pfid);
+    $query = "select hide_names from portfolios where pfid = $pf_id;";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['hide_names'];
+    }
+    return 'f';
+}
+
+function get_pf_is_auto_close($pfid)
+{
+    // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($pfid);
+    $query = "select auto_sell_stop from portfolios where pfid = $pf_id;";
+    foreach ($pdo->query($query) as $row)
+    {
+        return ($row['auto_sell_stop'] == 't');
+    }
+    return false;
+}
+
+function get_pf_sell_stop($pfid)
+{
+    // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($pfid);
+    $query = "select sell_stop from portfolios where pfid = $pf_id;";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['sell_stop'];
+    }
+    return '10';
+}
+
+function get_pf_start_date($pfid)
+{
+    // setup the DB connection for use in this script
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $pf_id = $pdo->quote($pfid);
+    $query = "select date from pf_summary where pfid = $pf_id order by date limit 1;";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['date'];
+    }
+    return 0;
 }
 
 function get_pf_opening_balance($pfid)
