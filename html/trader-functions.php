@@ -979,4 +979,43 @@ function get_table_field($table, $field, $symb, $date, $exch)
     return false;
 }
 
+function chart_option($value, $string, $selected = 0)
+{
+    // return an option output selected if $value == $selected
+    if ($value == $selected)
+    {
+        return "<option value=\"$value\" selected=\"selected\">$string</option>";
+    }
+    else
+    {
+        return "<option value=\"$value\">$string</option>";
+    }
+}
+
+function chart_select()
+{
+    // print a select list to choose the period to chart
+    $select_string = '';
+    if (isset($_SESSION['chart_period']))
+    {
+        $chart_period = $_SESSION['chart_period'];
+    }
+    else
+    {
+        $chart_period = 0;
+    }
+    $select_string = "<select name=\"chart_period\">\n";
+    $select_string = $select_string . chart_option(7, '1 week', $chart_period) . "\n";
+    $select_string = $select_string . chart_option(30, '1 month', $chart_period) . "\n";
+    $select_string = $select_string . chart_option(60, '2 months', $chart_period) . "\n";
+    $select_string = $select_string . chart_option(90, '3 months', $chart_period) . "\n";
+    $select_string = $select_string . chart_option(180, '6 months', $chart_period) . "\n";
+    $select_string = $select_string . chart_option(365, '1 year', $chart_period) . "\n";
+    $select_string = $select_string . chart_option(730, '2 years', $chart_period) . "\n";
+    $select_string = $select_string . chart_option(1905, '5 years', $chart_period) . "\n";
+    $select_string = $select_string . chart_option(3650, '10 years', $chart_period) . "\n";
+    $select_string = "$select_string </select>\n";
+    return $select_string;
+}
+
 ?>

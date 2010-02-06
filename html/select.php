@@ -39,7 +39,7 @@ $chart_period->addOption('2 months', '60');
 $chart_period->addOption('3 months', '90');
 $chart_period->addOption('6 months', '180');
 $chart_period->addOption('1 year', '365');
-$chart_period->addOption('2 years', '7305');
+$chart_period->addOption('2 years', '730');
 $chart_period->addOption('5 years', '1825');
 $chart_period->addOption('10 years', '3650');
 $checkbox = &$sql_input_form->addElement('checkbox', 'chart', 'Draw Charts');
