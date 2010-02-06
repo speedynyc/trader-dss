@@ -12,9 +12,16 @@ try {
 if (isset($_REQUEST['pfid']))
 {
     $pfid = $_REQUEST['pfid'];
-    $query = "select date, cash_in_hand, holdings from pf_summary where pfid = '$pfid' order by date limit 50;";
+    $query = "select date, cash_in_hand, holdings from (select date, cash_in_hand, holdings from pf_summary where pfid = '$pfid' order by date desc limit 50) as base order by date;";
+    $first = true;
     foreach ($pdo->query($query) as $row)
     {
+        if ($first)
+        {
+            $first_date = $row['date'];
+            $first = false;
+        }
+        $last_date = $row['date'];
         $holdings[] = $row['holdings'];
         $cash_in_hand[] = $row['cash_in_hand'];
         $dates[] = chartTime2(strtotime($row['date']));
@@ -32,7 +39,8 @@ if (isset($_REQUEST['pfid']))
     $legendObj->setBackground(Transparent);
     // Add a title box to the chart using 8 pts Arial Bold font, with yellow (0xffff40)
     // background and a black border (0x0)
-    $textBoxObj = $c->addTitle("Portfolio Performance", "arialbd.ttf", 8);
+    $name = get_pf_name($pfid);
+    $textBoxObj = $c->addTitle("$name ($pfid) Performance ($first_date to $last_date)", "arialbd.ttf", 8);
     $textBoxObj->setBackground(0xffff40, 0);
     // Set the y axis label format to US$nnnn 
     $c->yAxis->setLabelFormat("£{value}");
