@@ -28,6 +28,27 @@ try {
 $select_query_form = new HTML_QuickForm('select_query');
 $sql_input_form = new HTML_QuickForm('sql_input');
 
+function validate_new_query($desc)
+{
+    // check that this portfolio doesn't exist
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $q_desc = $pdo->quote($desc);
+    $uid = $pdo->quote($_SESSION['uid']);
+    $query = "select count(*) from queries where name = $q_desc and uid = $uid;";
+    $count = 0;
+    foreach ($pdo->query($query) as $row)
+    {
+        $count = $row['count'];
+    }
+    return $count == 0;
+}
+
 function create_select_query_form()
 {
     global $db_hostname, $db_database, $db_user, $db_password, $pdo, $uid;
@@ -64,6 +85,8 @@ function create_sql_input_form()
     $sql_input_form->applyFilter('__ALL__', 'trim');
     $sql_input_form->addElement('header', null, "Save queries for later use.");
     $sql_input_form->addElement('textarea', 'sql_name', 'Query Description:', 'wrap="soft" rows="1" cols="50"');
+    $sql_input_form->addRule('sql_name','Must name query','required');
+    $sql_input_form->addRule('sql_name','That query already exists','callback', 'validate_new_query');
     $sql_input_form->addElement('textarea', 'sql_select', 'select:', 'wrap="soft" rows="3" cols="50"');
     $sql_input_form->addRule('sql_select','Must select columns','required');
     $sql_input_form->addElement('textarea', 'sql_from', 'from:', 'wrap="soft" rows="1" cols="50"');
@@ -138,20 +161,17 @@ if (isset($_POST['edit_query']))
 }
 if (isset($_POST['use_sql']))
 {
-    if ($sql_input_form->validate())
-    {
-        $data = $sql_input_form->exportValues();
-        $_SESSION['sql_name']      = $sql_name = $data['sql_name'];
-        $_SESSION['sql_select']    = $sql_select = $data['sql_select'];
-        $_SESSION['sql_from']      = $sql_from   = $data['sql_from'];
-        $_SESSION['sql_where']     = $sql_where  = $data['sql_where'];
-        $_SESSION['sql_order']     = $sql_order  = $data['sql_order'];
-        $_SESSION['sql_order_dir'] = $sql_order_dir = $data['sql_order_dir'];
-        $_SESSION['sql_limit']     = $sql_limit  = $data['sql_limit'];
-        $_SESSION['chart_period']  = $chart_period = $data['chart_period'];
-        header("Location: /select.php");
-        exit;
-    }
+    $data = $sql_input_form->exportValues();
+    $_SESSION['sql_name']      = $sql_name = $data['sql_name'];
+    $_SESSION['sql_select']    = $sql_select = $data['sql_select'];
+    $_SESSION['sql_from']      = $sql_from   = $data['sql_from'];
+    $_SESSION['sql_where']     = $sql_where  = $data['sql_where'];
+    $_SESSION['sql_order']     = $sql_order  = $data['sql_order'];
+    $_SESSION['sql_order_dir'] = $sql_order_dir = $data['sql_order_dir'];
+    $_SESSION['sql_limit']     = $sql_limit  = $data['sql_limit'];
+    $_SESSION['chart_period']  = $chart_period = $data['chart_period'];
+    header("Location: /select.php");
+    exit;
 }
 if (isset($_POST['save_sql']))
 {
@@ -170,10 +190,10 @@ if (isset($_POST['save_sql']))
         $query = "insert into queries (uid, name, sql_select, sql_from, sql_where, sql_order, sql_order_dir, sql_limit, chart_period) values ('$uid', '$sql_name', '$sql_select', '$sql_from', '$sql_where', '$sql_order', '$sql_order_dir', '$sql_limit', '$chart_period');";
         $pdo->exec($query);
         // changed both forms, so reload them
-        $sql_input_form = new HTML_QuickForm('sql_input');
-        create_sql_input_form();
         $select_query_form = new HTML_QuickForm('select_query');
         create_select_query_form();
+        $sql_input_form = new HTML_QuickForm('sql_input');
+        create_sql_input_form();
     }
 }
 if (isset($_POST['del_sql']))
