@@ -28,6 +28,14 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
     if (isset($_SESSION['chart']))
     {
         print '<td>Chart</td></tr>';
+        if (isset($_SESSION['chart_period']))
+        {
+            $chart_period = $_SESSION['chart_period'];
+        }
+        else
+        {
+            $chart_period = 180;
+        }
     }
     print '</tr>';
     $query = "select * from watch where date <= '$pf_working_date' and pfid = '$pf_id' order by symb;";
@@ -47,17 +55,17 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
         print "<td>$value</td>\n";
         if (isset($_SESSION['chart']))
         {
-            print "<td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symb&TimeRange=180&working_date=$pf_working_date&exch=$pf_exch&ChartSize=S&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td>";
+            print "<td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symb&TimeRange=$chart_period&working_date=$pf_working_date&exch=$pf_exch&ChartSize=S&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td>";
         }
         print "</tr>\n";
     }
     if (isset($_SESSION['chart']))
     {
-        print "<tr><td><input type=\"checkbox\" name=\"chart\" value=\"chart\" checked>Draw Charts</td>\n";
+        print "<tr><td><table><tr><td><input type=\"checkbox\" name=\"chart\" value=\"chart\" checked>Draw Charts\n</td></tr><td> " . chart_select() . "</td></tr></table></td>\n";
     }
     else
     {
-        print "<tr><td><input type=\"checkbox\" name=\"chart\" value=\"chart\">Draw Charts</td>\n";
+        print "<tr><td><input type=\"checkbox\" name=\"chart\" value=\"chart\">Draw Charts\n " . chart_select() . "</td>\n";
     }
     print '<td colspan="10"><input name="recalc" value="Update" type="submit"/></td></tr>';
     print '<tr><td colspan="10"><input name="delete" value="Delete" type="submit"/></td></tr>';
@@ -75,6 +83,14 @@ if (isset($_POST['recalc']))
     else
     {
         unset($_SESSION['chart']);
+    }
+    if (isset($_POST['chart_period']))
+    {
+        $_SESSION['chart_period'] = $_POST['chart_period'];
+    }
+    else
+    {
+        unset($_SESSION['chart_period']);
     }
     update_cart('watch', $pf_id);
 }
