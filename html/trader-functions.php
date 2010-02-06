@@ -946,7 +946,7 @@ function get_symb_name($symb, $exch)
     {
         if ($scramble_names)
         {
-            return md5($row['name']);
+            return substr(md5($row['name']), 0, 10);
         }
         else
         {
