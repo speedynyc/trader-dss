@@ -146,7 +146,10 @@ elseif (isset($_POST['next_day']))
         {
             $holdings = $row['value'];
         }
-        // this isn't good enough, it must calculate all the current close prices and multiply them by volume and total them into holdings
+        if ($holdings == '')
+        {
+            $holdings = 0;
+        }
         $query = "insert into pf_summary (pfid, date, cash_in_hand, holdings) values ('$pf_id', '$next_trade_day', '$cash_in_hand', '$holdings');";
         $pdo->exec($query);
         $pdo->commit();
