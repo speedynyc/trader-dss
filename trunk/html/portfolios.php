@@ -18,11 +18,11 @@ try {
 }
 
 // function to check date validity
-function validate_date($v) {
-    return checkdate($v['M'], $v['d'], $v['Y']);
+function validate_date($date) {
+    return checkdate($date['M'], $date['d'], $date['Y']);
 }
 
-function validate_new_portfolio($v)
+function validate_new_portfolio($desc)
 {
     // check that this portfolio doesn't exist
     global $db_hostname, $db_database, $db_user, $db_password;
@@ -32,7 +32,7 @@ function validate_new_portfolio($v)
     } catch (PDOException $e) {
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
-    $pf_desc = $pdo->quote($v);
+    $pf_desc = $pdo->quote($desc);
     $uid = $pdo->quote($_SESSION['uid']);
     $query = "select count(*) from portfolios where name = $pf_desc and uid = $uid;";
     $count = 0;
@@ -41,25 +41,6 @@ function validate_new_portfolio($v)
         $count = $row['count'];
     }
     return $count == 0;
-}
-
-function get_exch_desc($v)
-{
-    // return the description of the given exchange
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $exch = $pdo->quote($v);
-    $query = "select name from exchange where exch = $exch";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['name'];
-    }
-    return 'Unknown Exchange';
 }
 
 function check_percent($name, $value)
@@ -205,7 +186,7 @@ function create_choose_form()
     {
         $pf_id = $row['pfid'];
         $pf_desc = $row['name'];
-        $pf_exch = get_exch_desc($row['exch']);
+        $pf_exch = get_exch_name($row['exch']);
         $pf_parcel = $row['parcel'];
         $pf_start_date = get_pf_start_date($pf_id);
         $pf_working_date = $row['working_date'];
