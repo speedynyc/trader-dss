@@ -744,7 +744,7 @@ function get_pf_cash_in_hand($pfid)
     return 0;
 }
 
-function get_exch_name($pfid)
+function get_exch_name($exch)
 {
     // setup the DB connection for use in this script
     global $db_hostname, $db_database, $db_user, $db_password;
@@ -753,12 +753,6 @@ function get_exch_name($pfid)
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     } catch (PDOException $e) {
         die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select exch from portfolios where pfid = $pf_id;";
-    foreach ($pdo->query($query) as $row)
-    {
-        $exch = $row['exch'];
     }
     $query = "select name from exchange where exch = '$exch';";
     foreach ($pdo->query($query) as $row)
