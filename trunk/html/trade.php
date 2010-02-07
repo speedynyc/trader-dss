@@ -65,7 +65,7 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
     }
     else
     {
-        print "<tr><td><input type=\"checkbox\" name=\"chart\" value=\"chart\">Draw Charts\n " . chart_select() . "</td>\n";
+        print "<tr><td><table><tr><td><input type=\"checkbox\" name=\"chart\" value=\"chart\">Draw Charts\n</td></tr><td> " . chart_select() . "</td></tr></table></td>\n";
     }
     print '<td colspan="10"><input name="recalc" value="Update" type="submit"/></td></tr>';
     print '<tr><td colspan="10"><input name="delete" value="Delete" type="submit"/></td></tr>';
