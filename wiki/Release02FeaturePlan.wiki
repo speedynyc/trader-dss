@@ -22,3 +22,4 @@ Not in any particular order and not a commitment to implement!
     * utility script to update sector indicators?    
     * Integration into the web interface and charts
   * A Charts page where you can define and use charts in a similar way to the current queries page
+  * Ability to make deposits and withdrawals to a portfolio
