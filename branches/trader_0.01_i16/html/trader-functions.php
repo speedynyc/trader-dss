@@ -499,22 +499,75 @@ function draw_trader_header($active_page, $allow_others=true)
         case 'trade':
         case 'watch':
         case 'queries':
-            print '<table>';
-            print '<table border="0" cellpadding="5" cellspacing="0" width="90%" align="center">' . "<tr><td>User: $username</td><td>Portfolio: $pf_name</td><td>Exchange: $exch_name</td><td>Working Date: $working_date</td><td>Query: $query_name</td><td>Chart: $chart_name</td></tr></table>\n" . '<table border="1" cellpadding="5" cellspacing="0" width="90%" align="center"><tr>';
+        case 'docs':
             break;
         default:
-            print("[FATAL]Cannot create header, given $active_page\n");
+            tr_warn("[FATAL]Cannot create header, given $active_page\n");
             $active_page = 'login';
+            $allow_others = false;
             break;
     }
+    print '<table>';
+#print '<table border="0" cellpadding="5" cellspacing="0" width="90%" align="center">' . "<tr><td>User: $username</td><td>Portfolio: $pf_name</td><td>Exchange: $exch_name</td><td>Working Date: $working_date</td><td>Query: $query_name</td><td>Chart: $chart_name</td></tr></table>\n" . '<table border="1" cellpadding="5" cellspacing="0" width="90%" align="center"><tr>';
+    print '<table border="0" cellpadding="5" cellspacing="0" width="90%" align="center">';
+    if ($username == 'N/A')
+    {
+        print '<tr><td></td>';
+    }
+    else
+    {
+        print "<tr><td>User: $username</td>";
+    }
+    if ($pf_name == 'N/A')
+    {
+        print '<td></td>';
+    }
+    else
+    {
+        print "<td>Portfolio: $pf_name</td>";
+    }
+    if ($exch_name == 'N/A')
+    {
+        print '<td></td>';
+    }
+    else
+    {
+        print "<td>Exchange: $exch_name</td>";
+    }
+    if ($working_date == 'N/A')
+    {
+        print '<td></td>';
+    }
+    else
+    {
+        print "<td>Working Date: $working_date</td>";
+    }
+    if ($query_name == 'N/A')
+    {
+        print '<td></td>';
+    }
+    else
+    {
+        print "<td>Query: $query_name</td>";
+    }
+    if ($chart_name == 'N/A')
+    {
+        print '<td></td>';
+        print "<td></td></tr></table>\n";
+    }
+    else
+    {
+        print "<td>Chart: $chart_name</td></tr></table>\n";
+    }
+    print '<table border="1" cellpadding="5" cellspacing="0" width="90%" align="center"><tr>';
     if ($active_page == 'login')
     {
-        draw_cell($active_page, '/login.php', $active_colour, false);
+        draw_cell($active_page, '/login.php', $active_colour, true);
     }
     else
     {
         // must always be possible to choose the login page
-        draw_cell('login', '/login.php', $inactive_colour, $allow_others);
+        draw_cell('login', '/login.php', $inactive_colour, true);
     }
     if ($active_page == 'portfolios')
     {

@@ -138,5 +138,5 @@ elseif(isset($_POST['buy']))
     }
 }
 
-
 draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name);
+?>
