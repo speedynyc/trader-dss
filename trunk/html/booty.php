@@ -29,7 +29,7 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name)
     $pf_cash_in_hand = get_pf_cash_in_hand($pf_id);
     $pf_holdings = get_pf_holdings($pf_id);
     $pf_total = sprintf("%.2f", $pf_cash_in_hand + $pf_holdings);
-    $pf_exchange_name = get_exch_name($pf_id);
+    $pf_exchange_name = get_exch_name($pf_exch);
     print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="cart" id="cart">';
     print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
     print '<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Date</td><td>Volume</td><td>Buy Price</td><td>close</td><td>gain</td><td>Value</td>';

@@ -759,7 +759,7 @@ function get_exch_name($exch)
     {
         return $row['name'];
     }
-    return 'Exchange not found';
+    return "$exch: Exchange not found";
 }
 
 function get_pf_exch($pfid)
