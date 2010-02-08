@@ -422,10 +422,6 @@ function draw_trader_header($active_page, $allow_others=true)
     $active_page = strtolower($active_page);
     $active_colour = 'white';
     $inactive_colour = 'grey';
-    if (! isset($allow_others))
-    {
-        $allow_others = true;
-    }
     if (! isset($_SESSION['uid']))
     {
         // don't allow other page links if uid isn't set
@@ -442,6 +438,59 @@ function draw_trader_header($active_page, $allow_others=true)
         }
         $allow_others = false;
     }
+    if (isset($_SESSION['username']))
+    {
+        $username = $_SESSION['username'];
+    }
+    else
+    {
+        $username = 'N/A';
+    }
+    if (isset($_SESSION['pfid']))
+    {
+        $pfid = $_SESSION['pfid'];
+        $pf_name = get_pf_name($pfid);
+        $exch = get_pf_exch($pfid);
+        $exch_name = get_exch_name($exch);
+        $working_date = get_pf_working_date($pfid);
+        $pf_gain = get_pf_day_gain($pfid);
+        if ($pf_gain > 0)
+        {
+            $pf_gain = sprintf("%.2f", $pf_gain);
+            $pf_gain = "<font color=\"green\">+$pf_gain</font>";
+            $pf_name = "$pf_name ($pf_gain)";
+        }
+        else
+        {
+            $pf_gain = sprintf("%.2f", $pf_gain);
+            $pf_gain = "<font color=\"red\">-$pf_gain</font>";
+            $pf_name = "$pf_name ($pf_gain)";
+        }
+    }
+    else
+    {
+        $pf_name = $exch_name = $working_date = 'N/A';
+    }
+    if (isset($_SESSION['sql_name']))
+    {
+        $qid = $_SESSION['qid'];
+        $query_name = $_SESSION['sql_name'];
+        $query_name = "$query_name ($qid)";
+    }
+    else
+    {
+        $query_name = 'N/A';
+    }
+    if (isset($_SESSION['chart_name']))
+    {
+        $chid = $_SESSION['chid'];
+        $chart_name = $_SESSION['chart_name'];
+        $chart_name = "$chart_name ($chid)";
+    }
+    else
+    {
+        $chart_name = 'N/A';
+    }
     switch ($active_page) {
         case 'login':
         case 'portfolios':
@@ -450,8 +499,8 @@ function draw_trader_header($active_page, $allow_others=true)
         case 'trade':
         case 'watch':
         case 'queries':
-            print '<table border="1" cellpadding="5" cellspacing="0" width="90%" align="center">';
-            print '<tr>';
+            print '<table>';
+            print '<table border="0" cellpadding="5" cellspacing="0" width="90%" align="center">' . "<tr><td>User: $username</td><td>Portfolio: $pf_name</td><td>Exchange: $exch_name</td><td>Working Date: $working_date</td><td>Query: $query_name</td><td>Chart: $chart_name</td></tr></table>\n" . '<table border="1" cellpadding="5" cellspacing="0" width="90%" align="center"><tr>';
             break;
         default:
             print("[FATAL]Cannot create header, given $active_page\n");
@@ -465,11 +514,11 @@ function draw_trader_header($active_page, $allow_others=true)
     else
     {
         // must always be possible to choose the login page
-        draw_cell('login', '/login.php', $inactive_colour, true);
+        draw_cell('login', '/login.php', $inactive_colour, $allow_others);
     }
     if ($active_page == 'portfolios')
     {
-        draw_cell($active_page, '/portfolios.php', $active_colour, true);
+        draw_cell($active_page, '/portfolios.php', $active_colour, $allow_others);
     }
     else
     {
@@ -477,7 +526,7 @@ function draw_trader_header($active_page, $allow_others=true)
     }
     if ($active_page == 'booty')
     {
-        draw_cell($active_page, '/booty.php', $active_colour, true);
+        draw_cell($active_page, '/booty.php', $active_colour, $allow_others);
     }
     else
     {
@@ -485,7 +534,7 @@ function draw_trader_header($active_page, $allow_others=true)
     }
     if ($active_page == 'select')
     {
-        draw_cell($active_page, '/select.php', $active_colour, true);
+        draw_cell($active_page, '/select.php', $active_colour, $allow_others);
     }
     else
     {
@@ -493,7 +542,7 @@ function draw_trader_header($active_page, $allow_others=true)
     }
     if ($active_page == 'trade')
     {
-        draw_cell($active_page, '/trade.php', $active_colour, true);
+        draw_cell($active_page, '/trade.php', $active_colour, $allow_others);
     }
     else
     {
@@ -501,7 +550,7 @@ function draw_trader_header($active_page, $allow_others=true)
     }
     if ($active_page == 'watch')
     {
-        draw_cell($active_page, '/watch.php', $active_colour, true);
+        draw_cell($active_page, '/watch.php', $active_colour, $allow_others);
     }
     else
     {
@@ -509,13 +558,21 @@ function draw_trader_header($active_page, $allow_others=true)
     }
     if ($active_page == 'queries')
     {
-        draw_cell($active_page, '/queries.php', $active_colour, true);
+        draw_cell($active_page, '/queries.php', $active_colour, $allow_others);
     }
     else
     {
         draw_cell('queries', '/queries.php', $inactive_colour, $allow_others);
     }
-    print "</tr></table>\n";
+    if ($active_page == 'docs')
+    {
+        draw_cell($active_page, '/docs.php', $active_colour, $allow_others);
+    }
+    else
+    {
+        draw_cell('docs', '/docs.php', $inactive_colour, $allow_others);
+    }
+    print "</tr></table></table>\n";
 }
 
 function get_hid_symb($hid)
@@ -706,6 +763,33 @@ function get_pf_days_traded($pfid)
     return 0;
 }
 
+function get_pf_day_gain($pfid, $days=1)
+{
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $working_total = 0;
+    $compare_total = 0;
+    $query = "select date, (cash_in_hand + holdings) as total from pf_summary where pfid = $pfid order by date desc limit 1";
+    foreach ($pdo->query($query) as $row)
+    {
+        $working_date = $row['date'];
+        $working_total = $row['total'];
+    }
+    // simple hack, we select $days days before today and the last one we reach is the one we want
+    $query = "select date, (cash_in_hand + holdings) as total from pf_summary where pfid = $pfid and date < '$working_date' order by date desc limit $days";
+    foreach ($pdo->query($query) as $row)
+    {
+        $compare_date = $row['date'];
+        $compare_total = $row['total'];
+    }
+    return $working_total - $compare_total;
+}
+
 function get_pf_holdings($pfid)
 {
     // setup the DB connection for use in this script
@@ -778,7 +862,7 @@ function get_pf_exch($pfid)
     {
         return $row['exch'];
     }
-    return 'X';
+    return 'Unknow Exchange';
 }
 
 function get_pf_parcel_size($pfid)
