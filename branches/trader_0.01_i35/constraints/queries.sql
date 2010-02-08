@@ -1,1 +1,0 @@
-ALTER TABLE ONLY queries ADD CONSTRAINT queries_uid FOREIGN KEY (uid) REFERENCES users(uid) MATCH FULL;
