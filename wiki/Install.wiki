@@ -144,4 +144,4 @@ sudo pear install HTML_QuickForm
   * move the directory `bin` to your home directory.
   * update `html/trader-functions.php` with your server, database, account name and password. _We really should have a config file for those things_.
   * update the scripts in ~/bin with the same server, database, account and password details
-  * install [http://www.advsofteng.com/ chart director] into /var/www/ChartDirector if you're going to use that to chart your results. The current code depends on it for graphs and charts and it has a generous license for open source / free use.
+  * install [http://www.advsofteng.com/ chart director] into `/var/www/ChartDirector` if you're going to use that to chart your results. The current code depends on it for graphs and charts and it has a generous license for open source / free use.
