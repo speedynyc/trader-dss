@@ -11,6 +11,7 @@ Not in any particular order and not a commitment to implement!
 
 == Features to add ==
 
+  * notes fields for trades need to be of type text and the interface needs to allow more editing (larger field window)
   * Documentation of selectable indicators and how to query them
   * Lots more technical indicators
      * chart integration for indicators
@@ -23,3 +24,4 @@ Not in any particular order and not a commitment to implement!
     * Integration into the web interface and charts
   * A Charts page where you can define and use charts in a similar way to the current queries page
   * Ability to make deposits and withdrawals to a portfolio
+  * Need to be able to edit portfolio details
