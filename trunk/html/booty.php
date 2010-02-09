@@ -10,8 +10,9 @@ $uid = $_SESSION['uid'];
 $pf_id = $_SESSION['pfid'];
 $pf_name = get_pf_name($pf_id);
 $pf_working_date = get_pf_working_date($pf_id);
-$pf_exch = get_pf_exch($pf_id);
-$next_trade_day = next_trade_day($pf_working_date, $pf_exch);
+$exch = new exchange(get_pf_exch($pf_id));
+$pf_exch = $exch->getExch();
+$next_trade_day = $exch->next_trade_day($pf_working_date);
 
 try {
     $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
@@ -20,7 +21,7 @@ try {
     die("ERROR: Cannot connect: " . $e->getMessage());
 }
 
-function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name)
+function draw_performance_table($pf_id, $pf_working_date, $exch, $pf_name)
 {
     global $pdo, $next_trade_day, $pf_name;
     $pf_opening_balance = get_pf_opening_balance($pf_id);
@@ -29,7 +30,8 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name)
     $pf_cash_in_hand = get_pf_cash_in_hand($pf_id);
     $pf_holdings = get_pf_holdings($pf_id);
     $pf_total = sprintf("%.2f", $pf_cash_in_hand + $pf_holdings);
-    $pf_exchange_name = get_exch_name($pf_exch);
+    $pf_exchange_name = $exch->getName();
+    $pf_exch = $exch->getExch();
     print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="cart" id="cart">';
     print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
     print '<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Date</td><td>Volume</td><td>Buy Price</td><td>close</td><td>gain</td><td>Value</td>';
@@ -189,4 +191,4 @@ elseif(isset($_POST['sell']))
     }
 }
 
-draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name);
+draw_performance_table($pf_id, $pf_working_date, $exch, $pf_name);
