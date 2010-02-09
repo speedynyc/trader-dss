@@ -16,7 +16,6 @@ function update_holdings($pfid)
     // this function is probably only going to be used by trade and watch so really shouldn't be here
     global $db_hostname, $db_database, $db_user, $db_password;
     $pf_working_date = get_pf_working_date($pfid);
-    $exch = get_pf_exch($pfid);
     try {
         $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -48,7 +47,6 @@ function update_cart($cart, $pfid)
     // this function is probably only going to be used by trade and watch so really shouldn't be here
     global $db_hostname, $db_database, $db_user, $db_password;
     $pf_working_date = get_pf_working_date($pfid);
-    $exch = get_pf_exch($pfid);
     try {
         $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -230,24 +228,6 @@ function buy_stock($symb, $comment = '', $volume = 0)
     return true;
 }
 
-function next_trade_day($date, $exch)
-{
-    // returns the next trading day for the exchange
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $query = "select date from trade_dates where date > '$date' order by date asc limit 1;";
-    foreach ($pdo->query($query) as $row)
-    {
-        $next_date = $row['date'];
-    }
-    return $next_date;
-}
-
 function add_to_cart($table, $symb, $comment = '', $volume = 0)
 {
     // adds all symbols in the given list to the given table
@@ -415,6 +395,61 @@ function draw_cell($cell_desc, $cell_link, $cell_colour, $cell_selectable)
     print "</td>\n";
 }
 
+function draw_summary($username, $pf_name, $exch_name, $working_date, $query_name, $chart_name)
+{
+    //print '<table border="0" cellpadding="5" cellspacing="0" width="90%" align="center">' . "<tr><td>User: $username</td><td>Portfolio: $pf_name</td><td>Exchange: $exch_name</td><td>Working Date: $working_date</td><td>Query: $query_name</td><td>Chart: $chart_name</td></tr></table>\n" . '<table border="1" cellpadding="5" cellspacing="0" width="90%" align="center"><tr>';
+    print '<table border="0" cellpadding="5" cellspacing="0" width="90%" align="center">';
+    if ($username == 'N/A')
+    {
+        print '<tr><td></td>';
+    }
+    else
+    {
+        print "<tr><td>User: $username</td>";
+    }
+    if ($pf_name == 'N/A')
+    {
+        print '<td></td>';
+    }
+    else
+    {
+        print "<td>Portfolio: $pf_name</td>";
+    }
+    if ($exch_name == 'N/A')
+    {
+        print '<td></td>';
+    }
+    else
+    {
+        print "<td>Exchange: $exch_name</td>";
+    }
+    if ($working_date == 'N/A')
+    {
+        print '<td></td>';
+    }
+    else
+    {
+        print "<td>Working Date: $working_date</td>";
+    }
+    if ($query_name == 'N/A')
+    {
+        print '<td></td>';
+    }
+    else
+    {
+        print "<td>Query: $query_name</td>";
+    }
+    if ($chart_name == 'N/A')
+    {
+        print '<td></td>';
+        print "<td></td></tr></table>\n";
+    }
+    else
+    {
+        print "<td>Chart: $chart_name</td></tr></table>\n";
+    }
+}
+
 function draw_trader_header($active_page, $allow_others=true)
 {
     // dray the header with a table linking the trader pages like tabs in a notebook
@@ -450,8 +485,8 @@ function draw_trader_header($active_page, $allow_others=true)
     {
         $pfid = $_SESSION['pfid'];
         $pf_name = get_pf_name($pfid);
-        $exch = get_pf_exch($pfid);
-        $exch_name = get_exch_name($exch);
+        $exch = new exchange(get_pf_exch($pfid));
+        $exch_name = $exch->getName();
         $working_date = get_pf_working_date($pfid);
         $pf_gain = get_pf_day_gain($pfid);
         if ($pf_gain > 0)
@@ -508,57 +543,6 @@ function draw_trader_header($active_page, $allow_others=true)
             break;
     }
     print '<table>';
-#print '<table border="0" cellpadding="5" cellspacing="0" width="90%" align="center">' . "<tr><td>User: $username</td><td>Portfolio: $pf_name</td><td>Exchange: $exch_name</td><td>Working Date: $working_date</td><td>Query: $query_name</td><td>Chart: $chart_name</td></tr></table>\n" . '<table border="1" cellpadding="5" cellspacing="0" width="90%" align="center"><tr>';
-    print '<table border="0" cellpadding="5" cellspacing="0" width="90%" align="center">';
-    if ($username == 'N/A')
-    {
-        print '<tr><td></td>';
-    }
-    else
-    {
-        print "<tr><td>User: $username</td>";
-    }
-    if ($pf_name == 'N/A')
-    {
-        print '<td></td>';
-    }
-    else
-    {
-        print "<td>Portfolio: $pf_name</td>";
-    }
-    if ($exch_name == 'N/A')
-    {
-        print '<td></td>';
-    }
-    else
-    {
-        print "<td>Exchange: $exch_name</td>";
-    }
-    if ($working_date == 'N/A')
-    {
-        print '<td></td>';
-    }
-    else
-    {
-        print "<td>Working Date: $working_date</td>";
-    }
-    if ($query_name == 'N/A')
-    {
-        print '<td></td>';
-    }
-    else
-    {
-        print "<td>Query: $query_name</td>";
-    }
-    if ($chart_name == 'N/A')
-    {
-        print '<td></td>';
-        print "<td></td></tr></table>\n";
-    }
-    else
-    {
-        print "<td>Chart: $chart_name</td></tr></table>\n";
-    }
     print '<table border="1" cellpadding="5" cellspacing="0" width="90%" align="center"><tr>';
     if ($active_page == 'login')
     {
@@ -625,6 +609,7 @@ function draw_trader_header($active_page, $allow_others=true)
     {
         draw_cell('docs', '/docs.php', $inactive_colour, $allow_others);
     }
+    draw_summary($username, $pf_name, $exch_name, $working_date, $query_name, $chart_name);
     print "</tr></table></table>\n";
 }
 
@@ -881,24 +866,6 @@ function get_pf_cash_in_hand($pfid)
     return 0;
 }
 
-function get_exch_name($exch)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $query = "select name from exchange where exch = '$exch';";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['name'];
-    }
-    return "$exch: Exchange not found";
-}
-
 function get_pf_exch($pfid)
 {
     // setup the DB connection for use in this script
@@ -1147,6 +1114,137 @@ function chart_select()
     $select_string = $select_string . chart_option(3650, '10 years', $chart_period) . "\n";
     $select_string = "$select_string </select>\n";
     return $select_string;
+}
+
+class trader_base
+{
+    // a base class to stop auto-vivication of object variables
+    protected function __set($name, $value)
+    {
+        tr_warn("No such property: $name = $value");
+        die("Object error");
+    }
+    protected function __get($name)
+    {
+        tr_warn("No such property: $name");
+        die("Object error");
+    }
+}
+
+class exchange extends trader_base
+{
+    protected $exch, $name, $symb, $currency, $dbh;
+    public function __construct($exch_id)
+    {
+        // setup the DB connection for use in this script
+        global $db_hostname, $db_database, $db_user, $db_password;
+        try {
+            $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $e) {
+            die("ERROR: Cannot connect: " . $e->getMessage());
+        }
+        $query = "select * from exchange where exch = '$exch_id';";
+        try 
+        {
+            $result = $pdo->query($query);
+        }
+        catch (PDOException $e)
+        {
+            tr_warn('exchange:__construct:' . $query . ':' . $e->getMessage());
+            die("[FATAL]Class: exchange, function: __construct\n");
+        }
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        $this->exch = $exch_id;
+        $this->name = $row['name'];
+        $this->symb = $row['curr_desc'];
+        $this->symb = $row['curr_char'];
+        $this->dbh = $pdo;
+    }
+    public function getExch()
+    {
+        return $this->exch;
+    }
+    public function getName()
+    {
+        return $this->name;
+    }
+    public function getSymb()
+    {
+        return $this->symb;
+    }
+    public function getCurrency()
+    {
+        return $this->currency;
+    }
+    public function next_trade_day($date)
+    {
+        // returns the next trading day for the exchange
+        $exch = $this->exch;
+        $query = "select date from trade_dates where date > '$date' and exch = '$exch' order by date asc limit 1;";
+        try 
+        {
+            $result = $this->dbh->query($query);
+        }
+        catch (PDOException $e)
+        {
+            tr_warn('next_trade_day:' . $query . ':' . $e->getMessage());
+        }
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        $next_date = $row['date'];
+        return $next_date;
+    }
+    public function nearest_trade_day($date)
+    {
+        // returns the nearest trading day for the exchange
+        $exch = $this->exch;
+        $query = "select date from trade_dates where date >= '$date' and exch = '$exch' order by date asc limit 1;";
+        try 
+        {
+            $result = $this->dbh->query($query);
+        }
+        catch (PDOException $e)
+        {
+            tr_warn('nearest_trade_day:' . $query . ':' . $e->getMessage());
+        }
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        $next_date = $row['date'];
+        return $next_date;
+    }
+    public function first_date()
+    {
+        // returns the first trading day for the exchange
+        $exch = $this->exch;
+        $query = "select date from trade_dates where exch = '$exch' order by date asc limit 1;";
+        try 
+        {
+            $result = $this->dbh->query($query);
+        }
+        catch (PDOException $e)
+        {
+            tr_warn('first_date:' . $query . ':' . $e->getMessage());
+        }
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        $next_date = $row['date'];
+        return $next_date;
+    }
+    public function last_date()
+    {
+        // returns the first trading day for the exchange
+        $exch = $this->exch;
+        $query = "select date from trade_dates where exch = '$exch' order by date desc limit 1;";
+        try 
+        {
+            $result = $this->dbh->query($query);
+        }
+        catch (PDOException $e)
+        {
+            tr_warn('last_date:' . $query . ':' . $e->getMessage());
+        }
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        $next_date = $row['date'];
+        return $next_date;
+    }
 }
 
 ?>

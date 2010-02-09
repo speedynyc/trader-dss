@@ -14,10 +14,10 @@ $pf_exch = get_pf_exch($pf_id);
 
 try {
     $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die("ERROR: Cannot connect: " . $e->getMessage());
 }
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
 {

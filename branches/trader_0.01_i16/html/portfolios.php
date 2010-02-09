@@ -100,10 +100,10 @@ function create_portfolio($form)
     global $pdo;
     $pf_desc = $pdo->quote($form['pf_desc']);
     $uid = $_SESSION['uid'];
-    $exchange = $pdo->quote($form['exchange']);
+    $exchange = new exchange($form['exchange']);
+    $exch = $exchange->getExch();
     $parcel = $pdo->quote($form['parcel']);
     $start_date = sprintf("%04d-%02d-%02d", $form['start_date']['Y'], $form['start_date']['M'], $form['start_date']['d']);
-    $start_date = $pdo->quote($start_date);
     $opening_balance = $pdo->quote($form['opening']);
     if (isset($form['hide']))
     {
@@ -122,22 +122,18 @@ function create_portfolio($form)
         $auto = 'f';
     }
     $sell_stop = $form['sell_stop'];
-    $query = "select date from trade_dates where date >= $start_date order by date asc limit 1;";
-    foreach ($pdo->query($query) as $row)
-    {
-        $start_date = $pdo->quote($row['date']);
-    }
+    $start_date = $exchange->nearest_trade_day($start_date);
     // need to create the portfolio and add the first entry into summary as a transaction so that if one fails all do
     try{
         $pdo->beginTransaction();
-        $query = "insert into portfolios (name, uid, exch, parcel, working_date, hide_names, sell_stop, auto_sell_stop) values ($pf_desc, $uid, $exchange, $parcel, $start_date, '$hide', '$sell_stop', '$auto');";
+        $query = "insert into portfolios (name, uid, exch, parcel, working_date, hide_names, sell_stop, auto_sell_stop) values ($pf_desc, '$uid', '$exch', $parcel, '$start_date', '$hide', '$sell_stop', '$auto');";
         $pdo->exec($query);
-        $query = "select pfid from portfolios where uid = '$uid' and name = $pf_desc and exch = $exchange;";
+        $query = "select pfid from portfolios where uid = '$uid' and name = $pf_desc and exch = '$exch';";
         foreach ($pdo->query($query) as $row)
         {
             $pf_id = $pdo->quote($row['pfid']);
         }
-        $query = "insert into pf_summary (pfid, date, cash_in_hand, holdings) values ($pf_id, $start_date, $opening_balance, 0);";
+        $query = "insert into pf_summary (pfid, date, cash_in_hand, holdings) values ($pf_id, '$start_date', $opening_balance, 0);";
         $pdo->exec($query);
         $pdo->commit();
     }
@@ -186,19 +182,20 @@ function create_choose_form()
     {
         $pf_id = $row['pfid'];
         $pf_desc = $row['name'];
-        $pf_exch = get_exch_name($row['exch']);
+        $exch = new exchange($row['exch']);
+        $exch_name = $exch->getName();
         $pf_parcel = $row['parcel'];
         $pf_start_date = get_pf_start_date($pf_id);
         $pf_working_date = $row['working_date'];
         if ($first_row)
         {
-            $choose_pf_form->addElement('radio','portfolio','Portfolios:',"$pf_desc<td>$pf_exch</td> <td>$pf_parcel</td> <td>$pf_start_date</td> <td>$pf_working_date</td>",$pf_id);
+            $choose_pf_form->addElement('radio','portfolio','Portfolios:',"$pf_desc<td>$exch_name</td> <td>$pf_parcel</td> <td>$pf_start_date</td> <td>$pf_working_date</td>",$pf_id);
             $choose_pf_form->addRule('portfolio','You must select a portfolio to trade','required');
             $first_row = false;
         }
         else
         {
-            $choose_pf_form->addElement('radio','portfolio',null,"$pf_desc<td>$pf_exch</td> <td>$pf_parcel</td> <td>$pf_start_date</td> <td>$pf_working_date</td>",$pf_id);
+            $choose_pf_form->addElement('radio','portfolio',null,"$pf_desc<td>$exch_name</td> <td>$pf_parcel</td> <td>$pf_start_date</td> <td>$pf_working_date</td>",$pf_id);
         }
     }
     $choose_pf_form->addElement('submit','choose','Trade with Portfolio');
