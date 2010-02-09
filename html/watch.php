@@ -123,5 +123,6 @@ elseif (isset($_POST['cart']))
     }
 }
 
-
 draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name);
+
+?>
