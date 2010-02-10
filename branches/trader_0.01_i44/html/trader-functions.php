@@ -724,6 +724,7 @@ function get_pf_sell_stop($pfid)
     return '10';
 }
 
+/* 
 function get_pf_start_date($pfid)
 {
     // setup the DB connection for use in this script
@@ -742,6 +743,7 @@ function get_pf_start_date($pfid)
     }
     return 0;
 }
+*/
 
 function get_pf_opening_balance($pfid)
 {
@@ -1128,6 +1130,17 @@ class trader_base
         tr_warn("No such property: $name");
         die("Object error");
     }
+    protected function get($name)
+    {
+        if (isset($this->$name))
+        {
+            return $this->$name;
+        }
+        else
+        {
+            die("[FATAL]: No such property portfolio->$name\n");
+        }
+    }
 }
 
 class exchange extends trader_base
@@ -1261,20 +1274,20 @@ class portfolio extends trader_base
         // setup the DB connection for use in this script
         global $db_hostname, $db_database, $db_user, $db_password;
         try {
-            $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->dbh = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+            $this->dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
             die("ERROR: Cannot connect: " . $e->getMessage());
         }
         $query = "select * from portfolios where pfid = '$pfid';";
         try 
         {
-            $result = $pdo->query($query);
+            $result = $this->dbh->query($query);
         }
         catch (PDOException $e)
         {
             tr_warn('portfolio:__construct:' . $query . ':' . $e->getMessage());
-            die("[FATAL]Class: exchange, function: __construct\n");
+            die("[FATAL]Class: portfolio, function: __construct\n");
         }
         $row = $result->fetch(PDO::FETCH_ASSOC);
         if (isset($row['pfid']) and $row['pfid'] == $pfid)
@@ -1292,42 +1305,42 @@ class portfolio extends trader_base
         {
             die("[FATAL]portfolio $pfid missing from portfolios table: $query\n");
         }
-        $this->dbh = $pdo;
     }
     public function getID()
     {
-        return $this->get('pfid');
+        return $this->pfid;
     }
     public function getExch()
     {
-        return $this->get('exch');
+        return $this->exch;
     }
     public function getName()
     {
-        return $this->get('name');
+        return $this->name;
     }
     public function getWorkingDate()
     {
-        return $this->get('working_date');
+        return $this->working_date;
     }
     public function getParcel()
     {
-        return $this->get('parcel');
+        return $this->parcel;
     }
-    public function get($name)
+    public function getStartDate()
     {
-        if (isset($this->$name))
+        $pfid = $this->pfid;
+        $query = "select date from pf_summary where pfid = '$pfid' order by date limit 1;";
+        try 
         {
-            /* if (is_object($this->$name))
-            {
-                die("[FATAL]: Property portfolio->$name is an object not a simple value\n");
-            } */
-            return $this->$name;
+            $result = $this->dbh->query($query);
         }
-        else
+        catch (PDOException $e)
         {
-            die("[FATAL]: No such property portfolio->$name\n");
+            tr_warn('portfolio:getStartDate:' . $query . ':' . $e->getMessage());
+            die("[FATAL]Class: portfolio, function: getStartDate\n");
         }
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        return $row['date'];
     }
 }
 

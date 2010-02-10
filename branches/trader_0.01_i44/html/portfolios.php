@@ -188,12 +188,7 @@ function create_choose_form()
         $exch_name = $portfolio->getExch()->getName();
         $pf_parcel = $portfolio->getParcel();
         $pf_working_date = $portfolio->getWorkingDate();
-        $pf_start_date = $pf_working_date;
-        //$exch = new exchange($row['exch']);
-        //$exch_name = $exch->getName();
-        //$pf_parcel = $row['parcel'];
-        //$pf_start_date = get_pf_start_date($pf_id);
-        //$pf_working_date = $row['working_date'];
+        $pf_start_date = $portfolio->getStartDate();
         if ($first_row)
         {
             $choose_pf_form->addElement('radio','portfolio','Portfolios:',"$pf_desc<td>$exch_name</td> <td>$pf_parcel</td> <td>$pf_start_date</td> <td>$pf_working_date</td>",$pf_id);
