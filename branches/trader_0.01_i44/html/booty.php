@@ -7,12 +7,11 @@ global $db_hostname, $db_database, $db_user, $db_password;
 
 $username = $_SESSION['username'];
 $uid = $_SESSION['uid'];
-$pf_id = $_SESSION['pfid'];
-$pf_name = get_pf_name($pf_id);
-$pf_working_date = get_pf_working_date($pf_id);
-$exch = new exchange(get_pf_exch($pf_id));
-$pf_exch = $exch->getID();
-$next_trade_day = $exch->next_trade_day($pf_working_date);
+$portfolio = new portfolio($_SESSION['pfid']);
+$pf_id = $portfolio->getID();
+$pf_working_date = $portfolio->getWorkingDate();
+$exch = $portfolio->getExch();
+$next_trade_day = $portfolio->getExch()->nextTradeDay($pf_working_date);
 
 try {
     $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
@@ -21,20 +20,23 @@ try {
     die("ERROR: Cannot connect: " . $e->getMessage());
 }
 
-function draw_performance_table($pf_id, $pf_working_date, $exch, $pf_name)
+function draw_performance_table($portfolio)
 {
-    global $pdo, $next_trade_day, $pf_name;
-    $pf_opening_balance = get_pf_opening_balance($pf_id);
-    $pf_opening_date = get_pf_opening_date($pf_id);
-    $pf_days_traded = get_pf_days_traded($pf_id);
-    $pf_cash_in_hand = get_pf_cash_in_hand($pf_id);
-    $pf_holdings = get_pf_holdings($pf_id);
+    global $pdo, $next_trade_day;
+    $pf_id = $portfolio->getID();
+    $pf_name = $portfolio->getName();
+    $pf_opening_balance = $portfolio->getOpeningBalance();
+    $pf_opening_date = $portfolio->getStartDate();
+    $pf_days_traded = $portfolio->CountDaysTraded();
+    $pf_cash_in_hand = $portfolio->getCashInHand();
+    $pf_holdings = $portfolio->getHoldings();
     $pf_total = sprintf("%.2f", $pf_cash_in_hand + $pf_holdings);
-    $pf_exchange_name = $exch->getName();
-    $pf_exch = $exch->getID();
+    $pf_exchange_name = $portfolio->getExch()->getName();
+    $pf_exch = $portfolio->getExch()->getID();
+    $pf_working_date = $portfolio->getWorkingDate();
     print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="cart" id="cart">';
     print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
-    print '<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Date</td><td>Volume</td><td>Buy Price</td><td>close</td><td>gain</td><td>Value</td>';
+    print '<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Date of Purchase</td><td>Volume</td><td>Buy Price</td><td>close</td><td>gain</td><td>Value</td>';
     if (isset($_SESSION['chart']))
     {
         print '<td>Chart</td></tr>';
@@ -191,4 +193,4 @@ elseif(isset($_POST['sell']))
     }
 }
 
-draw_performance_table($pf_id, $pf_working_date, $exch, $pf_name);
+draw_performance_table($portfolio);

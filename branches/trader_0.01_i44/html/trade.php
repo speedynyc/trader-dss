@@ -7,10 +7,12 @@ global $db_hostname, $db_database, $db_user, $db_password;
 
 $username = $_SESSION['username'];
 $uid = $_SESSION['uid'];
-$pf_id = $_SESSION['pfid'];
-$pf_name = get_pf_name($pf_id);
-$pf_working_date = get_pf_working_date($pf_id);
-$pf_exch = get_pf_exch($pf_id);
+
+$portfolio = new portfolio($_SESSION['pfid']);
+$pf_id = $portfolio->getID();
+$pf_name = $portfolio->getName();
+$pf_working_date = $portfolio->getWorkingDate();
+$pf_exch = $portfolio->getExch()->getID();
 
 try {
     $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);

@@ -396,7 +396,6 @@ function draw_cell($cell_desc, $cell_link, $cell_colour, $cell_selectable)
 
 function draw_summary($username, $pf_name, $exch_name, $working_date, $query_name, $chart_name)
 {
-    //print '<table border="0" cellpadding="5" cellspacing="0" width="90%" align="center">' . "<tr><td>User: $username</td><td>Portfolio: $pf_name</td><td>Exchange: $exch_name</td><td>Working Date: $working_date</td><td>Query: $query_name</td><td>Chart: $chart_name</td></tr></table>\n" . '<table border="1" cellpadding="5" cellspacing="0" width="90%" align="center"><tr>';
     print '<table border="0" cellpadding="5" cellspacing="0" width="90%" align="center">';
     if ($username == 'N/A')
     {
@@ -684,84 +683,6 @@ function get_pf_hide_names($pfid)
         return $row['hide_names'];
     }
     return 'f';
-}
-
-function get_pf_is_auto_close($pfid)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select auto_sell_stop from portfolios where pfid = $pf_id;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return ($row['auto_sell_stop'] == 't');
-    }
-    return false;
-}
-
-function get_pf_sell_stop($pfid)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select sell_stop from portfolios where pfid = $pf_id;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['sell_stop'];
-    }
-    return '10';
-}
-
-/* 
-function get_pf_start_date($pfid)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select date from pf_summary where pfid = $pf_id order by date limit 1;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['date'];
-    }
-    return 0;
-}
-*/
-
-function get_pf_opening_balance($pfid)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select cash_in_hand from pf_summary where pfid = $pf_id order by date limit 1;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['cash_in_hand'];
-    }
-    return 0;
 }
 
 function get_pf_opening_date($pfid)
@@ -1196,7 +1117,7 @@ class exchange extends trader_base
     {
         return $this->currency;
     }
-    public function next_trade_day($date)
+    public function nextTradeDay($date)
     {
         // returns the next trading day for the exchange
         $exch = $this->exch;
@@ -1207,13 +1128,13 @@ class exchange extends trader_base
         }
         catch (PDOException $e)
         {
-            tr_warn('next_trade_day:' . $query . ':' . $e->getMessage());
+            tr_warn('nextTradeDay:' . $query . ':' . $e->getMessage());
         }
         $row = $result->fetch(PDO::FETCH_ASSOC);
         $next_date = $row['date'];
         return $next_date;
     }
-    public function nearest_trade_day($date)
+    public function nearestTradeDay($date)
     {
         // returns the nearest trading day for the exchange
         $exch = $this->exch;
@@ -1224,13 +1145,13 @@ class exchange extends trader_base
         }
         catch (PDOException $e)
         {
-            tr_warn('nearest_trade_day:' . $query . ':' . $e->getMessage());
+            tr_warn('nearestTradeDay:' . $query . ':' . $e->getMessage());
         }
         $row = $result->fetch(PDO::FETCH_ASSOC);
         $next_date = $row['date'];
         return $next_date;
     }
-    public function first_date()
+    public function firstDate()
     {
         // returns the first trading day for the exchange
         $exch = $this->exch;
@@ -1241,13 +1162,13 @@ class exchange extends trader_base
         }
         catch (PDOException $e)
         {
-            tr_warn('first_date:' . $query . ':' . $e->getMessage());
+            tr_warn('firstDate:' . $query . ':' . $e->getMessage());
         }
         $row = $result->fetch(PDO::FETCH_ASSOC);
         $next_date = $row['date'];
         return $next_date;
     }
-    public function last_date()
+    public function lastDate()
     {
         // returns the first trading day for the exchange
         $exch = $this->exch;
@@ -1258,7 +1179,7 @@ class exchange extends trader_base
         }
         catch (PDOException $e)
         {
-            tr_warn('last_date:' . $query . ':' . $e->getMessage());
+            tr_warn('lastDate:' . $query . ':' . $e->getMessage());
         }
         $row = $result->fetch(PDO::FETCH_ASSOC);
         $next_date = $row['date'];
@@ -1269,6 +1190,7 @@ class exchange extends trader_base
 class portfolio extends trader_base
 {
     protected $pfid, $name, $exch, $parcel, $working_date, $hide_names, $sell_stop, $auto_sell_stop, $dbh;
+    protected $cashInHand, $holdings, $openingBalance, $startDate;
     public function __construct($pfid)
     {
         // setup the DB connection for use in this script
@@ -1305,6 +1227,49 @@ class portfolio extends trader_base
         {
             die("[FATAL]portfolio $pfid missing from portfolios table: $query\n");
         }
+        // get opening balance, holdings and startdate
+        $query = "select * from pf_summary where pfid = '$pfid' order by date asc limit 1";
+        try 
+        {
+            $result = $this->dbh->query($query);
+        }
+        catch (PDOException $e)
+        {
+            tr_warn('portfolio:__construct:' . $query . ':' . $e->getMessage());
+            die("[FATAL]Class: portfolio, function: __construct\n");
+        }
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        if (isset($row['pfid']) and $row['pfid'] == $pfid)
+        {
+            $this->openingBalance = $row['cash_in_hand'];
+            $this->startDate = $row['date'];
+        }
+        else
+        {
+            $this->openingBalance = 0;
+        }
+        // get current balance and  holdings
+        $query = "select * from pf_summary where pfid = '$pfid' order by date desc limit 1";
+        try 
+        {
+            $result = $this->dbh->query($query);
+        }
+        catch (PDOException $e)
+        {
+            tr_warn('portfolio:__construct:' . $query . ':' . $e->getMessage());
+            die("[FATAL]Class: portfolio, function: __construct\n");
+        }
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        if (isset($row['pfid']) and $row['pfid'] == $pfid)
+        {
+            $this->cashInHand = $row['cash_in_hand'];
+            $this->holdings = $row['holdings'];
+        }
+        else
+        {
+            tr_warn('portfolio:__construct:' . $query . ':' . $e->getMessage());
+            die("[FATAL]Class: portfolio, function: __construct\n");
+        }
     }
     public function getID()
     {
@@ -1328,19 +1293,35 @@ class portfolio extends trader_base
     }
     public function getStartDate()
     {
+        return $this->startDate;
+    }
+    public function getCashInHand()
+    {
+        return $this->cashInHand;
+    }
+    public function getHoldings()
+    {
+        return $this->holdings;
+    }
+    public function getOpeningBalance()
+    {
+        return $this->openingBalance;
+    }
+    public function CountDaysTraded()
+    {
+        // returns the next trading day for the exchange
         $pfid = $this->pfid;
-        $query = "select date from pf_summary where pfid = '$pfid' order by date limit 1;";
+        $query = "select count(*) as days from pf_summary where pfid = '$pfid';";
         try 
         {
             $result = $this->dbh->query($query);
         }
         catch (PDOException $e)
         {
-            tr_warn('portfolio:getStartDate:' . $query . ':' . $e->getMessage());
-            die("[FATAL]Class: portfolio, function: getStartDate\n");
+            tr_warn('CountDaysTraded:' . $query . ':' . $e->getMessage());
         }
         $row = $result->fetch(PDO::FETCH_ASSOC);
-        return $row['date'];
+        return $row['days'];
     }
 }
 

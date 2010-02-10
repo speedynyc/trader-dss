@@ -60,12 +60,12 @@ function create_add_form()
     $create_pf_form->addElement('text', 'pf_desc', 'Enter Description:', array('size' => 50, 'maxlength' => 255));
     $create_pf_form->addRule('pf_desc','Please enter a portfolio description','required');
     $create_pf_form->addRule('pf_desc','That portfolio already exists','callback', 'validate_new_portfolio');
-    $create_pf_form->addElement('text', 'parcel', 'Enter parcel size:', array('size' => 10, 'maxlength' => 10));
-    $create_pf_form->addRule('parcel','Please enter a numeric parcel size','required');
-    $create_pf_form->addRule('parcel','Please enter a numeric parcel size','numeric');
     $create_pf_form->addElement('text', 'opening', 'Enter Opening Balance:', array('size' => 10, 'maxlength' => 10));
     $create_pf_form->addRule('opening','Please enter a numeric balance','required');
     $create_pf_form->addRule('opening','Please enter a numeric balance','numeric');
+    $create_pf_form->addElement('text', 'parcel', 'Enter parcel size:', array('size' => 10, 'maxlength' => 10));
+    $create_pf_form->addRule('parcel','Please enter a numeric parcel size','required');
+    $create_pf_form->addRule('parcel','Please enter a numeric parcel size','numeric');
     $create_pf_form->addElement('text', 'sell_stop', 'Set Sell stop limit:', array('size' => 10, 'maxlength' => 10));
     $create_pf_form->addRule('sell_stop','Please enter a numeric Sell Stop','required');
     $create_pf_form->addRule('sell_stop','Please enter a numeric Sell Stop','numeric');
@@ -101,7 +101,7 @@ function create_portfolio($form)
     $pf_desc = $pdo->quote($form['pf_desc']);
     $uid = $_SESSION['uid'];
     $exchange = new exchange($form['exchange']);
-    $exch = $exchange->getExch();
+    $exch = $exchange->getID();
     $parcel = $pdo->quote($form['parcel']);
     $start_date = sprintf("%04d-%02d-%02d", $form['start_date']['Y'], $form['start_date']['M'], $form['start_date']['d']);
     $opening_balance = $pdo->quote($form['opening']);
@@ -122,7 +122,7 @@ function create_portfolio($form)
         $auto = 'f';
     }
     $sell_stop = $form['sell_stop'];
-    $start_date = $exchange->nearest_trade_day($start_date);
+    $start_date = $exchange->nearestTradeDay($start_date);
     // need to create the portfolio and add the first entry into summary as a transaction so that if one fails all do
     try{
         $pdo->beginTransaction();
@@ -180,7 +180,6 @@ function create_choose_form()
     $first_row = true;
     foreach ($pdo->query($query) as $row)
     {
-
         $pf_id = $row['pfid'];
         $portfolio = new portfolio($row['pfid']);
         $pf_desc = $portfolio->getName();
