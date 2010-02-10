@@ -180,13 +180,20 @@ function create_choose_form()
     $first_row = true;
     foreach ($pdo->query($query) as $row)
     {
+
         $pf_id = $row['pfid'];
-        $pf_desc = $row['name'];
-        $exch = new exchange($row['exch']);
-        $exch_name = $exch->getName();
-        $pf_parcel = $row['parcel'];
-        $pf_start_date = get_pf_start_date($pf_id);
-        $pf_working_date = $row['working_date'];
+        $portfolio = new portfolio($row['pfid']);
+        $pf_desc = $portfolio->getName();
+        $exch = $portfolio->getExch()->getID();
+        $exch_name = $portfolio->getExch()->getName();
+        $pf_parcel = $portfolio->getParcel();
+        $pf_working_date = $portfolio->getWorkingDate();
+        $pf_start_date = $pf_working_date;
+        //$exch = new exchange($row['exch']);
+        //$exch_name = $exch->getName();
+        //$pf_parcel = $row['parcel'];
+        //$pf_start_date = get_pf_start_date($pf_id);
+        //$pf_working_date = $row['working_date'];
         if ($first_row)
         {
             $choose_pf_form->addElement('radio','portfolio','Portfolios:',"$pf_desc<td>$exch_name</td> <td>$pf_parcel</td> <td>$pf_start_date</td> <td>$pf_working_date</td>",$pf_id);

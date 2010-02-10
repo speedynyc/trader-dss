@@ -333,6 +333,19 @@ function del_from_cart($table, $symb)
     }
 }
 
+function t_for_true($value)
+{
+    // returns true if $value is 't' and false for every other value
+    if (isset($value))
+    {
+        if ($value == 't')
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 function redirect_login_pf()
 {
     /* the idea here is to redirect to the login or porftolio selection page when 
@@ -364,21 +377,7 @@ function redirect_login_pf()
             exit;
         }
     }
-    if (isset($_SESSION['hide']))
-    {
-        if ($_SESSION['hide'] == 't')
-        {
-            $scramble_names = true;
-        }
-        else
-        {
-            $scramble_names = false;
-        }
-    }
-    else
-    {
-        $scramble_names = false;
-    }
+    $scramble_names = t_for_true($_SESSION['hide']);
 }
 
 function draw_cell($cell_desc, $cell_link, $cell_colour, $cell_selectable)
@@ -542,8 +541,8 @@ function draw_trader_header($active_page, $allow_others=true)
             $allow_others = false;
             break;
     }
-    print '<table>';
-    print '<table border="1" cellpadding="5" cellspacing="0" width="90%" align="center"><tr>';
+    print '<table width="100%" border="0">';
+    print '<table border="1" cellpadding="5" cellspacing="0" width="100%" align="center"><tr>';
     if ($active_page == 'login')
     {
         draw_cell($active_page, '/login.php', $active_colour, true);
@@ -1155,13 +1154,20 @@ class exchange extends trader_base
             die("[FATAL]Class: exchange, function: __construct\n");
         }
         $row = $result->fetch(PDO::FETCH_ASSOC);
-        $this->exch = $exch_id;
-        $this->name = $row['name'];
-        $this->symb = $row['curr_desc'];
-        $this->symb = $row['curr_char'];
-        $this->dbh = $pdo;
+        if (isset($row['exch']) and $row['exch'] == $exch_id)
+        {
+            $this->exch = $row['exch'];
+            $this->name = $row['name'];
+            $this->symb = $row['curr_desc'];
+            $this->symb = $row['curr_char'];
+            $this->dbh = $pdo;
+        }
+        else
+        {
+            die("[FATAL]exchange $exch_id missing from exchange table: $query\n");
+        }
     }
-    public function getExch()
+    public function getID()
     {
         return $this->exch;
     }
@@ -1244,6 +1250,84 @@ class exchange extends trader_base
         $row = $result->fetch(PDO::FETCH_ASSOC);
         $next_date = $row['date'];
         return $next_date;
+    }
+}
+
+class portfolio extends trader_base
+{
+    protected $pfid, $name, $exch, $parcel, $working_date, $hide_names, $sell_stop, $auto_sell_stop, $dbh;
+    public function __construct($pfid)
+    {
+        // setup the DB connection for use in this script
+        global $db_hostname, $db_database, $db_user, $db_password;
+        try {
+            $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $e) {
+            die("ERROR: Cannot connect: " . $e->getMessage());
+        }
+        $query = "select * from portfolios where pfid = '$pfid';";
+        try 
+        {
+            $result = $pdo->query($query);
+        }
+        catch (PDOException $e)
+        {
+            tr_warn('portfolio:__construct:' . $query . ':' . $e->getMessage());
+            die("[FATAL]Class: exchange, function: __construct\n");
+        }
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        if (isset($row['pfid']) and $row['pfid'] == $pfid)
+        {
+            $this->pfid = $row['pfid'];
+            $this->name = $row['name'];
+            $this->exch = new exchange($row['exch']);
+            $this->parcel = $row['parcel'];
+            $this->working_date = $row['working_date'];
+            $this->hide_names = t_for_true($row['hide_names']);
+            $this->sell_stop = $row['sell_stop'];
+            $this->auto_sell_stop = t_for_true($row['auto_sell_stop']);
+        }
+        else
+        {
+            die("[FATAL]portfolio $pfid missing from portfolios table: $query\n");
+        }
+        $this->dbh = $pdo;
+    }
+    public function getID()
+    {
+        return $this->get('pfid');
+    }
+    public function getExch()
+    {
+        return $this->get('exch');
+    }
+    public function getName()
+    {
+        return $this->get('name');
+    }
+    public function getWorkingDate()
+    {
+        return $this->get('working_date');
+    }
+    public function getParcel()
+    {
+        return $this->get('parcel');
+    }
+    public function get($name)
+    {
+        if (isset($this->$name))
+        {
+            /* if (is_object($this->$name))
+            {
+                die("[FATAL]: Property portfolio->$name is an object not a simple value\n");
+            } */
+            return $this->$name;
+        }
+        else
+        {
+            die("[FATAL]: No such property portfolio->$name\n");
+        }
     }
 }
 
