@@ -11,11 +11,12 @@ function tr_warn($message='No message!')
     print('<font color="red">' . $message . '</font><br>');
 }
 
-function update_holdings($pfid)
+function update_holdings($portfolio)
 {
     // this function is probably only going to be used by trade and watch so really shouldn't be here
     global $db_hostname, $db_database, $db_user, $db_password;
-    $pf_working_date = get_pf_working_date($pfid);
+    $pfid = $portfolio->getID();
+    $pf_working_date = $portfolio->getWorkingDate();
     try {
         $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -42,11 +43,12 @@ function update_holdings($pfid)
     }
 }
 
-function update_cart($cart, $pfid)
+function update_cart($cart, $portfolio)
 {
     // this function is probably only going to be used by trade and watch so really shouldn't be here
     global $db_hostname, $db_database, $db_user, $db_password;
-    $pf_working_date = get_pf_working_date($pfid);
+    $pfid = $portfolio->getID();
+    $pf_working_date = $portfolio->getWorkingDate();
     try {
         $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -95,9 +97,10 @@ function sell_stock($hid, $symb, $comment = '')
 {
     // Move stock out of holdings, add a record to trades and update pf_summary
     global $db_hostname, $db_database, $db_user, $db_password;
-    $pfid = $_SESSION['pfid'];
-    $date = get_pf_working_date($pfid);
-    $exch = get_pf_exch($pfid);
+    $portfolio = new portfolio($_SESSION['pfid']);
+    $pfid = $portfolio->getID();
+    $date = $portfolio->getWorkingDate();
+    $exch = $portfolio->getExch()->getID();
     $close = get_stock_close($symb, $date, $exch);
     $volume = get_hid_volume($hid);
     if ($comment == '')
@@ -165,9 +168,10 @@ function buy_stock($symb, $comment = '', $volume = 0)
 {
     // moves stock from the cart to trades and updates pf_summary
     global $db_hostname, $db_database, $db_user, $db_password;
-    $pfid = $_SESSION['pfid'];
-    $date = get_pf_working_date($pfid);
-    $exch = get_pf_exch($pfid);
+    $portfolio = new portfolio($_SESSION['pfid']);
+    $pfid = $portfolio->getID();
+    $date = $portfolio->getWorkingDate();
+    $exch = $portfolio->getExch()->getID();
     $close = get_stock_close($symb, $date, $exch);
     if ($comment == '')
     {
@@ -232,19 +236,20 @@ function add_to_cart($table, $symb, $comment = '', $volume = 0)
 {
     // adds all symbols in the given list to the given table
     global $db_hostname, $db_database, $db_user, $db_password;
-    $pfid = $_SESSION['pfid'];
-    $date = get_pf_working_date($pfid);
+    $portfolio = new portfolio($_SESSION['pfid']);
+    $pfid = $portfolio->getID();
+    $date = $portfolio->getWorkingDate();
+    $exch = $portfolio->getExch()->getID();
+    $parcel = $portfolio->getParcel();
     if (isset($_SESSION['sql_name']))
     {
         $name = $_SESSION['sql_name'];
     }
     else
     {
-        $name = get_pf_name($pfid);
+        $name = $portfolio->getName();
     }
-    $exch = get_pf_exch($pfid);
     $close = get_stock_close($symb, $date, $exch);
-    $parcel = get_pf_parcel_size($pfid);
     if ($comment == '')
     {
         $comment = "$name: $date";
@@ -333,9 +338,22 @@ function del_from_cart($table, $symb)
     }
 }
 
+function t_for_true($value)
+{
+    // returns true if $value is 't' and false for every other value
+    if (isset($value))
+    {
+        if ($value == 't')
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 function redirect_login_pf()
 {
-    /* the idea here is to redirect to the login or porftolio selection page when 
+    /* the idea here is to redirect to the login or portfolio selection page when 
        the cookie doesn't contain a valid username or portfolio.
        This will stop someone from opening a browser and getting some page other than the login page
      */
@@ -364,21 +382,8 @@ function redirect_login_pf()
             exit;
         }
     }
-    if (isset($_SESSION['hide']))
-    {
-        if ($_SESSION['hide'] == 't')
-        {
-            $scramble_names = true;
-        }
-        else
-        {
-            $scramble_names = false;
-        }
-    }
-    else
-    {
-        $scramble_names = false;
-    }
+    $portfolio = new portfolio($_SESSION['pfid']);
+    $scramble_names = $portfolio->symbNamesHidden();
 }
 
 function draw_cell($cell_desc, $cell_link, $cell_colour, $cell_selectable)
@@ -397,7 +402,6 @@ function draw_cell($cell_desc, $cell_link, $cell_colour, $cell_selectable)
 
 function draw_summary($username, $pf_name, $exch_name, $working_date, $query_name, $chart_name)
 {
-    //print '<table border="0" cellpadding="5" cellspacing="0" width="90%" align="center">' . "<tr><td>User: $username</td><td>Portfolio: $pf_name</td><td>Exchange: $exch_name</td><td>Working Date: $working_date</td><td>Query: $query_name</td><td>Chart: $chart_name</td></tr></table>\n" . '<table border="1" cellpadding="5" cellspacing="0" width="90%" align="center"><tr>';
     print '<table border="0" cellpadding="5" cellspacing="0" width="90%" align="center">';
     if ($username == 'N/A')
     {
@@ -483,12 +487,13 @@ function draw_trader_header($active_page, $allow_others=true)
     }
     if (isset($_SESSION['pfid']))
     {
-        $pfid = $_SESSION['pfid'];
-        $pf_name = get_pf_name($pfid);
-        $exch = new exchange(get_pf_exch($pfid));
+        $portfolio = new portfolio($_SESSION['pfid']);
+        $pfid = $portfolio->getID();
+        $pf_name = $portfolio->getName();
+        $exch = $portfolio->getExch();
         $exch_name = $exch->getName();
-        $working_date = get_pf_working_date($pfid);
-        $pf_gain = get_pf_day_gain($pfid);
+        $working_date = $portfolio->getWorkingDate();
+        $pf_gain = $portfolio->dayGain(1);
         if ($pf_gain > 0)
         {
             $pf_gain = sprintf("%.2f", $pf_gain);
@@ -498,7 +503,7 @@ function draw_trader_header($active_page, $allow_others=true)
         else
         {
             $pf_gain = sprintf("%.2f", $pf_gain);
-            $pf_gain = "<font color=\"red\">-$pf_gain</font>";
+            $pf_gain = "<font color=\"red\">$pf_gain</font>";
             $pf_name = "$pf_name ($pf_gain)";
         }
     }
@@ -542,8 +547,8 @@ function draw_trader_header($active_page, $allow_others=true)
             $allow_others = false;
             break;
     }
-    print '<table>';
-    print '<table border="1" cellpadding="5" cellspacing="0" width="90%" align="center"><tr>';
+    print '<table width="100%" border="0">';
+    print '<table border="1" cellpadding="5" cellspacing="0" width="100%" align="center"><tr>';
     if ($active_page == 'login')
     {
         draw_cell($active_page, '/login.php', $active_colour, true);
@@ -649,280 +654,6 @@ function get_hid_volume($hid)
     return 'Unknown hid';
 }
 
-function get_pf_name($pfid)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select name from portfolios where pfid = $pf_id;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['name'];
-    }
-    return 'Unknown Portfolio';
-}
-
-function get_pf_hide_names($pfid)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select hide_names from portfolios where pfid = $pf_id;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['hide_names'];
-    }
-    return 'f';
-}
-
-function get_pf_is_auto_close($pfid)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select auto_sell_stop from portfolios where pfid = $pf_id;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return ($row['auto_sell_stop'] == 't');
-    }
-    return false;
-}
-
-function get_pf_sell_stop($pfid)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select sell_stop from portfolios where pfid = $pf_id;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['sell_stop'];
-    }
-    return '10';
-}
-
-function get_pf_start_date($pfid)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select date from pf_summary where pfid = $pf_id order by date limit 1;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['date'];
-    }
-    return 0;
-}
-
-function get_pf_opening_balance($pfid)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select cash_in_hand from pf_summary where pfid = $pf_id order by date limit 1;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['cash_in_hand'];
-    }
-    return 0;
-}
-
-function get_pf_opening_date($pfid)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select date from pf_summary where pfid = $pf_id order by date limit 1;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['date'];
-    }
-    return 0;
-}
-
-function get_pf_days_traded($pfid)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select count(*) as days from pf_summary where pfid = $pf_id;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['days'];
-    }
-    return 0;
-}
-
-function get_pf_day_gain($pfid, $days=1)
-{
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $working_total = 0;
-    $compare_total = 0;
-    $query = "select date, (cash_in_hand + holdings) as total from pf_summary where pfid = $pfid order by date desc limit 1";
-    foreach ($pdo->query($query) as $row)
-    {
-        $working_date = $row['date'];
-        $working_total = $row['total'];
-    }
-    // simple hack, we select $days days before today and the last one we reach is the one we want
-    $query = "select date, (cash_in_hand + holdings) as total from pf_summary where pfid = $pfid and date < '$working_date' order by date desc limit $days";
-    foreach ($pdo->query($query) as $row)
-    {
-        $compare_date = $row['date'];
-        $compare_total = $row['total'];
-    }
-    return $working_total - $compare_total;
-}
-
-function get_pf_holdings($pfid)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select holdings from pf_summary where pfid = $pf_id order by date desc limit 1;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['holdings'];
-    }
-    return 0;
-}
-
-function get_pf_cash_in_hand($pfid)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select cash_in_hand from pf_summary where pfid = $pf_id order by date desc limit 1;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['cash_in_hand'];
-    }
-    return 0;
-}
-
-function get_pf_exch($pfid)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select exch from portfolios where pfid = $pf_id;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['exch'];
-    }
-    return 'Unknow Exchange';
-}
-
-function get_pf_parcel_size($pfid)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select parcel from portfolios where pfid = $pf_id;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['parcel'];
-    }
-    return '1';
-}
-
-function get_pf_working_date($pfid)
-{
-    // setup the DB connection for use in this script
-    global $db_hostname, $db_database, $db_user, $db_password;
-    try {
-        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
-    }
-    $pf_id = $pdo->quote($pfid);
-    $query = "select working_date from portfolios where pfid = $pf_id;";
-    foreach ($pdo->query($query) as $row)
-    {
-        return $row['working_date'];
-    }
-    return '200-01-01';
-}
-
 function is_in_portfolio($symb, $pfid)
 {
     // lookup holdings to see if the symbol's there
@@ -931,7 +662,8 @@ function is_in_portfolio($symb, $pfid)
 
 function gain($symb, $exch, $pfid, $pf_working_date)
 {
-    // work out how much the symbol has gained since it was bought
+    // work if the symbol has gaind value since it was bought
+    // remember to treat shorts in the opposite way to longs
     // there might be several in holdings so average them all
     global $db_hostname, $db_database, $db_user, $db_password;
     $t_volume = 0;
@@ -1129,6 +861,17 @@ class trader_base
         tr_warn("No such property: $name");
         die("Object error");
     }
+    protected function get($name)
+    {
+        if (isset($this->$name))
+        {
+            return $this->$name;
+        }
+        else
+        {
+            die("[FATAL]: No such property portfolio->$name\n");
+        }
+    }
 }
 
 class exchange extends trader_base
@@ -1155,13 +898,20 @@ class exchange extends trader_base
             die("[FATAL]Class: exchange, function: __construct\n");
         }
         $row = $result->fetch(PDO::FETCH_ASSOC);
-        $this->exch = $exch_id;
-        $this->name = $row['name'];
-        $this->symb = $row['curr_desc'];
-        $this->symb = $row['curr_char'];
-        $this->dbh = $pdo;
+        if (isset($row['exch']) and $row['exch'] == $exch_id)
+        {
+            $this->exch = $row['exch'];
+            $this->name = $row['name'];
+            $this->symb = $row['curr_desc'];
+            $this->symb = $row['curr_char'];
+            $this->dbh = $pdo;
+        }
+        else
+        {
+            die("[FATAL]exchange $exch_id missing from exchange table: $query\n");
+        }
     }
-    public function getExch()
+    public function getID()
     {
         return $this->exch;
     }
@@ -1177,7 +927,7 @@ class exchange extends trader_base
     {
         return $this->currency;
     }
-    public function next_trade_day($date)
+    public function nextTradeDay($date)
     {
         // returns the next trading day for the exchange
         $exch = $this->exch;
@@ -1188,13 +938,13 @@ class exchange extends trader_base
         }
         catch (PDOException $e)
         {
-            tr_warn('next_trade_day:' . $query . ':' . $e->getMessage());
+            tr_warn('nextTradeDay:' . $query . ':' . $e->getMessage());
         }
         $row = $result->fetch(PDO::FETCH_ASSOC);
         $next_date = $row['date'];
         return $next_date;
     }
-    public function nearest_trade_day($date)
+    public function nearestTradeDay($date)
     {
         // returns the nearest trading day for the exchange
         $exch = $this->exch;
@@ -1205,13 +955,13 @@ class exchange extends trader_base
         }
         catch (PDOException $e)
         {
-            tr_warn('nearest_trade_day:' . $query . ':' . $e->getMessage());
+            tr_warn('nearestTradeDay:' . $query . ':' . $e->getMessage());
         }
         $row = $result->fetch(PDO::FETCH_ASSOC);
         $next_date = $row['date'];
         return $next_date;
     }
-    public function first_date()
+    public function firstDate()
     {
         // returns the first trading day for the exchange
         $exch = $this->exch;
@@ -1222,13 +972,13 @@ class exchange extends trader_base
         }
         catch (PDOException $e)
         {
-            tr_warn('first_date:' . $query . ':' . $e->getMessage());
+            tr_warn('firstDate:' . $query . ':' . $e->getMessage());
         }
         $row = $result->fetch(PDO::FETCH_ASSOC);
         $next_date = $row['date'];
         return $next_date;
     }
-    public function last_date()
+    public function lastDate()
     {
         // returns the first trading day for the exchange
         $exch = $this->exch;
@@ -1239,11 +989,181 @@ class exchange extends trader_base
         }
         catch (PDOException $e)
         {
-            tr_warn('last_date:' . $query . ':' . $e->getMessage());
+            tr_warn('lastDate:' . $query . ':' . $e->getMessage());
         }
         $row = $result->fetch(PDO::FETCH_ASSOC);
         $next_date = $row['date'];
         return $next_date;
+    }
+}
+
+class portfolio extends trader_base
+{
+    protected $pfid, $name, $exch, $parcel, $working_date, $hide_names, $sell_stop, $auto_sell_stop, $dbh;
+    protected $cashInHand, $holdings, $openingBalance, $startDate, $countOfDaysTraded;
+    public function __construct($pfid)
+    {
+        // setup the DB connection for use in this script
+        global $db_hostname, $db_database, $db_user, $db_password;
+        // set all the 'lazy evaluate values to impossible numbers
+        $this->countOfDaysTraded = -1;
+        try {
+            $this->dbh = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+            $this->dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $e) {
+            die("ERROR: Cannot connect: " . $e->getMessage());
+        }
+        $query = "select * from portfolios where pfid = '$pfid';";
+        try 
+        {
+            $result = $this->dbh->query($query);
+        }
+        catch (PDOException $e)
+        {
+            tr_warn('portfolio:__construct:' . $query . ':' . $e->getMessage());
+            die("[FATAL]Class: portfolio, function: __construct\n");
+        }
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        if (isset($row['pfid']) and $row['pfid'] == $pfid)
+        {
+            $this->pfid = $row['pfid'];
+            $this->name = $row['name'];
+            $this->exch = new exchange($row['exch']);
+            $this->parcel = $row['parcel'];
+            $this->working_date = $row['working_date'];
+            $this->hide_names = t_for_true($row['hide_names']);
+            $this->sell_stop = $row['sell_stop'];
+            $this->auto_sell_stop = t_for_true($row['auto_sell_stop']);
+        }
+        else
+        {
+            die("[FATAL]portfolio $pfid missing from portfolios table: $query\n");
+        }
+        // get opening balance, holdings and startdate
+        $query = "select * from pf_summary where pfid = '$pfid' order by date asc limit 1";
+        try 
+        {
+            $result = $this->dbh->query($query);
+        }
+        catch (PDOException $e)
+        {
+            tr_warn('portfolio:__construct:' . $query . ':' . $e->getMessage());
+            die("[FATAL]Class: portfolio, function: __construct\n");
+        }
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        if (isset($row['pfid']) and $row['pfid'] == $pfid)
+        {
+            $this->openingBalance = $row['cash_in_hand'];
+            $this->startDate = $row['date'];
+        }
+        else
+        {
+            $this->openingBalance = 0;
+        }
+        // get current balance and  holdings
+        $query = "select * from pf_summary where pfid = '$pfid' order by date desc limit 1";
+        try 
+        {
+            $result = $this->dbh->query($query);
+        }
+        catch (PDOException $e)
+        {
+            tr_warn('portfolio:__construct:' . $query . ':' . $e->getMessage());
+            die("[FATAL]Class: portfolio, function: __construct\n");
+        }
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        if (isset($row['pfid']) and $row['pfid'] == $pfid)
+        {
+            $this->cashInHand = $row['cash_in_hand'];
+            $this->holdings = $row['holdings'];
+        }
+        else
+        {
+            tr_warn('portfolio:__construct:' . $query . ':' . $e->getMessage());
+            die("[FATAL]Class: portfolio, function: __construct\n");
+        }
+    }
+    public function getID()
+    {
+        return $this->pfid;
+    }
+    public function getExch()
+    {
+        return $this->exch;
+    }
+    public function getName()
+    {
+        return $this->name;
+    }
+    public function symbNamesHidden()
+    {
+        return $this->hide_names;
+    }
+    public function getWorkingDate()
+    {
+        return $this->working_date;
+    }
+    public function getParcel()
+    {
+        return $this->parcel;
+    }
+    public function getStartDate()
+    {
+        return $this->startDate;
+    }
+    public function getCashInHand()
+    {
+        return $this->cashInHand;
+    }
+    public function getHoldings()
+    {
+        return $this->holdings;
+    }
+    public function getOpeningBalance()
+    {
+        return $this->openingBalance;
+    }
+    public function countDaysTraded()
+    {
+        // returns the next trading day for the exchange
+        $pfid = $this->pfid;
+        if ($this->countOfDaysTraded == -1)
+        {
+            $query = "select count(*) as days from pf_summary where pfid = '$pfid';";
+            try 
+            {
+                $result = $this->dbh->query($query);
+            }
+            catch (PDOException $e)
+            {
+                tr_warn('countDaysTraded:' . $query . ':' . $e->getMessage());
+            }
+            $row = $result->fetch(PDO::FETCH_ASSOC);
+            $this->countOfDaysTraded = $row['days'];
+            return $this->countOfDaysTraded;
+        }
+        else
+        {
+            return $this->countOfDaysTraded;
+        }
+    }
+    public function dayGain($days=1)
+    {
+        $current_total = $this->cashInHand + $this->holdings;
+        $pfid = $this->pfid;
+        $working_date = $this->working_date;
+        /*
+           set compare_total to working_total so that if we only have the first record (a new portfolio for exahple)
+           It doesn't appear as a gain of the opening balance.
+         */
+        $previous_total = $current_total;
+        // simple hack, we select $days days before today and the last one we reach is the one we want
+        $query = "select pfid, date, (cash_in_hand + holdings) as total from pf_summary where pfid = '$pfid' and date < '$working_date' order by date desc limit '$days'";
+        foreach ($this->dbh->query($query) as $row)
+        {
+            $previous_total = $row['total'];
+        }
+        return $current_total - $previous_total;
     }
 }
 
