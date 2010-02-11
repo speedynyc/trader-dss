@@ -21,7 +21,7 @@ try {
     die("ERROR: Cannot connect: " . $e->getMessage());
 }
 
-function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
+function draw_watch_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
 {
     global $pdo;
     print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="watch" id="watch">';
@@ -76,7 +76,9 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
     print '</form>';
 }
 
-if (isset($_POST['recalc']))
+update_cart('watch', $portfolio);
+
+function update_session()
 {
     if (isset($_POST['chart']))
     {
@@ -94,10 +96,15 @@ if (isset($_POST['recalc']))
     {
         unset($_SESSION['chart_period']);
     }
-    update_cart('watch', $pf_id);
+}
+
+if (isset($_POST['recalc']))
+{
+    update_session();
 }
 elseif (isset($_POST['delete']))
 {
+    update_session();
     if (isset($_POST['mark']))
     {
         $marked = $_POST['mark'];
@@ -109,6 +116,7 @@ elseif (isset($_POST['delete']))
 }
 elseif (isset($_POST['cart']))
 {
+    update_session();
     if (isset($_POST['mark']))
     {
         $marked = $_POST['mark'];
@@ -125,6 +133,6 @@ elseif (isset($_POST['cart']))
     }
 }
 
-draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name);
+draw_watch_table($pf_id, $pf_working_date, $pf_exch, $pf_name);
 
 ?>

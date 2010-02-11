@@ -21,7 +21,7 @@ try {
     die("ERROR: Cannot connect: " . $e->getMessage());
 }
 
-function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
+function draw_buy_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
 {
     global $pdo;
     print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="cart" id="cart">';
@@ -77,7 +77,9 @@ function draw_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
     print '</form>';
 }
 
-if (isset($_POST['recalc']))
+update_cart('cart', $portfolio);
+
+function update_session()
 {
     if (isset($_POST['chart']))
     {
@@ -95,10 +97,15 @@ if (isset($_POST['recalc']))
     {
         unset($_SESSION['chart_period']);
     }
-    update_cart('cart', $pf_id);
+}
+
+if (isset($_POST['recalc']))
+{
+    update_session();
 }
 elseif (isset($_POST['delete']))
 {
+    update_session();
     if (isset($_POST['mark']))
     {
         $marked = $_POST['mark'];
@@ -110,6 +117,7 @@ elseif (isset($_POST['delete']))
 }
 elseif (isset($_POST['watch']))
 {
+    update_session();
     if (isset($_POST['mark']))
     {
         $marked = $_POST['mark'];
@@ -127,6 +135,7 @@ elseif (isset($_POST['watch']))
 }
 elseif(isset($_POST['buy']))
 {
+    update_session();
     if (isset($_POST['mark']))
     {
         $marked = $_POST['mark'];
@@ -140,5 +149,5 @@ elseif(isset($_POST['buy']))
     }
 }
 
-draw_table($pf_id, $pf_working_date, $pf_exch, $pf_name);
+draw_buy_table($pf_id, $pf_working_date, $pf_exch, $pf_name);
 ?>

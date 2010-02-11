@@ -40,6 +40,7 @@ function describe_table($table)
     print "</table>";
 }
 
+describe_table('indicators');
 describe_table('simple_moving_averages');
 describe_table('standard_deviations_from_mean');
 ?>

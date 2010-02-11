@@ -87,10 +87,7 @@ function create_add_form()
 
 function choose_portfolio($form)
 {
-    global $pdo;
-    $pfid = $form['portfolio'];
-    $_SESSION['pfid'] = $pfid;
-    $_SESSION['hide'] = get_pf_hide_names($pfid);
+    $_SESSION['pfid'] = $form['portfolio'];
 }
 
 // create a new portfolio

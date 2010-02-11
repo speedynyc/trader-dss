@@ -9,9 +9,11 @@ $username = $_SESSION['username'];
 $uid = $_SESSION['uid'];
 $portfolio = new portfolio($_SESSION['pfid']);
 $pf_id = $portfolio->getID();
-$pf_working_date = $portfolio->getWorkingDate();
 $exch = $portfolio->getExch();
+$pf_working_date = $portfolio->getWorkingDate();
 $next_trade_day = $portfolio->getExch()->nextTradeDay($pf_working_date);
+$cash_in_hand = $portfolio->getCashInHand();
+$this_page = $_SERVER['REQUEST_URI'];
 
 try {
     $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
@@ -22,18 +24,19 @@ try {
 
 function draw_performance_table($portfolio)
 {
-    global $pdo, $next_trade_day;
+    global $pdo;
     $pf_id = $portfolio->getID();
     $pf_name = $portfolio->getName();
     $pf_opening_balance = $portfolio->getOpeningBalance();
     $pf_opening_date = $portfolio->getStartDate();
-    $pf_days_traded = $portfolio->CountDaysTraded();
+    $pf_days_traded = $portfolio->countDaysTraded();
     $pf_cash_in_hand = $portfolio->getCashInHand();
     $pf_holdings = $portfolio->getHoldings();
     $pf_total = sprintf("%.2f", $pf_cash_in_hand + $pf_holdings);
     $pf_exchange_name = $portfolio->getExch()->getName();
     $pf_exch = $portfolio->getExch()->getID();
     $pf_working_date = $portfolio->getWorkingDate();
+    $next_trade_day = $portfolio->getExch()->nextTradeDay($pf_working_date);
     print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="cart" id="cart">';
     print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
     print '<tr><td>Symb</td><td>Name</td><td>Comment</td><td>Date of Purchase</td><td>Volume</td><td>Buy Price</td><td>close</td><td>gain</td><td>Value</td>';
@@ -75,6 +78,7 @@ function draw_performance_table($portfolio)
             else
             {
                 $colour = 'red';
+                $price_diff_pc = 0 - $price_diff_pc;
             }
         }
         else
@@ -86,6 +90,7 @@ function draw_performance_table($portfolio)
             else
             {
                 $colour = 'green';
+                $price_diff_pc = 0 - $price_diff_pc;
             }
         }
         print "<tr><td><input type=\"checkbox\" name=\"mark[]\" value=\"$hid\"><font color=\"$colour\">$symb</font></td>\n";
@@ -124,14 +129,13 @@ function draw_performance_table($portfolio)
     print "<tr><td align=\"left\">Cash In Hand:</td><td align=\"right\">$pf_cash_in_hand</td>\n";
     print "<tr><td align=\"left\">Holdings:</td><td align=\"right\">$pf_holdings</td>\n";
     print "<tr><td align=\"left\">Total:</td><td align=\"right\">$pf_total</td>\n";
-
     print "<tr><td colspan=\"10\"><img src=\"/cgi-bin/portfolio_chart.php?pfid=$pf_id\"/></td></tr>";
     print '</form>';
 }
 
-// save any changes that have been typed into the form
-if (isset($_POST['update']))
+function update_session()
 {
+    // save any changes that have been typed into the form
     if (isset($_POST['chart']))
     {
         $_SESSION['chart'] = 1;
@@ -148,7 +152,11 @@ if (isset($_POST['update']))
     {
         unset($_SESSION['chart_period']);
     }
-    update_holdings($pf_id);
+}
+
+if (isset($_POST['update']))
+{
+    update_session();
 }
 elseif (isset($_POST['next_day']))
 {
@@ -159,7 +167,6 @@ elseif (isset($_POST['next_day']))
         $query = "update portfolios set working_date = '$next_trade_day' where pfid = '$pf_id';";
         $pdo->exec($query);
         // copy the row forward for pf_summary
-        $cash_in_hand = get_pf_cash_in_hand($pf_id);
         // work out what the value of heach holding is with the new close price
         $query = "select sum(quotes.close * holdings.volume) as value, sum(holdings.price * holdings.volume) as cost from holdings, quotes where holdings.symb = quotes.symb and quotes.date = '$next_trade_day' and holdings.pfid = '$pf_id';";
         foreach ($pdo->query($query) as $row)
@@ -178,7 +185,10 @@ elseif (isset($_POST['next_day']))
     {
         tr_warn('booty.php: next day failed' . $query . ':' . $e->getMessage());
     }
-    $pf_working_date = $next_trade_day;
+    // must save teh session and redraw the page because the header is already drawn and can't be updated with the new totals
+    update_session();
+    header("Location: $this_page");
+    exit;
 }
 elseif(isset($_POST['sell']))
 {
@@ -190,7 +200,13 @@ elseif(isset($_POST['sell']))
             $symb = get_hid_symb($hid);
             sell_stock($hid, $symb, $_POST["comment_$hid"]);
         }
+        $portfolio = new portfolio($_SESSION['pfid']);
     }
+    // must save teh session and redraw the page because the header is already drawn and can't be updated with the new totals
+    update_session();
+    header("Location: $this_page");
+    exit;
 }
 
+update_holdings($portfolio);
 draw_performance_table($portfolio);
