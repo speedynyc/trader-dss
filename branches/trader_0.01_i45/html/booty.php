@@ -63,7 +63,7 @@ function draw_performance_table($portfolio)
         $close = get_stock_close($symb, $pf_working_date, $pf_exch);
         $price_diff_pc = round(((($close-$price)/$price)), 2)*100;
         $volume = $row['volume'];
-        $value = round($close*$volume, 2);
+        $value = sprintf("%.2f", round($close*$volume, 2));
         $date = $row['date'];
         if ($price_diff_pc == 0)
         {
@@ -97,11 +97,11 @@ function draw_performance_table($portfolio)
         print "<td><font color=\"$colour\">$symb_name</font></td>\n";
         print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"comment_$hid\">" . $row['comment'] . '</textarea></td>';
         print "<td>$date<input type=\"hidden\" name=\"date_$symb\" value=\"$date\"></td>\n";
-        print "<td>" . $row['volume'] . '</td>';
-        print "<td>$price</td>\n";
-        print "<td>$close</td>\n";
-        print "<td>$price_diff_pc %</td>\n";
-        print "<td>$value</td>\n";
+        print "<td align=\"right\">" . $row['volume'] . '</td>';
+        print "<td align=\"right\">$price</td>\n";
+        print "<td align=\"right\">$close</td>\n";
+        print "<td align=\"right\">$price_diff_pc %</td>\n";
+        print "<td align=\"right\">$value</td>\n";
         if (isset($_SESSION['chart']))
         {
             print "<td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symb&TimeRange=$chart_period&working_date=$pf_working_date&exch=$pf_exch&ChartSize=S&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td>";
@@ -157,9 +157,11 @@ function update_session()
 if (isset($_POST['update']))
 {
     update_session();
+    update_holdings($portfolio);
 }
 elseif (isset($_POST['next_day']))
 {
+    update_session();
     try 
     {
         $pdo->beginTransaction();
@@ -168,7 +170,7 @@ elseif (isset($_POST['next_day']))
         $pdo->exec($query);
         // copy the row forward for pf_summary
         // work out what the value of heach holding is with the new close price
-        $query = "select sum(quotes.close * holdings.volume) as value, sum(holdings.price * holdings.volume) as cost from holdings, quotes where holdings.symb = quotes.symb and quotes.date = '$next_trade_day' and holdings.pfid = '$pf_id';";
+        $query = "select sum((holdings.price * abs(holdings.volume)) + (holdings.volume * (quotes.close - holdings.price))) as value from holdings, quotes where holdings.symb = quotes.symb and quotes.date = '$next_trade_day' and holdings.pfid = '$pf_id';";
         foreach ($pdo->query($query) as $row)
         {
             $holdings = $row['value'];
@@ -185,13 +187,14 @@ elseif (isset($_POST['next_day']))
     {
         tr_warn('booty.php: next day failed' . $query . ':' . $e->getMessage());
     }
-    // must save teh session and redraw the page because the header is already drawn and can't be updated with the new totals
-    update_session();
+    // must save the session and redraw the page because the header is already drawn and can't be updated with the new totals
+    update_holdings($portfolio);
     header("Location: $this_page");
     exit;
 }
 elseif(isset($_POST['sell']))
 {
+    update_session();
     if (isset($_POST['mark']))
     {
         $marked = $_POST['mark'];
@@ -202,11 +205,10 @@ elseif(isset($_POST['sell']))
         }
         $portfolio = new portfolio($_SESSION['pfid']);
     }
-    // must save teh session and redraw the page because the header is already drawn and can't be updated with the new totals
-    update_session();
+    update_holdings($portfolio);
+    // must save the session and redraw the page because the header is already drawn and can't be updated with the new totals
     header("Location: $this_page");
     exit;
 }
 
-update_holdings($portfolio);
 draw_performance_table($portfolio);
