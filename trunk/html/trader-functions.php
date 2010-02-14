@@ -13,7 +13,7 @@ function tr_warn($message='No message!')
 
 function update_holdings($portfolio)
 {
-    // this function is probably only going to be used by trade and watch so really shouldn't be here
+    // update the comment in the holdings table
     global $db_hostname, $db_database, $db_user, $db_password;
     $pfid = $portfolio->getID();
     $pf_working_date = $portfolio->getWorkingDate();
@@ -103,30 +103,9 @@ function sell_stock($hid, $symb, $comment = '')
     $exch = $portfolio->getExch()->getID();
     $close = get_stock_close($symb, $date, $exch);
     $volume = get_hid_volume($hid);
-    if ($comment == '')
-    {
-        $comment = "$name: $date";
-    }
-    if ($volume != 0)
-    {
-        $qty = $volume;
-    }
-    else
-    {
-        // this means that a volume of '0' buys one parcel's worth.
-        // is that what we want?
-        if ($close < $parcel)
-        {
-            $qty = (int)($parcel/$close);
-        }
-        else
-        {
-            $qty = 1;
-        }
-    }
-    // we're selling so the sale quantity is negative (this should still work for shorts)
-    $qty = 0 - $qty;
-    $total = $qty * $close;
+    $buy_price = get_hid_buy_price($hid);
+    // this will work correctly for both longs and shorts. See the wiki
+    $total = ($buy_price * abs($volume)) + ($volume * ($close - $buy_price));
     try {
         $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -140,13 +119,13 @@ function sell_stock($hid, $symb, $comment = '')
         $cash_in_hand = $row['cash_in_hand'];
         $holdings = $row['holdings'];
     }
-    $cash_in_hand = $cash_in_hand - $total;
-    $holdings = $holdings + $total;
+    $cash_in_hand = $cash_in_hand + $total;
+    $holdings = $holdings - $total;
     try 
     {
         $pdo->beginTransaction();
         // add the trade to the trades table
-        $query = "insert into trades (pfid, date, symb, price, volume, comment) values ('$pfid', '$date', '$symb', '$close', '$qty', '$comment');";
+        $query = "insert into trades (pfid, date, symb, price, volume, comment) values ('$pfid', '$date', '$symb', '$close', '$volume', '$comment');";
         $pdo->exec($query);
         // delete the stock from the holdings table
         $query = "delete from holdings where hid = '$hid';";
@@ -194,7 +173,8 @@ function buy_stock($symb, $comment = '', $volume = 0)
             $qty = 1;
         }
     }
-    $total = $qty * $close;
+    // take the absolute value of $qty since we set aside the purchase price as an asset for a short.
+    $total = ($close * abs($qty));
     try {
         $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -382,8 +362,11 @@ function redirect_login_pf()
             exit;
         }
     }
-    $portfolio = new portfolio($_SESSION['pfid']);
-    $scramble_names = $portfolio->symbNamesHidden();
+    if (isset($_SESSION['pfid']))
+    {
+        $portfolio = new portfolio($_SESSION['pfid']);
+        $scramble_names = $portfolio->symbNamesHidden();
+    }
 }
 
 function draw_cell($cell_desc, $cell_link, $cell_colour, $cell_selectable)
@@ -632,6 +615,24 @@ function get_hid_symb($hid)
     foreach ($pdo->query($query) as $row)
     {
         return $row['symb'];
+    }
+    return 'Unknown hid';
+}
+
+function get_hid_buy_price($hid)
+{
+    // return the symbol name of a holding
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $query = "select price from holdings where hid = '$hid';";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['price'];
     }
     return 'Unknown hid';
 }
