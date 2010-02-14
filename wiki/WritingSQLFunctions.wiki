@@ -1,8 +1,8 @@
 #summary Ideas/standards for when writing triggers
 = These are just some conventions for writing sql triggers/functions =
 
-  * write the triggers so that they work when the table's already populated and when it's empty. This means that recalculating a table or adding a field and populating it won't require the table to be emptied and repopulated.
-    * This example is for a table where the norm is that the record already exists. A number of functions update the indicators table, each taking care of the fields that relate to it's indicator. So the update is performed first and if that fails a new record is created with the primary key information filled in and the indicator's fields populated. 
+  * Write the triggers so that they work when the table's already populated and when it's empty. This means that recalculating a table or adding a field and populating it won't require the table to be emptied first.
+    * This example is for a table where the norm is that the record already exists. An update is performed and only if it doesn't update any records is an insert performed. Make sure that the insert includes all the required fields. 
 {{{
     update indicators set mapr_10 = v_ma_10_MAPR, where date = new_date and symb = new_symb and exch = new_exch;
     if not found then
