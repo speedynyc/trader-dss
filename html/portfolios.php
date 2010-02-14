@@ -178,7 +178,7 @@ function create_choose_form()
     foreach ($pdo->query($query) as $row)
     {
         $pf_id = $row['pfid'];
-        $portfolio = new portfolio($row['pfid']);
+        $portfolio = new portfolio($pf_id);
         $pf_desc = $portfolio->getName();
         $exch = $portfolio->getExch()->getID();
         $exch_name = $portfolio->getExch()->getName();
