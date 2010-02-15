@@ -15,7 +15,7 @@ BEGIN
         BEGIN
             INSERT INTO gaps ( date, symb, exch, gap ) VALUES ( new_date, new_symb, new_exch, '0' );
         EXCEPTION when unique_violation THEN
-            update simple_moving_averages set gap = '0' where date = new_date and symb = new_symb and exch = new_exch;
+            update gaps set gap = '0' where date = new_date and symb = new_symb and exch = new_exch;
         END;
     else
         -- if we've gaped up, the gap should be positive
@@ -29,7 +29,7 @@ BEGIN
         BEGIN
             INSERT INTO gaps ( date, symb, exch, gap) VALUES ( new_date, new_symb, new_exch, v_gap);
         EXCEPTION when unique_violation THEN
-            update simple_moving_averages set gap = v_gap where date = new_date and symb = new_symb and exch = new_exch;
+            update gaps set gap = v_gap where date = new_date and symb = new_symb and exch = new_exch;
         END;
     end if;
 END
