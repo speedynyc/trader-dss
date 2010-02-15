@@ -2,9 +2,9 @@
 -- Name: update_moving_averages(date, character varying, character varying, numeric, numeric); Type: FUNCTION; Schema: public; Owner: postgres
 --
 CREATE or replace FUNCTION update_moving_averages(new_date date, new_symb character varying, new_exch character varying, new_close numeric, new_volume numeric) RETURNS void
-    LANGUAGE plpgsql
-    AS $$
-    DECLARE
+LANGUAGE plpgsql
+AS $$
+DECLARE
         avg10 RECORD;
         avg20 RECORD;
         avg30 RECORD;
