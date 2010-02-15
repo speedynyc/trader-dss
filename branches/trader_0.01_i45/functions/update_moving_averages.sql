@@ -171,68 +171,128 @@ CREATE or replace FUNCTION update_moving_averages(new_date date, new_symb charac
         v_ma_200_MAPR := 0;
     end if;
     -- insert the results into simple_moving_averages
-    INSERT INTO simple_moving_averages (
-        DATE, symb, exch,
-        close_ma_10, close_ma_20,
-        close_ma_30, close_ma_50,
-        close_ma_100, close_ma_200,
-        volume_ma_10, volume_ma_20,
-        volume_ma_30, volume_ma_50,
-        volume_ma_100, volume_ma_200,
-        ma_10_dir, ma_20_dir,
-        ma_30_dir, ma_50_dir,
-        ma_100_dir, ma_200_dir,
-        ma_10_run, ma_20_run,
-        ma_30_run, ma_50_run,
-        ma_100_run, ma_200_run,
-        ma_10_sum, ma_20_sum,
-        ma_30_sum, ma_50_sum,
-        ma_100_sum, ma_200_sum,
-        ma_10_diff, ma_20_diff,
-        ma_30_diff, ma_50_diff,
-        ma_100_diff, ma_200_diff
-        ) VALUES (
-        new_date, new_symb, new_exch,
-        avg10.avg_close, avg20.avg_close,
-        avg30.avg_close, avg50.avg_close,
-        avg100.avg_close, avg200.avg_close,
-        avg10.avg_volume, avg20.avg_volume,
-        avg30.avg_volume, avg50.avg_volume,
-        avg100.avg_volume, avg200.avg_volume,
-        v_ma_10_dir, v_ma_20_dir,
-        v_ma_30_dir, v_ma_50_dir,
-        v_ma_100_dir, v_ma_200_dir,
-        v_ma_10_run, v_ma_20_run,
-        v_ma_30_run, v_ma_50_run,
-        v_ma_100_run, v_ma_200_run,
-        v_ma_10_sum, v_ma_20_sum,
-        v_ma_30_sum, v_ma_50_sum,
-        v_ma_100_sum, v_ma_200_sum,
-        v_ma_10_diff, v_ma_20_diff,
-        v_ma_30_diff, v_ma_50_diff,
-        v_ma_100_diff, v_ma_200_diff
-    );
+    BEGIN
+        INSERT INTO simple_moving_averages
+            (
+                date, symb, exch,
+                close_ma_10, close_ma_20,
+                close_ma_30, close_ma_50,
+                close_ma_100, close_ma_200,
+                volume_ma_10, volume_ma_20,
+                volume_ma_30, volume_ma_50,
+                volume_ma_100, volume_ma_200,
+                ma_10_dir, ma_20_dir,
+                ma_30_dir, ma_50_dir,
+                ma_100_dir, ma_200_dir,
+                ma_10_run, ma_20_run,
+                ma_30_run, ma_50_run,
+                ma_100_run, ma_200_run,
+                ma_10_sum, ma_20_sum,
+                ma_30_sum, ma_50_sum,
+                ma_100_sum, ma_200_sum,
+                ma_10_diff, ma_20_diff,
+                ma_30_diff, ma_50_diff,
+                ma_100_diff, ma_200_diff
+            )
+            VALUES
+            (
+                new_date, new_symb, new_exch,
+                avg10.avg_close, avg20.avg_close,
+                avg30.avg_close, avg50.avg_close,
+                avg100.avg_close, avg200.avg_close,
+                avg10.avg_volume, avg20.avg_volume,
+                avg30.avg_volume, avg50.avg_volume,
+                avg100.avg_volume, avg200.avg_volume,
+                v_ma_10_dir, v_ma_20_dir,
+                v_ma_30_dir, v_ma_50_dir,
+                v_ma_100_dir, v_ma_200_dir,
+                v_ma_10_run, v_ma_20_run,
+                v_ma_30_run, v_ma_50_run,
+                v_ma_100_run, v_ma_200_run,
+                v_ma_10_sum, v_ma_20_sum,
+                v_ma_30_sum, v_ma_50_sum,
+                v_ma_100_sum, v_ma_200_sum,
+                v_ma_10_diff, v_ma_20_diff,
+                v_ma_30_diff, v_ma_50_diff,
+                v_ma_100_diff, v_ma_200_diff
+            );
+    EXCEPTION when unique_violation THEN
+        update simple_moving_averages set
+            close_ma_10 = agv10.avg_close,
+            close_ma_20 = agv20.avg_close,
+            close_ma_30 = agv30.avg_close,
+            close_ma_50 = agv50.avg_close,
+            close_ma_100 = agv100.avg_close,
+            close_ma_200 = agv200.avg_close,
+            volume_ma_10 = avg10.avg_volume,
+            volume_ma_20 = avg20.avg_volume,
+            volume_ma_30 = avg30.avg_volume,
+            volume_ma_50 = avg50.avg_volume,
+            volume_ma_100 = avg100.avg_volume,
+            volume_ma_200 = avg2200.avg_volume,
+            ma_10_dir = v_ma_10_dir,
+            ma_20_dir = v_ma_20_dir,
+            ma_30_dir = v_ma_30_dir,
+            ma_50_dir = v_ma_50_dir,
+            ma_100_dir = v_ma_100_dir,
+            ma_200_dir = v_ma_200_dir,
+            ma_10_run = v_ma_10_run,
+            ma_20_run = v_ma_20_run,
+            ma_30_run = v_ma_30_run,
+            ma_50_run = v_ma_50_run,
+            ma_100_run = v_ma_100_run,
+            ma_200_run = v_ma_200_run,
+            ma_10_sum = v_ma_10_sum,
+            ma_20_sum = v_ma_20_sum,
+            ma_30_sum = v_ma_30_sum,
+            ma_50_sum = v_ma_50_sum,
+            ma_100_sum = v_ma_100_sum,
+            ma_200_sum = v_ma_200_sum,
+            ma_10_diff = v_ma_10_diff,
+            ma_20_diff = v_ma_20_diff,
+            ma_30_diff = v_ma_30_diff,
+            ma_50_diff = v_ma_50_diff,
+            ma_100_diff = v_ma_100_diff,
+            ma_200_diff = v_ma_200_diff
+            where date = new_date and symb = new_symb and exch = new_exch;
+    END;
     -- update the indicators table with the MAPR info
     update indicators set mapr_10 = v_ma_10_MAPR, mapr_20 = v_ma_20_MAPR, mapr_30 = v_ma_30_MAPR, mapr_50 = v_ma_50_MAPR, mapr_100 = v_ma_100_MAPR, mapr_200 = v_ma_200_MAPR where date = new_date and symb = new_symb and exch = new_exch;
     if not found then
         insert into indicators 
-        ( date, symb, exch, mapr_10, mapr_20, mapr_30, mapr_50, mapr_100, mapr_200 )
+            ( date, symb, exch, mapr_10, mapr_20, mapr_30, mapr_50, mapr_100, mapr_200 )
         values
-        ( new_date, new_symb, new_exch, v_ma_10_MAPR, v_ma_20_MAPR, v_ma_30_MAPR, v_ma_50_MAPR, v_ma_100_MAPR, v_ma_200_MAPR );
+            ( new_date, new_symb, new_exch, v_ma_10_MAPR, v_ma_20_MAPR, v_ma_30_MAPR, v_ma_50_MAPR, v_ma_100_MAPR, v_ma_200_MAPR );
     end if;
     -- Work out how many standard deviations from the mean each of these is
-    INSERT INTO standard_deviations_from_mean (
-        DATE, symb, exch,
-        close_sd_10, close_sd_20, close_sd_30, close_sd_50, close_sd_100, close_sd_200, volume_sd_10, volume_sd_20, volume_sd_30, volume_sd_50, volume_sd_100, volume_sd_200 )
-        VALUES (
-        new_date, new_symb, new_exch,
-        deviation(new_close, avg10.avg_close, avg10.stddev_close), deviation(new_close, avg20.avg_close, avg20.stddev_close),
-        deviation(new_close, avg30.avg_close, avg30.stddev_close), deviation(new_close, avg50.avg_close, avg50.stddev_close),
-        deviation(new_close, avg100.avg_close, avg100.stddev_close), deviation(new_close, avg200.avg_close, avg200.stddev_close),
-        deviation(new_volume, avg10.avg_volume, avg10.stddev_volume), deviation(new_volume, avg20.avg_volume, avg20.stddev_volume),
-        deviation(new_volume, avg30.avg_volume, avg30.stddev_volume), deviation(new_volume, avg50.avg_volume, avg50.stddev_volume),
-        deviation(new_volume, avg100.avg_volume, avg100.stddev_volume), deviation(new_volume, avg200.avg_volume, avg200.stddev_volume)
-    );
+    BEGIN
+        INSERT INTO standard_deviations_from_mean (
+            DATE, symb, exch, close_sd_10, close_sd_20, close_sd_30, close_sd_50, close_sd_100, close_sd_200, volume_sd_10, volume_sd_20, volume_sd_30, volume_sd_50, volume_sd_100, volume_sd_200 )
+            VALUES (
+                new_date, new_symb, new_exch,
+                deviation(new_close, avg10.avg_close, avg10.stddev_close), deviation(new_close, avg20.avg_close, avg20.stddev_close),
+                deviation(new_close, avg30.avg_close, avg30.stddev_close), deviation(new_close, avg50.avg_close, avg50.stddev_close),
+                deviation(new_close, avg100.avg_close, avg100.stddev_close), deviation(new_close, avg200.avg_close, avg200.stddev_close),
+                deviation(new_volume, avg10.avg_volume, avg10.stddev_volume), deviation(new_volume, avg20.avg_volume, avg20.stddev_volume),
+                deviation(new_volume, avg30.avg_volume, avg30.stddev_volume), deviation(new_volume, avg50.avg_volume, avg50.stddev_volume),
+                deviation(new_volume, avg100.avg_volume, avg100.stddev_volume), deviation(new_volume, avg200.avg_volume, avg200.stddev_volume)
+            );
+    EXCEPTION when unique_violation THEN
+        update standard_deviations_from_mean set
+            close_sd_10 = deviation(new_close, avg10.avg_close, avg10.stddev_close), 
+            close_sd_20 = deviation(new_close, avg20.avg_close, avg20.stddev_close), 
+            close_sd_30 = deviation(new_close, avg30.avg_close, avg30.stddev_close), 
+            close_sd_50 = deviation(new_close, avg50.avg_close, avg50.stddev_close), 
+            close_sd_100 = deviation(new_close, avg100.avg_close, avg100.stddev_close), 
+            close_sd_200 = deviation(new_close, avg200.avg_close, avg200.stddev_close), 
+            volume_sd_10 = deviation(new_volume, avg10.avg_volume, avg10.stddev_volume),
+            volume_sd_20 = deviation(new_volume, avg20.avg_volume, avg20.stddev_volume),
+            volume_sd_30 = deviation(new_volume, avg30.avg_volume, avg30.stddev_volume),
+            volume_sd_50 = deviation(new_volume, avg50.avg_volume, avg50.stddev_volume),
+            volume_sd_100 = deviation(new_volume, avg100.avg_volume, avg100.stddev_volume),
+            volume_sd_200 = deviation(new_volume, avg200.avg_volume, avg200.stddev_volume)
+            where date = new_date and symb = new_symb and exch = new_exch;
+    END;
 END
 $$;
 ALTER FUNCTION public.update_moving_averages(new_date date, new_symb character varying, new_exch character varying, new_close numeric, new_volume numeric) OWNER TO postgres;
