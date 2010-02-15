@@ -4,7 +4,7 @@
   * Write the triggers so that they work when the table's already populated and when it's empty. This means that recalculating a table or adding a field and populating it won't require the table to be emptied first.
     * This example is for a table where the norm is that the record already exists. An update is performed and only if it doesn't update any records is an insert performed. Make sure that the insert includes all the required fields. 
 {{{
-    update indicators set mapr_10 = v_ma_10_MAPR, where date = new_date and symb = new_symb and exch = new_exch;
+    update indicators set mapr_10 = v_ma_10_MAPR where date = new_date and symb = new_symb and exch = new_exch;
     if not found then
         insert into indicators 
         ( date, symb, exch, mapr_10 )
