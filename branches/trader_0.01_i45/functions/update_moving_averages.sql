@@ -17,55 +17,74 @@ DECLARE
         last_ma_50 RECORD;
         last_ma_100 RECORD;
         last_ma_200 RECORD;
-        v_ma_10_diff numeric(9,2);
-        v_ma_20_diff numeric(9,2);
-        v_ma_30_diff numeric(9,2);
-        v_ma_50_diff numeric(9,2);
-        v_ma_100_diff numeric(9,2);
-        v_ma_200_diff numeric(9,2);
-        v_ma_10_dir integer;
-        v_ma_20_dir integer;
-        v_ma_30_dir integer;
-        v_ma_50_dir integer;
-        v_ma_100_dir integer;
-        v_ma_200_dir integer;
-        v_ma_10_run integer;
-        v_ma_20_run integer;
-        v_ma_30_run integer;
-        v_ma_50_run integer;
-        v_ma_100_run integer;
-        v_ma_200_run integer;
-        v_ma_10_sum numeric(12,2);
-        v_ma_20_sum numeric(12,2);
-        v_ma_30_sum numeric(12,2);
-        v_ma_50_sum numeric(12,2);
-        v_ma_100_sum numeric(12,2);
-        v_ma_200_sum numeric(12,2);
-        v_ma_10_MAPR numeric(9,2);
-        v_ma_20_MAPR numeric(9,2);
-        v_ma_30_MAPR numeric(9,2);
-        v_ma_50_MAPR numeric(9,2);
-        v_ma_100_MAPR numeric(9,2);
-        v_ma_200_MAPR numeric(9,2);
-    BEGIN
+        last_ema RECORD;
+        last_mcad RECORD;
+        v_ma_10_diff moving_averages.ma_10_diff%TYPE;
+        v_ma_20_diff moving_averages.ma_20_diff%TYPE;
+        v_ma_30_diff moving_averages.ma_30_diff%TYPE;
+        v_ma_50_diff moving_averages.ma_50_diff%TYPE;
+        v_ma_100_diff moving_averages.ma_100_diff%TYPE;
+        v_ma_200_diff moving_averages.ma_200_diff%TYPE;
+        v_ma_10_dir moving_averages.ma_10_dir%TYPE;
+        v_ma_20_dir moving_averages.ma_20_dir%TYPE;
+        v_ma_30_dir moving_averages.ma_30_dir%TYPE;
+        v_ma_50_dir moving_averages.ma_50_dir%TYPE;
+        v_ma_100_dir moving_averages.ma_100_dir%TYPE;
+        v_ma_200_dir moving_averages.ma_200_dir%TYPE;
+        v_ma_10_run moving_averages.ma_10_run%TYPE;
+        v_ma_20_run moving_averages.ma_20_run%TYPE;
+        v_ma_30_run moving_averages.ma_30_run%TYPE;
+        v_ma_50_run moving_averages.ma_50_run%TYPE;
+        v_ma_100_run moving_averages.ma_200_run%TYPE;
+        v_ma_200_run moving_averages.ma_100_run%TYPE;
+        v_ma_10_sum moving_averages.ma_10_sum%TYPE;
+        v_ma_20_sum moving_averages.ma_20_sum%TYPE;
+        v_ma_30_sum moving_averages.ma_30_sum%TYPE;
+        v_ma_50_sum moving_averages.ma_50_sum%TYPE;
+        v_ma_100_sum moving_averages.ma_100_sum%TYPE;
+        v_ma_200_sum moving_averages.ma_200_sum%TYPE;
+        v_ma_10_MAPR indicators.mapr_10%TYPE;
+        v_ma_20_MAPR indicators.mapr_20%TYPE;
+        v_ma_30_MAPR indicators.mapr_30%TYPE;
+        v_ma_50_MAPR indicators.mapr_50%TYPE;
+        v_ma_100_MAPR indicators.mapr_100%TYPE;
+        v_ma_200_MAPR indicators.mapr_200%TYPE;
+        v_ema_12 moving_averages.ema_12%TYPE;
+        v_ema_26 moving_averages.ema_26%TYPE;
+        v_mcad indicators.mcad%TYPE;
+        v_mcad_signal indicators.mcad_signal%TYPE;
+        v_mcad_histogram indicators.mcad_histogram%TYPE;
+BEGIN
     -- work out the moving averages for 10, 20, 30, 50, 100 and 200 previous trading days.
     -- order from lagest date range to smallest to get the disk cache on our side
-    SELECT AVG(topN.CLOSE) AS avg_close, STDDEV(topN.CLOSE) AS stddev_close, AVG(topN.volume) AS avg_volume, STDDEV(topN.volume) AS stddev_volume INTO avg200 FROM (SELECT CLOSE, volume FROM quotes WHERE DATE <= new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 200) AS topN;
-    SELECT AVG(topN.CLOSE) AS avg_close, STDDEV(topN.CLOSE) AS stddev_close, AVG(topN.volume) AS avg_volume, STDDEV(topN.volume) AS stddev_volume INTO avg100 FROM (SELECT CLOSE, volume FROM quotes WHERE DATE <= new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 100) AS topN;
-    SELECT AVG(topN.CLOSE) AS avg_close, STDDEV(topN.CLOSE) AS stddev_close, AVG(topN.volume) AS avg_volume, STDDEV(topN.volume) AS stddev_volume INTO avg50 FROM (SELECT CLOSE, volume FROM quotes WHERE DATE <= new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 50) AS topN;
-    SELECT AVG(topN.CLOSE) AS avg_close, STDDEV(topN.CLOSE) AS stddev_close, AVG(topN.volume) AS avg_volume, STDDEV(topN.volume) AS stddev_volume INTO avg30 FROM (SELECT CLOSE, volume FROM quotes WHERE DATE <= new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 30) AS topN;
-    SELECT AVG(topN.CLOSE) AS avg_close, STDDEV(topN.CLOSE) AS stddev_close, AVG(topN.volume) AS avg_volume, STDDEV(topN.volume) AS stddev_volume INTO avg20 FROM (SELECT CLOSE, volume FROM quotes WHERE DATE <= new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 20) AS topN;
-    SELECT AVG(topN.CLOSE) AS avg_close, STDDEV(topN.CLOSE) AS stddev_close, AVG(topN.volume) AS avg_volume, STDDEV(topN.volume) AS stddev_volume INTO avg10 FROM (SELECT CLOSE, volume FROM quotes WHERE DATE <= new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 10) AS topN;
-    -- find all the previous dir (direction) and run (number of days in that direction) from the simple_moving_averages table
+    SELECT AVG(topN.CLOSE) AS avg_close, STDDEV(topN.CLOSE) AS stddev_close, AVG(topN.volume) AS avg_volume, STDDEV(topN.volume) AS stddev_volume INTO avg200 
+        FROM (SELECT CLOSE, volume FROM quotes WHERE DATE <= new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 200) AS topN;
+    SELECT AVG(topN.CLOSE) AS avg_close, STDDEV(topN.CLOSE) AS stddev_close, AVG(topN.volume) AS avg_volume, STDDEV(topN.volume) AS stddev_volume INTO avg100
+        FROM (SELECT CLOSE, volume FROM quotes WHERE DATE <= new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 100) AS topN;
+    SELECT AVG(topN.CLOSE) AS avg_close, STDDEV(topN.CLOSE) AS stddev_close, AVG(topN.volume) AS avg_volume, STDDEV(topN.volume) AS stddev_volume INTO avg50 
+        FROM (SELECT CLOSE, volume FROM quotes WHERE DATE <= new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 50) AS topN;
+    SELECT AVG(topN.CLOSE) AS avg_close, STDDEV(topN.CLOSE) AS stddev_close, AVG(topN.volume) AS avg_volume, STDDEV(topN.volume) AS stddev_volume INTO avg30 
+        FROM (SELECT CLOSE, volume FROM quotes WHERE DATE <= new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 30) AS topN;
+    SELECT AVG(topN.CLOSE) AS avg_close, STDDEV(topN.CLOSE) AS stddev_close, AVG(topN.volume) AS avg_volume, STDDEV(topN.volume) AS stddev_volume INTO avg20 
+        FROM (SELECT CLOSE, volume FROM quotes WHERE DATE <= new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 20) AS topN;
+    SELECT AVG(topN.CLOSE) AS avg_close, STDDEV(topN.CLOSE) AS stddev_close, AVG(topN.volume) AS avg_volume, STDDEV(topN.volume) AS stddev_volume INTO avg10 
+        FROM (SELECT CLOSE, volume FROM quotes WHERE DATE <= new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 10) AS topN;
+    -- find all the previous dir (direction) and run (number of days in that direction) from the moving_averages table
     -- This could be done as one query, but is easier to write this way
     -- These don't need to be calculated if the direction is 0, so an optimisation could be to move them into the logic for calculating the ma_XX_dir below
     -- I don't think there will be many diffs of 0
-    SELECT ma_10_sum as last_ma_sum, ma_10_dir AS last_ma_dir, ma_10_run AS last_ma_run INTO last_ma_10 FROM simple_moving_averages WHERE DATE < new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 1;
-    SELECT ma_20_sum as last_ma_sum, ma_20_dir AS last_ma_dir, ma_20_run AS last_ma_run INTO last_ma_20 FROM simple_moving_averages WHERE DATE < new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 1;
-    SELECT ma_30_sum as last_ma_sum, ma_30_dir AS last_ma_dir, ma_30_run AS last_ma_run INTO last_ma_30 FROM simple_moving_averages WHERE DATE < new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 1;
-    SELECT ma_50_sum as last_ma_sum, ma_50_dir AS last_ma_dir, ma_50_run AS last_ma_run INTO last_ma_50 FROM simple_moving_averages WHERE DATE < new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 1;
-    SELECT ma_100_sum as last_ma_sum, ma_100_dir AS last_ma_dir, ma_100_run AS last_ma_run INTO last_ma_100 FROM simple_moving_averages WHERE DATE < new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 1;
-    SELECT ma_200_sum as last_ma_sum, ma_200_dir AS last_ma_dir, ma_200_run AS last_ma_run INTO last_ma_200 FROM simple_moving_averages WHERE DATE < new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 1;
+    SELECT ma_10_sum as last_ma_sum, ma_10_dir AS last_ma_dir, ma_10_run AS last_ma_run INTO last_ma_10 
+        FROM moving_averages WHERE DATE < new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 1;
+    SELECT ma_20_sum as last_ma_sum, ma_20_dir AS last_ma_dir, ma_20_run AS last_ma_run INTO last_ma_20 
+        FROM moving_averages WHERE DATE < new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 1;
+    SELECT ma_30_sum as last_ma_sum, ma_30_dir AS last_ma_dir, ma_30_run AS last_ma_run INTO last_ma_30 
+        FROM moving_averages WHERE DATE < new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 1;
+    SELECT ma_50_sum as last_ma_sum, ma_50_dir AS last_ma_dir, ma_50_run AS last_ma_run INTO last_ma_50 
+        FROM moving_averages WHERE DATE < new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 1;
+    SELECT ma_100_sum as last_ma_sum, ma_100_dir AS last_ma_dir, ma_100_run AS last_ma_run INTO last_ma_100 
+        FROM moving_averages WHERE DATE < new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 1;
+    SELECT ma_200_sum as last_ma_sum, ma_200_dir AS last_ma_dir, ma_200_run AS last_ma_run INTO last_ma_200 
+        FROM moving_averages WHERE DATE < new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 1;
     -- calculate the difference between close and the moving averages
     v_ma_10_diff := new_close - avg10.avg_close;
     v_ma_20_diff := new_close - avg20.avg_close;
@@ -170,9 +189,26 @@ DECLARE
         v_ma_200_sum := 0;
         v_ma_200_MAPR := 0;
     end if;
-    -- insert the results into simple_moving_averages
+    -- find the previous exponential moving averages etc.
+    SELECT ema_12, ema_26 INTO last_ema FROM moving_averages WHERE DATE < new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 1;
+    if not found then
+        v_ema_12 := new_close;
+        v_ema_26 := new_close;
+    else
+        v_ema_12 := ema(new_close, last_ema.ema_12, 12);
+        v_ema_26 := ema(new_close, last_ema.ema_26, 26);
+    end if;
+    v_mcad := v_ema_12 - v_ema_26;
+    SELECT mcad INTO last_mcad FROM indicators WHERE DATE < new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 1;
+    if not found then
+        v_mcad_signal := new_close;
+    else
+        v_mcad_signal := ema(v_mcad, last_mcad.mcad, 9);
+    end if;
+    v_mcad_histogram := v_mcad - v_mcad_signal;
+    -- insert the results into moving_averages
     BEGIN
-        INSERT INTO simple_moving_averages
+        INSERT INTO moving_averages
             (
                 date, symb, exch,
                 close_ma_10, close_ma_20,
@@ -192,7 +228,8 @@ DECLARE
                 ma_100_sum, ma_200_sum,
                 ma_10_diff, ma_20_diff,
                 ma_30_diff, ma_50_diff,
-                ma_100_diff, ma_200_diff
+                ma_100_diff, ma_200_diff,
+                ema_12, ema_26
             )
             VALUES
             (
@@ -214,22 +251,23 @@ DECLARE
                 v_ma_100_sum, v_ma_200_sum,
                 v_ma_10_diff, v_ma_20_diff,
                 v_ma_30_diff, v_ma_50_diff,
-                v_ma_100_diff, v_ma_200_diff
+                v_ma_100_diff, v_ma_200_diff,
+                v_ema_12, v_ema_26
             );
     EXCEPTION when unique_violation THEN
-        update simple_moving_averages set
-            close_ma_10 = agv10.avg_close,
-            close_ma_20 = agv20.avg_close,
-            close_ma_30 = agv30.avg_close,
-            close_ma_50 = agv50.avg_close,
-            close_ma_100 = agv100.avg_close,
-            close_ma_200 = agv200.avg_close,
+        update moving_averages set
+            close_ma_10 = avg10.avg_close,
+            close_ma_20 = avg20.avg_close,
+            close_ma_30 = avg30.avg_close,
+            close_ma_50 = avg50.avg_close,
+            close_ma_100 = avg100.avg_close,
+            close_ma_200 = avg200.avg_close,
             volume_ma_10 = avg10.avg_volume,
             volume_ma_20 = avg20.avg_volume,
             volume_ma_30 = avg30.avg_volume,
             volume_ma_50 = avg50.avg_volume,
             volume_ma_100 = avg100.avg_volume,
-            volume_ma_200 = avg2200.avg_volume,
+            volume_ma_200 = avg200.avg_volume,
             ma_10_dir = v_ma_10_dir,
             ma_20_dir = v_ma_20_dir,
             ma_30_dir = v_ma_30_dir,
@@ -253,16 +291,18 @@ DECLARE
             ma_30_diff = v_ma_30_diff,
             ma_50_diff = v_ma_50_diff,
             ma_100_diff = v_ma_100_diff,
-            ma_200_diff = v_ma_200_diff
+            ma_200_diff = v_ma_200_diff,
+            ema_12 = v_ema_12,
+            ema_26 = v_ema_26
             where date = new_date and symb = new_symb and exch = new_exch;
     END;
     -- update the indicators table with the MAPR info
-    update indicators set mapr_10 = v_ma_10_MAPR, mapr_20 = v_ma_20_MAPR, mapr_30 = v_ma_30_MAPR, mapr_50 = v_ma_50_MAPR, mapr_100 = v_ma_100_MAPR, mapr_200 = v_ma_200_MAPR where date = new_date and symb = new_symb and exch = new_exch;
+    update indicators set mapr_10 = v_ma_10_MAPR, mapr_20 = v_ma_20_MAPR, mapr_30 = v_ma_30_MAPR, mapr_50 = v_ma_50_MAPR, mapr_100 = v_ma_100_MAPR, mapr_200 = v_ma_200_MAPR, mcad = v_mcad, mcad_signal = v_mcad_signal, mcad_histogram = v_mcad_histogram where date = new_date and symb = new_symb and exch = new_exch;
     if not found then
         insert into indicators 
-            ( date, symb, exch, mapr_10, mapr_20, mapr_30, mapr_50, mapr_100, mapr_200 )
+            ( date, symb, exch, mapr_10, mapr_20, mapr_30, mapr_50, mapr_100, mapr_200, mcad, mcad_signal, mcad_histogram )
         values
-            ( new_date, new_symb, new_exch, v_ma_10_MAPR, v_ma_20_MAPR, v_ma_30_MAPR, v_ma_50_MAPR, v_ma_100_MAPR, v_ma_200_MAPR );
+            ( new_date, new_symb, new_exch, v_ma_10_MAPR, v_ma_20_MAPR, v_ma_30_MAPR, v_ma_50_MAPR, v_ma_100_MAPR, v_ma_200_MAPR, v_mcad, v_mcad_signal, v_mcad_histogram );
     end if;
     -- Work out how many standard deviations from the mean each of these is
     BEGIN
