@@ -24,3 +24,12 @@
 {{{
 select tidy_quotes('RBS', 'L');
 }}}
+  * Tie the variable types to their table fields if possible. That way changing the table definition will change the function without more work.
+ Like this
+{{{
+v_ma_10_diff moving_averages.ma_10_diff%TYPE;
+}}}
+ rather than like this
+{{{
+v_ma_10_diff numeric(9,2);
+}}}
