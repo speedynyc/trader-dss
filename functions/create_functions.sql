@@ -1,0 +1,11 @@
+\i functions/create_functions.sql
+\i functions/deviation.sql
+\i functions/ema.sql
+\i functions/tidy_quotes.sql
+\i functions/update_derived_tables.sql
+\i functions/update_gains.sql
+\i functions/update_gaps.sql
+\i functions/update_moving_averages.sql
+\i functions/update_stock_dates.sql
+\i functions/update_trade_dates.sql
+\i functions/update_williams_pcr.sql

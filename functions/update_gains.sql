@@ -2,16 +2,16 @@
 -- Name: update_gains(date, character varying, character varying, numeric); Type: FUNCTION; Schema: public; Owner: postgres
 --
 CREATE or replace FUNCTION update_gains(new_date date, new_symb character varying, new_exch character varying, new_close numeric) RETURNS void
-    LANGUAGE plpgsql
-    AS $$
-    DECLARE
-        gain10 RECORD;
-        gain20 RECORD;
-        gain30 RECORD;
-        gain50 RECORD;
-        gain100 RECORD;
-        gain200 RECORD;
-    BEGIN
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    gain10 RECORD;
+    gain20 RECORD;
+    gain30 RECORD;
+    gain50 RECORD;
+    gain100 RECORD;
+    gain200 RECORD;
+BEGIN
     -- Work out the gains over 10,20,30,50,100,200 days
     -- Method: We need to find the record that is 10,20,30,50,100,200 days ago so we
     --         1. select the top n records ordered by date,
