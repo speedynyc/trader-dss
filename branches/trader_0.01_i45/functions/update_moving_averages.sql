@@ -201,7 +201,7 @@ BEGIN
     v_mcad := v_ema_12 - v_ema_26;
     SELECT mcad INTO last_mcad FROM indicators WHERE DATE < new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 1;
     if not found then
-        v_mcad_signal := new_close;
+        v_mcad_signal := v_mcad;
     else
         v_mcad_signal := ema(v_mcad, last_mcad.mcad, 9);
     end if;
