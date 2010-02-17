@@ -118,6 +118,7 @@ function create_sql_input_form()
     if (isset($q_id))
     {
         $sql_input_form->addElement('submit','del_sql',"Delete Query $q_id");
+        $sql_input_form->addElement('submit','del_sql','Delete Query', 'onclick="return confirm(\'Delete Query\nAre you Sure?\')"');
         $sql_input_form->setDefaults(array(
                     'sql_name' => $_SESSION['sql_name'],
                     'sql_select' => $_SESSION['sql_select'],

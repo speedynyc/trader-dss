@@ -43,3 +43,6 @@ COMMENT ON COLUMN indicators.mapr_30 IS 'moving_averages.ma_30_sum / moving_aver
 COMMENT ON COLUMN indicators.mapr_50 IS 'moving_averages.ma_50_sum / moving_averages.ma_50_run. It provides a sortable measure of the stock against it''s 50 day moving average.';
 COMMENT ON COLUMN indicators.mapr_100 IS 'moving_averages.ma_100_sum / moving_averages.ma_100_run. It provides a sortable measure of the stock against it''s 100 day moving average.';
 COMMENT ON COLUMN indicators.mapr_200 IS 'moving_averages.ma_200_sum / moving_averages.ma_200_run. It provides a sortable measure of the stock against it''s 200 day moving average.';
+COMMENT ON COLUMN indicators.mcad IS 'MCAD = moving_averages.ema_12 - moving_averages.ema_26';
+COMMENT ON COLUMN indicators.mcad_signal IS '9 day exponential moving average of MCAD';
+COMMENT ON COLUMN indicators.mcad_histogram IS 'MCAD - mcad_signal';
