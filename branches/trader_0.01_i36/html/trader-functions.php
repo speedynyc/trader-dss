@@ -619,6 +619,42 @@ function draw_trader_header($active_page, $allow_others=true)
     print "</tr></table></table>\n";
 }
 
+function get_symb_max_price($symb, $exch, $buy_date, $date)
+{
+    // returns the max close between the dates
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $query = "select max(close) as max from quotes where symb = '$symb' and exch = '$exch' and date >= '$buy_date' and date <= '$date';";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['max'];
+    }
+    return -1;
+}
+
+function get_symb_min_price($symb, $exch, $buy_date, $date)
+{
+    // returns the min close between the dates
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $query = "select min(close) as min from quotes where symb = '$symb' and exch = '$exch' and date >= '$buy_date' and date <= '$date';";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['min'];
+    }
+    return -1;
+}
+
 function get_hid_symb($hid)
 {
     // return the symbol name of a holding
@@ -1018,7 +1054,7 @@ class exchange extends trader_base
 
 class portfolio extends trader_base
 {
-    protected $pfid, $name, $exch, $parcel, $working_date, $hide_names, $sell_stop, $auto_sell_stop, $dbh;
+    protected $pfid, $name, $exch, $parcel, $working_date, $hide_names, $stop_loss, $auto_stop_loss, $dbh;
     protected $cashInHand, $holdings, $openingBalance, $startDate, $countOfDaysTraded;
     protected $commission, $tax_rate;
     public function __construct($pfid)
@@ -1053,8 +1089,8 @@ class portfolio extends trader_base
             $this->parcel = $row['parcel'];
             $this->working_date = $row['working_date'];
             $this->hide_names = t_for_true($row['hide_names']);
-            $this->sell_stop = $row['sell_stop'];
-            $this->auto_sell_stop = t_for_true($row['auto_sell_stop']);
+            $this->stop_loss = $row['stop_loss'];
+            $this->auto_stop_loss = t_for_true($row['auto_stop_loss']);
             $this->commission = $row['commission'];
             $this->tax_rate = $row['tax_rate'];
         }
@@ -1112,6 +1148,14 @@ class portfolio extends trader_base
     public function getName()
     {
         return $this->name;
+    }
+    public function getStopLoss()
+    {
+        return $this->stop_loss;
+    }
+    public function getAutoStopLoss()
+    {
+        return $this->auto_stop_loss;
     }
     public function symbNamesHidden()
     {
