@@ -85,4 +85,6 @@ COMMENT ON COLUMN moving_averages.ma_30_sum IS 'The sum of ma_30_diff since it l
 COMMENT ON COLUMN moving_averages.ma_50_sum IS 'The sum of ma_50_diff since it last changed signs, or the total of the difference between the close price and the moving average for the number of days that the close price has been above or below the moving average.';
 COMMENT ON COLUMN moving_averages.ma_100_sum IS 'The sum of ma_100_diff since it last changed signs, or the total of the difference between the close price and the moving average for the number of days that the close price has been above or below the moving average.';
 COMMENT ON COLUMN moving_averages.ma_200_sum IS 'The sum of ma_200_diff since it last changed signs, or the total of the difference between the close price and the moving average for the number of days that the close price has been above or below the moving average.';
+COMMENT ON COLUMN moving_averages.ema_12 IS 'The 12 day Exponential Moving Average';
+COMMENT ON COLUMN moving_averages.ema_26 IS 'The 26 day Exponential Moving Average';
 

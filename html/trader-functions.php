@@ -104,6 +104,7 @@ function sell_stock($hid, $symb, $comment = '')
     $close = get_stock_close($symb, $date, $exch);
     $volume = get_hid_volume($hid);
     $buy_price = get_hid_buy_price($hid);
+    $commission = $portfolio->getCommission();
     // this will work correctly for both longs and shorts. See the wiki
     $total = ($buy_price * abs($volume)) + ($volume * ($close - $buy_price));
     try {
@@ -119,7 +120,7 @@ function sell_stock($hid, $symb, $comment = '')
         $cash_in_hand = $row['cash_in_hand'];
         $holdings = $row['holdings'];
     }
-    $cash_in_hand = $cash_in_hand + $total;
+    $cash_in_hand = $cash_in_hand + $total - $commission;
     $holdings = $holdings - $total;
     try 
     {
@@ -151,6 +152,7 @@ function buy_stock($symb, $comment = '', $volume = 0)
     $pfid = $portfolio->getID();
     $date = $portfolio->getWorkingDate();
     $exch = $portfolio->getExch()->getID();
+    $commission = $portfolio->getCommission();
     $close = get_stock_close($symb, $date, $exch);
     if ($comment == '')
     {
@@ -188,7 +190,8 @@ function buy_stock($symb, $comment = '', $volume = 0)
         $cash_in_hand = $row['cash_in_hand'];
         $holdings = $row['holdings'];
     }
-    $cash_in_hand = $cash_in_hand - $total;
+    $duty = $total * ($portfolio->getTaxRate()/100);
+    $cash_in_hand = $cash_in_hand - $total - $duty - $commission;
     $holdings = $holdings + $total;
     try 
     {
@@ -1017,6 +1020,7 @@ class portfolio extends trader_base
 {
     protected $pfid, $name, $exch, $parcel, $working_date, $hide_names, $sell_stop, $auto_sell_stop, $dbh;
     protected $cashInHand, $holdings, $openingBalance, $startDate, $countOfDaysTraded;
+    protected $commission, $tax_rate;
     public function __construct($pfid)
     {
         // setup the DB connection for use in this script
@@ -1045,17 +1049,20 @@ class portfolio extends trader_base
             $this->pfid = $row['pfid'];
             $this->name = $row['name'];
             $this->exch = new exchange($row['exch']);
+            $this->openingBalance = $row['opening_balance'];
             $this->parcel = $row['parcel'];
             $this->working_date = $row['working_date'];
             $this->hide_names = t_for_true($row['hide_names']);
             $this->sell_stop = $row['sell_stop'];
             $this->auto_sell_stop = t_for_true($row['auto_sell_stop']);
+            $this->commission = $row['commission'];
+            $this->tax_rate = $row['tax_rate'];
         }
         else
         {
             die("[FATAL]portfolio $pfid missing from portfolios table: $query\n");
         }
-        // get opening balance, holdings and startdate
+        // get the start date by finding the first record for the portfolio in pf_summary
         $query = "select * from pf_summary where pfid = '$pfid' order by date asc limit 1";
         try 
         {
@@ -1069,14 +1076,9 @@ class portfolio extends trader_base
         $row = $result->fetch(PDO::FETCH_ASSOC);
         if (isset($row['pfid']) and $row['pfid'] == $pfid)
         {
-            $this->openingBalance = $row['cash_in_hand'];
             $this->startDate = $row['date'];
         }
-        else
-        {
-            $this->openingBalance = 0;
-        }
-        // get current balance and  holdings
+        // get current balance and holdings by finding the most recent entry in pf_summary
         $query = "select * from pf_summary where pfid = '$pfid' order by date desc limit 1";
         try 
         {
@@ -1134,6 +1136,14 @@ class portfolio extends trader_base
     public function getHoldings()
     {
         return $this->holdings;
+    }
+    public function getCommission()
+    {
+        return $this->commission;
+    }
+    public function getTaxRate()
+    {
+        return $this->tax_rate;
     }
     public function getOpeningBalance()
     {
