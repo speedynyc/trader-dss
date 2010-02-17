@@ -516,13 +516,28 @@ function draw_trader_header($active_page, $allow_others=true)
     }
     switch ($active_page) {
         case 'login':
+            print "<html><title>Trader Login</title><body>\n";
+            break;
         case 'portfolios':
+            print "<html><title>Select or Create a Portfolio</title><body>\n";
+            break;
         case 'booty':
+            print "<html><title>Report Portfolio Performance</title><body>\n";
+            break;
         case 'select':
+            print "<html><title>Choose Securities to trade</title><body>\n";
+            break;
         case 'trade':
+            print "<html><title>Buy selected Securities</title><body>\n";
+            break;
         case 'watch':
+            print "<html><title>Watch with a view to buy</title><body>\n";
+            break;
         case 'queries':
+            print "<html><title>Create queries to find securities</title><body>\n";
+            break;
         case 'docs':
+            print "<html><title>Documentation of the Trader Relations</title><body>\n";
             break;
         default:
             tr_warn("[FATAL]Cannot create header, given $active_page\n");

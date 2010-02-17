@@ -8,9 +8,8 @@ AS $$
     BEGIN
         BEGIN
             insert into trade_dates ( exch, date ) VALUES ( new_exch, new_date);
-            return;
         EXCEPTION when unique_violation THEN
-        -- do nothing
+        -- do nothing because the record is already there
         END;
     END;
 $$;
