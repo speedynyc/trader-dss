@@ -66,19 +66,19 @@ function create_add_form()
     $create_pf_form->addElement('text', 'parcel', 'Parcel size:', array('size' => 10, 'maxlength' => 10));
     $create_pf_form->addRule('parcel','Please enter a numeric parcel size','required');
     $create_pf_form->addRule('parcel','Please enter a numeric parcel size','numeric');
-    $create_pf_form->addElement('text', 'sell_stop', 'Sell stop limit:', array('size' => 10, 'maxlength' => 10));
-    $create_pf_form->addRule('sell_stop','Please enter a numeric Sell Stop','required');
-    $create_pf_form->addRule('sell_stop','Please enter a numeric Sell Stop','numeric');
-    $create_pf_form->addRule('sell_stop','Please enter a percentage','valid_percent');
+    $create_pf_form->addElement('text', 'stop_loss', 'Stop Loss %:', array('size' => 10, 'maxlength' => 10));
+    $create_pf_form->addRule('stop_loss','Please enter a numeric Stop Loss','required');
+    $create_pf_form->addRule('stop_loss','Please enter a numeric Stop Loss','numeric');
+    $create_pf_form->addRule('stop_loss','Please enter a percentage','valid_percent');
     $create_pf_form->registerRule('valid_percent','function','check_percent');
     $create_pf_form->addElement('text', 'commission', 'Commission:', array('size' => 10, 'maxlength' => 10));
     $create_pf_form->addRule('commission','Please enter a numeric commission amount','required');
     $create_pf_form->addRule('commission','Please enter a numeric numeric commission amount','numeric');
-    $create_pf_form->addElement('text', 'tax_rate', 'Stamp Duty Rate:', array('size' => 10, 'maxlength' => 10));
+    $create_pf_form->addElement('text', 'tax_rate', 'Stamp Duty Rate %:', array('size' => 10, 'maxlength' => 10));
     $create_pf_form->addRule('tax_rate','Please enter a numeric Stamp Duty Rate','required');
     $create_pf_form->addRule('tax_rate','Please enter a numeric Stamp Duty Rate','numeric');
     $create_pf_form->addRule('tax_rate','Please enter a percentage','valid_percent');
-    $create_pf_form->addElement('checkbox', 'auto', 'Automatically sell on sell stop:');
+    $create_pf_form->addElement('checkbox', 'auto', 'Automatically sell at stop loss:');
     $create_pf_form->addElement('checkbox', 'hide', 'Hide Stock Names:');
     $create_pf_form->addElement('date', 'start_date', 'Start Date:', array('format' => 'dMY', 'minYear' => 2000, 'maxYear' => date('Y'))); 
     $create_pf_form->addRule('start_date','Not a valid date','callback', 'validate_date');
@@ -125,14 +125,14 @@ function create_portfolio($form)
     {
         $auto = 'f';
     }
-    $sell_stop = $form['sell_stop'];
+    $stop_loss = $form['stop_loss'];
     $tax_rate = $form['tax_rate'];
     $commission = $form['commission'];
     $start_date = $exchange->nearestTradeDay($start_date);
     // need to create the portfolio and add the first entry into summary as a transaction so that if one fails both do
     try{
         $pdo->beginTransaction();
-        $query = "insert into portfolios (name, uid, exch, opening_balance, parcel, working_date, hide_names, sell_stop, auto_sell_stop, tax_rate, commission) values ($pf_desc, '$uid', '$exch', $opening_balance, $parcel, '$start_date', '$hide', '$sell_stop', '$auto', '$tax_rate', '$commission');";
+        $query = "insert into portfolios (name, uid, exch, opening_balance, parcel, working_date, hide_names, stop_loss, auto_stop_loss, tax_rate, commission) values ($pf_desc, '$uid', '$exch', $opening_balance, $parcel, '$start_date', '$hide', '$stop_loss', '$auto', '$tax_rate', '$commission');";
         $pdo->exec($query);
         $query = "select pfid from portfolios where uid = '$uid' and name = $pf_desc and exch = '$exch';";
         foreach ($pdo->query($query) as $row)

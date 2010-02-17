@@ -30,12 +30,11 @@ function draw_performance_table($portfolio)
     $pf_opening_balance = $portfolio->getOpeningBalance();
     $pf_opening_date = $portfolio->getStartDate();
     $pf_days_traded = $portfolio->countDaysTraded();
-    $pf_cash_in_hand = $portfolio->getCashInHand();
-    $pf_holdings = $portfolio->getHoldings();
-    $pf_total = sprintf("%.2f", $pf_cash_in_hand + $pf_holdings);
     $pf_exchange_name = $portfolio->getExch()->getName();
     $pf_exch = $portfolio->getExch()->getID();
     $pf_working_date = $portfolio->getWorkingDate();
+    $pf_stop_loss = $portfolio->getStopLoss();
+    $pf_auto_stop_loss = $portfolio->getAutoStopLoss();
     $next_trade_day = $portfolio->getExch()->nextTradeDay($pf_working_date);
     print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="cart" id="cart">';
     print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
@@ -64,7 +63,8 @@ function draw_performance_table($portfolio)
         $price_diff_pc = round(((($close-$price)/$price)), 2)*100;
         $volume = $row['volume'];
         $value = sprintf("%.2f", round($close*$volume, 2));
-        $date = $row['date'];
+        $buy_date = $row['date'];
+        $comment = $row['comment'];
         if ($price_diff_pc == 0)
         {
             $colour = 'black';
@@ -93,10 +93,53 @@ function draw_performance_table($portfolio)
                 $price_diff_pc = 0 - $price_diff_pc;
             }
         }
+        // do warnings checks.
+        $warning = '';
+        // price drop from Max
+        if ($volume > 0)
+        {
+            // long
+            $max_price = get_symb_max_price($symb, $pf_exch, $buy_date, $pf_working_date);
+            $stop_loss = (1 - ($pf_stop_loss/100)) * $max_price;
+            if ($close < $stop_loss)
+            {
+                // close below the stop_loss sell!
+                if ($pf_auto_stop_loss)
+                {
+                    sell_stock($hid, $symb, $comment);
+                    $portfolio = new portfolio($_SESSION['pfid']);
+                }
+                else
+                {
+                    $stop_loss = sprintf("%.2f", round($stop_loss, 2));
+                    $warning = "$warning<br>Close price has fallen more than the stop loss from a max of $max_price. Sell!";
+                }
+            }
+        }
+        elseif ($volume < 0)
+        {
+            // short
+            $min_price = get_symb_min_price($symb, $pf_exch, $buy_date, $pf_working_date);
+            $stop_loss = (1 + ($pf_stop_loss/100)) * $min_price;
+            if ($close > $stop_loss)
+            {
+                // close below the stop_loss sell!
+                if ($pf_auto_stop_loss)
+                {
+                    sell_stock($hid, $symb, $_POST["comment_$hid"]);
+                    $portfolio = new portfolio($_SESSION['pfid']);
+                }
+                else
+                {
+                    $stop_loss = sprintf("%.2f", round($stop_loss, 2));
+                    $warning = "$warning<br>Close price has risen more than the stop loss from a min of $min_price. Sell!";
+                }
+            }
+        }
         print "<tr><td><input type=\"checkbox\" name=\"mark[]\" value=\"$hid\"><font color=\"$colour\">$symb</font></td>\n";
         print "<td><font color=\"$colour\">$symb_name</font></td>\n";
-        print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"comment_$hid\">" . $row['comment'] . '</textarea></td>';
-        print "<td>$date<input type=\"hidden\" name=\"date_$symb\" value=\"$date\"></td>\n";
+        print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"comment_$hid\">" . $row['comment'] . "</textarea><br>$warning</td>";
+        print "<td>$buy_date<input type=\"hidden\" name=\"date_$symb\" value=\"$buy_date\"></td>\n";
         print "<td align=\"right\">" . $row['volume'] . '</td>';
         print "<td align=\"right\">$price</td>\n";
         print "<td align=\"right\">$close</td>\n";
@@ -108,6 +151,9 @@ function draw_performance_table($portfolio)
         }
         print "</tr>\n";
     }
+    $pf_cash_in_hand = $portfolio->getCashInHand();
+    $pf_holdings = $portfolio->getHoldings();
+    $pf_total = sprintf("%.2f", $pf_cash_in_hand + $pf_holdings);
     if (isset($_SESSION['chart']))
     {
         print "<tr><td><table><tr><td><input type=\"checkbox\" name=\"chart\" value=\"chart\" checked>Draw Charts\n</td></tr><td> " . chart_select() . "</td></tr></table></td>\n";
