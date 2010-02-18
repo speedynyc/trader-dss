@@ -22,6 +22,54 @@ try {
     die("ERROR: Cannot connect: " . $e->getMessage());
 }
 
+function stop_loss($portfolio)
+{
+    global $pdo;
+    $pf_auto_stop_loss = $portfolio->getAutoStopLoss();
+    if ($pf_auto_stop_loss)
+    {
+        $pf_id = $portfolio->getID();
+        $query = "select * from holdings where pfid = '$pf_id' order by symb;";
+        $pf_exch = $portfolio->getExch()->getID();
+        $pf_working_date = $portfolio->getWorkingDate();
+        $pf_stop_loss = $portfolio->getStopLoss();
+        foreach ($pdo->query($query) as $row)
+        {
+            $symb = $row['symb'];
+            $hid = $row['hid'];
+            $price = $row['price'];
+            $buy_date = $row['date'];
+            $comment = $row['comment'];
+            $volume = $row['volume'];
+            $close = get_stock_close($symb, $pf_working_date, $pf_exch);
+            if ($volume > 0)
+            {
+                // long
+                $max_price = get_symb_max_price($symb, $pf_exch, $buy_date, $pf_working_date);
+                $stop_loss = (1 - ($pf_stop_loss/100)) * $max_price;
+                if ($close < $stop_loss)
+                {
+                    // close price is below the stop loss sell!
+                    $comment = "Close price has fallen more than the stop loss from a max of $max_price. Auto sold!";
+                    sell_stock($hid, $symb, $comment);
+                }
+            }
+            elseif ($volume < 0)
+            {
+                // short
+                $min_price = get_symb_min_price($symb, $pf_exch, $buy_date, $pf_working_date);
+                $stop_loss = (1 + ($pf_stop_loss/100)) * $min_price;
+                if ($close > $stop_loss)
+                {
+                    // close price is above the stop loss sell!
+                    $comment = "Close price has risen more than the stop loss from a min of $min_price. Auto bought!";
+                    sell_stock($hid, $symb, $comment);
+                }
+            }
+        }
+    }
+}
+
 function draw_performance_table($portfolio)
 {
     global $pdo;
@@ -104,16 +152,8 @@ function draw_performance_table($portfolio)
             if ($close < $stop_loss)
             {
                 // close below the stop_loss sell!
-                if ($pf_auto_stop_loss)
-                {
-                    sell_stock($hid, $symb, $comment);
-                    $portfolio = new portfolio($_SESSION['pfid']);
-                }
-                else
-                {
-                    $stop_loss = sprintf("%.2f", round($stop_loss, 2));
-                    $warning = "$warning<br>Close price has fallen more than the stop loss from a max of $max_price. Sell!";
-                }
+                $stop_loss = sprintf("%.2f", round($stop_loss, 2));
+                $warning = "$warning<br>Close price has fallen more than the stop loss from a max of $max_price. Sell!";
             }
         }
         elseif ($volume < 0)
@@ -124,21 +164,13 @@ function draw_performance_table($portfolio)
             if ($close > $stop_loss)
             {
                 // close below the stop_loss sell!
-                if ($pf_auto_stop_loss)
-                {
-                    sell_stock($hid, $symb, $_POST["comment_$hid"]);
-                    $portfolio = new portfolio($_SESSION['pfid']);
-                }
-                else
-                {
-                    $stop_loss = sprintf("%.2f", round($stop_loss, 2));
-                    $warning = "$warning<br>Close price has risen more than the stop loss from a min of $min_price. Sell!";
-                }
+                $stop_loss = sprintf("%.2f", round($stop_loss, 2));
+                $warning = "$warning<br>Close price has risen more than the stop loss from a min of $min_price. Sell!";
             }
         }
         print "<tr><td><input type=\"checkbox\" name=\"mark[]\" value=\"$hid\"><font color=\"$colour\">$symb</font></td>\n";
         print "<td><font color=\"$colour\">$symb_name</font></td>\n";
-        print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"comment_$hid\">" . $row['comment'] . "</textarea><br>$warning</td>";
+        print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"comment_$hid\">$comment</textarea><br>$warning</td>";
         print "<td>$buy_date<input type=\"hidden\" name=\"date_$symb\" value=\"$buy_date\"></td>\n";
         print "<td align=\"right\">" . $row['volume'] . '</td>';
         print "<td align=\"right\">$price</td>\n";
@@ -228,6 +260,11 @@ elseif (isset($_POST['next_day']))
         $query = "insert into pf_summary (pfid, date, cash_in_hand, holdings) values ('$pf_id', '$next_trade_day', '$cash_in_hand', '$holdings');";
         $pdo->exec($query);
         $pdo->commit();
+        // recreate the portfolio because the dates have changed.
+        $portfolio = new portfolio($pf_id);
+        // sell anything that's now hit the stop loss
+        stop_loss($portfolio);
+        // might be wisest to re-create the $portfolio now, but the page is reloaded below which will do the same thing
     }
     catch (PDOException $e)
     {
