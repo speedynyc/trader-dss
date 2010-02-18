@@ -200,8 +200,24 @@ function buy_stock($symb, $comment = '', $volume = 0)
         $query = "insert into trades (pfid, date, symb, price, volume, comment) values ('$pfid', '$date', '$symb', '$close', '$qty', '$comment');";
         $pdo->exec($query);
         // add the stock to the holdings table
-        $query = "insert into holdings (pfid, date, symb, price, volume, comment) values ('$pfid', '$date', '$symb', '$close', '$qty', '$comment');";
-        $pdo->exec($query);
+        // if it's already there, we add the existing to the new
+        $query = "select count(*) as count, sum(volume) as volume from holdings where pfid = '$pfid' and date = '$date' and symb = '$symb';";
+        $result = $pdo->query($query);
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        $count = $row['count'];
+        $volume = $row['volume'] + $qty;
+        if ($count == 0)
+        {
+            $query = "insert into holdings (pfid, date, symb, price, volume, comment) values ('$pfid', '$date', '$symb', '$close', '$qty', '$comment');";
+            $pdo->exec($query);
+        }
+        else
+        {
+            // we use $volume not $qty here because it's the total of the exising volume and qty.
+            // what heppens if they add to zero?
+            $query = "update holdings set volume = '$volume' where pfid = '$pfid' and date = '$date' and symb = '$symb';";
+            $pdo->exec($query);
+        }
         // update the pf_summary with the trade
         $query = "update pf_summary set cash_in_hand = '$cash_in_hand', holdings = '$holdings' where date = '$date' and pfid = '$pfid';";
         $pdo->exec($query);
