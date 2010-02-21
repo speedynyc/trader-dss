@@ -8,7 +8,7 @@ AS $$
     rec_first_last RECORD;
     BEGIN
         -- Maintain the date range that this symbol has traded over so we don't have to search a big list of dates
-        --   before we know if it's worth while considering a stock
+        --   before we know if it's worth while considering a security
         select first_quote, last_quote into rec_first_last from stocks where symb = new_symb and exch = new_exch;
         IF NOT FOUND THEN
             insert into stocks ( symb, exch, name, first_quote, last_quote ) values ( new_symb, new_exch, 'Unknown Name', new_date, new_date);
