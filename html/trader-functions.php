@@ -104,6 +104,7 @@ function sell_stock($hid, $symb, $comment = '')
     $close = get_stock_close($symb, $date, $exch);
     $volume = get_hid_volume($hid);
     $buy_price = get_hid_buy_price($hid);
+    $commission = $portfolio->getCommission();
     // this will work correctly for both longs and shorts. See the wiki
     $total = ($buy_price * abs($volume)) + ($volume * ($close - $buy_price));
     try {
@@ -119,7 +120,7 @@ function sell_stock($hid, $symb, $comment = '')
         $cash_in_hand = $row['cash_in_hand'];
         $holdings = $row['holdings'];
     }
-    $cash_in_hand = $cash_in_hand + $total;
+    $cash_in_hand = $cash_in_hand + $total - $commission;
     $holdings = $holdings - $total;
     try 
     {
@@ -151,6 +152,7 @@ function buy_stock($symb, $comment = '', $volume = 0)
     $pfid = $portfolio->getID();
     $date = $portfolio->getWorkingDate();
     $exch = $portfolio->getExch()->getID();
+    $commission = $portfolio->getCommission();
     $close = get_stock_close($symb, $date, $exch);
     if ($comment == '')
     {
@@ -188,7 +190,8 @@ function buy_stock($symb, $comment = '', $volume = 0)
         $cash_in_hand = $row['cash_in_hand'];
         $holdings = $row['holdings'];
     }
-    $cash_in_hand = $cash_in_hand - $total;
+    $duty = $total * ($portfolio->getTaxRate()/100);
+    $cash_in_hand = $cash_in_hand - $total - $duty - $commission;
     $holdings = $holdings + $total;
     try 
     {
@@ -197,8 +200,24 @@ function buy_stock($symb, $comment = '', $volume = 0)
         $query = "insert into trades (pfid, date, symb, price, volume, comment) values ('$pfid', '$date', '$symb', '$close', '$qty', '$comment');";
         $pdo->exec($query);
         // add the stock to the holdings table
-        $query = "insert into holdings (pfid, date, symb, price, volume, comment) values ('$pfid', '$date', '$symb', '$close', '$qty', '$comment');";
-        $pdo->exec($query);
+        // if it's already there, we add the existing to the new
+        $query = "select count(*) as count, sum(volume) as volume from holdings where pfid = '$pfid' and date = '$date' and symb = '$symb';";
+        $result = $pdo->query($query);
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        $count = $row['count'];
+        $volume = $row['volume'] + $qty;
+        if ($count == 0)
+        {
+            $query = "insert into holdings (pfid, date, symb, price, volume, comment) values ('$pfid', '$date', '$symb', '$close', '$qty', '$comment');";
+            $pdo->exec($query);
+        }
+        else
+        {
+            // we use $volume not $qty here because it's the total of the exising volume and qty.
+            // what heppens if they add to zero?
+            $query = "update holdings set volume = '$volume' where pfid = '$pfid' and date = '$date' and symb = '$symb';";
+            $pdo->exec($query);
+        }
         // update the pf_summary with the trade
         $query = "update pf_summary set cash_in_hand = '$cash_in_hand', holdings = '$holdings' where date = '$date' and pfid = '$pfid';";
         $pdo->exec($query);
@@ -516,13 +535,28 @@ function draw_trader_header($active_page, $allow_others=true)
     }
     switch ($active_page) {
         case 'login':
+            print "<html><title>Trader Login</title><body>\n";
+            break;
         case 'portfolios':
+            print "<html><title>Select or Create a Portfolio</title><body>\n";
+            break;
         case 'booty':
+            print "<html><title>Report Portfolio Performance</title><body>\n";
+            break;
         case 'select':
+            print "<html><title>Choose Securities to trade</title><body>\n";
+            break;
         case 'trade':
+            print "<html><title>Buy selected Securities</title><body>\n";
+            break;
         case 'watch':
+            print "<html><title>Watch with a view to buy</title><body>\n";
+            break;
         case 'queries':
+            print "<html><title>Create queries to find securities</title><body>\n";
+            break;
         case 'docs':
+            print "<html><title>Documentation of the Trader Relations</title><body>\n";
             break;
         default:
             tr_warn("[FATAL]Cannot create header, given $active_page\n");
@@ -599,6 +633,42 @@ function draw_trader_header($active_page, $allow_others=true)
     }
     draw_summary($username, $pf_name, $exch_name, $working_date, $query_name, $chart_name);
     print "</tr></table></table>\n";
+}
+
+function get_symb_max_price($symb, $exch, $buy_date, $date)
+{
+    // returns the max close between the dates
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $query = "select max(close) as max from quotes where symb = '$symb' and exch = '$exch' and date >= '$buy_date' and date <= '$date';";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['max'];
+    }
+    return -1;
+}
+
+function get_symb_min_price($symb, $exch, $buy_date, $date)
+{
+    // returns the min close between the dates
+    global $db_hostname, $db_database, $db_user, $db_password;
+    try {
+        $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (PDOException $e) {
+        die("ERROR: Cannot connect: " . $e->getMessage());
+    }
+    $query = "select min(close) as min from quotes where symb = '$symb' and exch = '$exch' and date >= '$buy_date' and date <= '$date';";
+    foreach ($pdo->query($query) as $row)
+    {
+        return $row['min'];
+    }
+    return -1;
 }
 
 function get_hid_symb($hid)
@@ -1000,8 +1070,9 @@ class exchange extends trader_base
 
 class portfolio extends trader_base
 {
-    protected $pfid, $name, $exch, $parcel, $working_date, $hide_names, $sell_stop, $auto_sell_stop, $dbh;
+    protected $pfid, $name, $exch, $parcel, $working_date, $hide_names, $stop_loss, $auto_stop_loss, $dbh;
     protected $cashInHand, $holdings, $openingBalance, $startDate, $countOfDaysTraded;
+    protected $commission, $tax_rate;
     public function __construct($pfid)
     {
         // setup the DB connection for use in this script
@@ -1030,17 +1101,20 @@ class portfolio extends trader_base
             $this->pfid = $row['pfid'];
             $this->name = $row['name'];
             $this->exch = new exchange($row['exch']);
+            $this->openingBalance = $row['opening_balance'];
             $this->parcel = $row['parcel'];
             $this->working_date = $row['working_date'];
             $this->hide_names = t_for_true($row['hide_names']);
-            $this->sell_stop = $row['sell_stop'];
-            $this->auto_sell_stop = t_for_true($row['auto_sell_stop']);
+            $this->stop_loss = $row['stop_loss'];
+            $this->auto_stop_loss = t_for_true($row['auto_stop_loss']);
+            $this->commission = $row['commission'];
+            $this->tax_rate = $row['tax_rate'];
         }
         else
         {
             die("[FATAL]portfolio $pfid missing from portfolios table: $query\n");
         }
-        // get opening balance, holdings and startdate
+        // get the start date by finding the first record for the portfolio in pf_summary
         $query = "select * from pf_summary where pfid = '$pfid' order by date asc limit 1";
         try 
         {
@@ -1054,14 +1128,9 @@ class portfolio extends trader_base
         $row = $result->fetch(PDO::FETCH_ASSOC);
         if (isset($row['pfid']) and $row['pfid'] == $pfid)
         {
-            $this->openingBalance = $row['cash_in_hand'];
             $this->startDate = $row['date'];
         }
-        else
-        {
-            $this->openingBalance = 0;
-        }
-        // get current balance and  holdings
+        // get current balance and holdings by finding the most recent entry in pf_summary
         $query = "select * from pf_summary where pfid = '$pfid' order by date desc limit 1";
         try 
         {
@@ -1096,6 +1165,14 @@ class portfolio extends trader_base
     {
         return $this->name;
     }
+    public function getStopLoss()
+    {
+        return $this->stop_loss;
+    }
+    public function getAutoStopLoss()
+    {
+        return $this->auto_stop_loss;
+    }
     public function symbNamesHidden()
     {
         return $this->hide_names;
@@ -1119,6 +1196,14 @@ class portfolio extends trader_base
     public function getHoldings()
     {
         return $this->holdings;
+    }
+    public function getCommission()
+    {
+        return $this->commission;
+    }
+    public function getTaxRate()
+    {
+        return $this->tax_rate;
     }
     public function getOpeningBalance()
     {
