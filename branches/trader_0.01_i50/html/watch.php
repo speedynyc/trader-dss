@@ -48,7 +48,8 @@ function draw_watch_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
         $symb_name = get_symb_name($symb, $pf_exch);
         $close = get_stock_close($symb, $pf_working_date, $pf_exch);
         $value = round($close*$row['volume'], 2);
-        print "<tr><td><input type=\"checkbox\" name=\"mark[]\" value=\"$symb\">$symb</td>\n";
+        print "<tr><td><input type=\"checkbox\" name=\"mark[]\" value=\"$symb\">";
+        print "<a href=\"/inspector.php?symb=$symb\" target=\"_blank\">$symb</a></td>\n";
         print "<td>$symb_name</td>\n";
         print "<td>\n";
         $warnings = get_warnings($symb, $pf_exch, $pf_working_date, $row['volume']);
