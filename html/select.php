@@ -163,7 +163,7 @@ if (isset($_POST['execute_sql']))
                     $symbol = $row['symb'];
                     $name = get_symb_name_coloured($symbol, $pf_exch, $pfid, $pf_working_date);
                     print '<tr><td><table border="0" cellpadding="0" cellspacing="0" align="left"><tr>';
-                    print "<td>$symbol: $name</td></tr>";
+                    print "<td><a href=\"/inspector.php?symb=$symbol\" target=\"_blank\">$symbol</a>: $name</td></tr>";
                     if (is_in_cart('cart', $symbol))
                     {
                         print "<tr><td>Buying:</td></tr>\n";

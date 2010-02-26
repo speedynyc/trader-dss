@@ -36,6 +36,7 @@ if (isset($username))
     print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
     print "<tr><td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symb&TimeRange=$chart_period&working_date=$pf_working_date&exch=$pf_exch&ChartSize=S&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td></tr>";
     print "<tr><td><img SRC=\"/cgi-bin/close_sma.php?symb=$symb\" ALIGN=\"bottom\" BORDER=\"0\"></td></tr>";
+    print "<tr><td><img SRC=\"/cgi-bin/close_ma_diff.php?symb=$symb\" ALIGN=\"bottom\" BORDER=\"0\"></td></tr>";
     print "<tr><td><img SRC=\"/cgi-bin/close_ema.php?symb=$symb\" ALIGN=\"bottom\" BORDER=\"0\"></td></tr>";
     print "</table>\n";
 }
