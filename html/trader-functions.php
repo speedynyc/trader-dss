@@ -872,8 +872,18 @@ function get_table_field($table, $field, $symb, $date, $exch)
     } catch (PDOException $e) {
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
-    $query = "select $field from $table where symb = '$symb' and date = '$date' and exch = '$exch';";
-    foreach ($pdo->query($query) as $row)
+    $query = "select $field from $table where date = '$date' and symb = '$symb' and exch = '$exch';";
+    try 
+    {
+        $result = $pdo->query($query);
+    }
+    catch (PDOException $e)
+    {
+        tr_warn('get_table_field' . $query . ':' . $e->getMessage());
+        die("[FATAL]\n");
+    }
+    $row = $result->fetch(PDO::FETCH_ASSOC);
+    if (isset($row[$field]))
     {
         return $row[$field];
     }
@@ -918,6 +928,25 @@ function chart_select()
     $select_string = "$select_string </select>\n";
     return $select_string;
 }
+
+function get_warnings($symb, $pf_exch, $pf_working_date, $volume)
+{
+    // do a bunch of checks and return warning strings
+    $warnings = '';
+    // check that the volume and the moving average match
+    $ma_10_diff = get_table_field('moving_averages', 'ma_10_diff', $symb, $pf_working_date, $pf_exch);
+    if ($volume > 0 and $ma_10_diff < 0)
+    {
+        $warnings .= '<font color="red">Going long on a falling MA</font><br>';
+    }
+    elseif ($volume < 0 and $ma_10_diff > 0)
+    {
+        $warnings .= '<font color="red">Going short on a rising MA</font><br>';
+    }
+    return $warnings;
+}
+
+
 
 class trader_base
 {
