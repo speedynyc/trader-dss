@@ -48,9 +48,13 @@ function draw_buy_table($pf_id, $pf_working_date, $pf_exch, $pf_nam)
         $symb_name = get_symb_name($symb, $pf_exch);
         $close = get_stock_close($symb, $pf_working_date, $pf_exch);
         $value = round($close*$row['volume'], 2);
-        print "<tr><td><input type=\"checkbox\" name=\"mark[]\" value=\"$symb\">$symb</td>\n";
+        print "<tr><td><input type=\"checkbox\" name=\"mark[]\" value=\"$symb\">";
+        print "<a href=\"/inspector.php?symb=$symb\" target=\"_blank\">$symb</a></td>\n";
         print "<td>$symb_name</td>\n";
-        print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"comment_$symb\">" . $row['comment'] . '</textarea></td>';
+        print "<td>\n";
+        $warnings = get_warnings($symb, $pf_exch, $pf_working_date, $row['volume']);
+        print "$warnings\n";
+        print "<textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"comment_$symb\">" . $row['comment'] . '</textarea></td>';
         print "<td>$date<input type=\"hidden\" name=\"date_$symb\" value=\"$date\"></td>\n";
         print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"10\" name=\"volume_$symb\">" . $row['volume'] . '</textarea></td>';
         print "<td>$close</td>\n";
