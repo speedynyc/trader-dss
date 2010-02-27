@@ -10,7 +10,7 @@ $uid = $_SESSION['uid'];
 // make sure they're logged in"
 if (isset($username))
 {
-    $c = new XYChart(640, 480);
+    $c = new XYChart(640, 180);
     $portfolio = new portfolio($_SESSION['pfid']);
     $pf_id = $portfolio->getID();
     $pf_name = $portfolio->getName();
@@ -36,28 +36,23 @@ if (isset($username))
     } catch (PDOException $e) {
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
-    $query = "select a.date as date, ema_12, ema_26, open, high, low, close  from quotes a, moving_averages b where a.date = b.date and a.symb = b.symb and a.exch = b.exch and a.date >= '$first_date' and a.date <= '$pf_working_date' and a.symb = '$symb' and a.exch = '$pf_exch' order by a.date limit $chart_period;";
+    $query = "select a.date as date, ma_10_diff, close_ma_10, close_ma_20, close_ma_30, close_ma_50, close_ma_100, close_ma_200, open, high, low, close  from quotes a, moving_averages b where a.date = b.date and a.symb = b.symb and a.exch = b.exch and a.date >= '$first_date' and a.date <= '$pf_working_date' and a.symb = '$symb' and a.exch = '$pf_exch' order by a.date limit $chart_period;";
     foreach ($pdo->query($query) as $row)
     {
-        $open[] = $row['open'];
-        $close[] = $row['close'];
-        $high[] = $row['high'];
-        $low[] = $row['low'];
-        $ema_12[] = $row['ema_12'];
-        $ema_26[] = $row['ema_26'];
+        $ma_10_diff[] = $row['ma_10_diff'];
         $dates[] = chartTime2(strtotime($row['date']));
     }
     // Set the plotarea at (50, 30) and of size 240 x 140 pixels. Use white (0xffffff) 
     // background. 
-    $plotAreaObj = $c->setPlotArea(50, 45, 410, 400);
+    $plotAreaObj = $c->setPlotArea(50, 45, 410, 100);
     $plotAreaObj->setBackground(0xffffff);
     // Add a legend box at (50, 185) (below of plot area) using horizontal layout. Use 8 
     // pts Arial font with Transparent background. 
-    $legendObj = $c->addLegend(50, 455, false, "", 8);
+    $legendObj = $c->addLegend(50, 45, false, "", 8);
     $legendObj->setBackground(Transparent);
     // Add a title box to the chart using 8 pts Arial Bold font, with yellow (0xffff40)
     // background and a black border (0x0)
-    $textBoxObj = $c->addTitle("$symb.$pf_exch: $symb_name\nExponential Moving Averages from $first_date to $pf_working_date", "arialbd.ttf", 12);
+    $textBoxObj = $c->addTitle("$symb.$pf_exch: $symb_name\nSimple Moving Average Diff from $first_date to $pf_working_date", "arialbd.ttf", 12);
     // Set the y axis label format to US$nnnn 
     $c->yAxis->setLabelFormat("£{value}");
     // Set the labels on the x axis. 
@@ -72,10 +67,8 @@ if (isset($username))
     $m_otherHourFormat = "{value|h:nna}";
     $m_timeLabelSpacing = 50;
     $c->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
-    $layer = $c->addLineLayer2();
-    $layer->addDataSet($ema_12, 0xff0000, "12 day");
-    $layer->addDataSet($ema_26, 0x00ff00, "26 day");
-    $layer = $c->addHLOCLayer3($high, $low, $open, $close, 0x008000, 0xff0000);
+    $barLayerObj = $c->addBarLayer($ma_10_diff);
+    $barLayerObj->setUseYAxis2();
     // Output the chart 
     header("Content-type: image/png");
     print($c->makeChart2(PNG));
