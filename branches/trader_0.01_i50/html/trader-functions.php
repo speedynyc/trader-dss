@@ -937,11 +937,11 @@ function get_warnings($symb, $pf_exch, $pf_working_date, $volume)
     $ma_10_diff = get_table_field('moving_averages', 'ma_10_diff', $symb, $pf_working_date, $pf_exch);
     if ($volume > 0 and $ma_10_diff < 0)
     {
-        $warnings .= $ma_10_diff . '<font color="red">Going long on a falling MA</font><br>';
+        $warnings .= '<font color="red">Going long on a falling MA</font><br>';
     }
     elseif ($volume < 0 and $ma_10_diff > 0)
     {
-        $warnings .= $ma_10_diff . '<font color="red">Going short on a rising MA</font><br>';
+        $warnings .= '<font color="red">Going short on a rising MA</font><br>';
     }
     return $warnings;
 }
