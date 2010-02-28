@@ -168,7 +168,7 @@ function draw_performance_table($portfolio)
                 $warning = "$warning<br>Close price has risen more than the stop loss from a min of $min_price. Sell!";
             }
         }
-        print "<tr><td><input type=\"checkbox\" name=\"mark[]\" value=\"$hid\"><font color=\"$colour\">$symb</font></td>\n";
+        print "<tr><td><input type=\"checkbox\" name=\"mark[]\" value=\"$hid\"><a href=\"/inspector.php?symb=$symb\" target=\"_blank\">$symb</a></td>\n";
         print "<td><font color=\"$colour\">$symb_name</font></td>\n";
         print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"comment_$hid\">$comment</textarea><br>$warning</td>";
         print "<td>$buy_date<input type=\"hidden\" name=\"date_$symb\" value=\"$buy_date\"></td>\n";
