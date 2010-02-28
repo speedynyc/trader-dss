@@ -946,19 +946,31 @@ function get_warnings($symb, $pf_exch, $pf_working_date, $volume)
     return $warnings;
 }
 
-
-
-class trader_base
+abstract class trader_base
 {
     // a base class to stop auto-vivication of object variables
+    // and to setup the DB connection
+    protected $dbh;
+    public function __construct()
+    {
+        // setup the DB connection for use in this script
+        global $db_hostname, $db_database, $db_user, $db_password;
+        try {
+            $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $e) {
+            die("ERROR: Cannot connect: " . $e->getMessage());
+        }
+        $this->dbh = $pdo;
+    }
     protected function __set($name, $value)
     {
-        tr_warn("No such property: $name = $value");
+        tr_warn("No such property trader_base __set(): $name = $value");
         die("Object error");
     }
     protected function __get($name)
     {
-        tr_warn("No such property: $name");
+        tr_warn("No such property trader_base __get(): $name");
         die("Object error");
     }
     protected function get($name)
@@ -969,28 +981,21 @@ class trader_base
         }
         else
         {
-            die("[FATAL]: No such property portfolio->$name\n");
+            die("[FATAL]: No such property  trader_base get() portfolio->$name\n");
         }
     }
 }
 
 class exchange extends trader_base
 {
-    protected $exch, $name, $symb, $currency, $dbh;
+    protected $exch, $name, $symb, $currency;
     public function __construct($exch_id)
     {
-        // setup the DB connection for use in this script
-        global $db_hostname, $db_database, $db_user, $db_password;
-        try {
-            $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $e) {
-            die("ERROR: Cannot connect: " . $e->getMessage());
-        }
+        parent::__construct();
         $query = "select * from exchange where exch = '$exch_id';";
         try 
         {
-            $result = $pdo->query($query);
+            $result = $this->dbh->query($query);
         }
         catch (PDOException $e)
         {
@@ -1004,7 +1009,6 @@ class exchange extends trader_base
             $this->name = $row['name'];
             $this->symb = $row['curr_desc'];
             $this->symb = $row['curr_char'];
-            $this->dbh = $pdo;
         }
         else
         {
@@ -1099,21 +1103,15 @@ class exchange extends trader_base
 
 class portfolio extends trader_base
 {
-    protected $pfid, $name, $exch, $parcel, $working_date, $hide_names, $stop_loss, $auto_stop_loss, $dbh;
+    protected $pfid, $name, $exch, $parcel, $working_date, $hide_names, $stop_loss, $auto_stop_loss;
     protected $cashInHand, $holdings, $openingBalance, $startDate, $countOfDaysTraded;
     protected $commission, $tax_rate;
     public function __construct($pfid)
     {
-        // setup the DB connection for use in this script
-        global $db_hostname, $db_database, $db_user, $db_password;
+        // setup the the parent class (db connection etc)
+        parent::__construct();
         // set all the 'lazy evaluate values to impossible numbers
         $this->countOfDaysTraded = -1;
-        try {
-            $this->dbh = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-            $this->dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $e) {
-            die("ERROR: Cannot connect: " . $e->getMessage());
-        }
         $query = "select * from portfolios where pfid = '$pfid';";
         try 
         {
@@ -1279,6 +1277,16 @@ class portfolio extends trader_base
             $previous_total = $row['total'];
         }
         return $current_total - $previous_total;
+    }
+}
+
+class security extends trader_base
+{
+    protected $symb, $name, $exch, $open, $close, $high, $low, $volume;
+    public function __construct($symb, $exch, $date)
+    {
+        // setup the the parent class (db connection etc)
+        parent::__construct();
     }
 }
 
