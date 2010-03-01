@@ -11,17 +11,17 @@ Not in any particular order and not a commitment to implement!
 
 == Features to add ==
 
-  * notes fields for trades need to be of type text and the interface needs to allow more editing (larger field window)
-  * Documentation of selectable indicators and how to query them
-  * Lots more technical indicators
+  * notes fields for trades need to be of type text and the interface needs to allow more editing (larger field window) (not going to bother, safari allows resizing which is good enough for me)
+  * (done) Documentation of selectable indicators and how to query them
+  * Lots more technical indicators (done MCAD, might do OBV, RSI and CCI) Williams %R being improved with [http://code.google.com/p/trader-dss/issues/detail?id=9 Issue 9]
      * chart integration for indicators
-  * utility scripts for another exchange (loading share names and historic prices)
+  * utility scripts for another exchange (loading share names and historic prices) (might not bother...)
   * Test with a second exchange
-  * Some support for sectors
+  * Some support for sectors (would be nice, but I can't find free sector information)
     * Better table support
     * Trigger updates?
     * utility script to update sector indicators?    
     * Integration into the web interface and charts
-  * A Charts page where you can define and use charts in a similar way to the current queries page
-  * Ability to make deposits and withdrawals to a portfolio
-  * Need to be able to edit portfolio details
+  * A Charts page where you can define and use charts in a similar way to the current queries page (looks like the stock inspector has replaced this)
+  * Ability to make deposits and withdrawals to a portfolio (not worth the effort)
+  * Need to be able to edit portfolio details (probably needs to be done)
