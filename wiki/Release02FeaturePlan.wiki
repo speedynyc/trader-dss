@@ -7,7 +7,7 @@ Not in any particular order and not a commitment to implement!
   * [http://code.google.com/p/trader-dss/issues/detail?id=22 Issue 22] Move DB login details from trader-functions.php into a config file which is also used by the scripts in ~/bin
   * [http://code.google.com/p/trader-dss/issues/detail?id=32 Issue 32] Before things get out of hand we need to get the documentation under control
   * [http://code.google.com/p/trader-dss/issues/detail?id=40 Issue 40] and [http://code.google.com/p/trader-dss/issues/detail?id=36 Issue 36] (done) should be implemented as a general warnings ability that would do routine checks on a selected stock and report things. This could be expanded into a comprehensive set of checks.
-  * [http://code.google.com/p/trader-dss/issues/detail?id=39 Issue 39] The current portfolio summary doesn't work with shorts, they just get treated as negative trades and do strange things to the graph and portfolio balance.
+  * [http://code.google.com/p/trader-dss/issues/detail?id=39 Issue 39] (done) The current portfolio summary doesn't work with shorts, they just get treated as negative trades and do strange things to the graph and portfolio balance.
 
 == Features to add ==
 
