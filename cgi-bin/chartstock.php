@@ -97,7 +97,33 @@ $c->addTitle("$symb.$exch $stock_name, from $first_date to $last_date");
 $c->setData($timeStamps, $highData, $lowData, $openData, $closeData, $volData, 0);
 
 # Add the main chart
-$c->addMainChart(300);
+$MainChart = $c->addMainChart(300);
+
+if (isset($_REQUEST['buy_date']))
+{
+    $buy_date = chartTime2(strtotime($_REQUEST['buy_date']));
+    $found_date = false;
+    for($i=0; $i< count($timeStamps); $i++) {
+        if($timeStamps[$i] == $buy_date)
+        {
+            $found_date = true;
+            break;
+        }
+    }
+    if ($found_date)
+    {
+        $xMark = $MainChart->xAxis->addMark($i, 0xff0000, "");
+        $xMark->setLineWidth(1);
+        $xMark->setAlignment(Left);
+    }
+}
+if (isset($_REQUEST['price']))
+{
+    $price = $_REQUEST['price'];
+    $yMark = $MainChart->yAxis->addMark($price, 0xff0000, "$price");
+    $yMark->setLineWidth(1);
+    $yMark->setAlignment(TopLeft);
+}
 
 # Add a simple moving average to the main chart, using brown color
 $c->addSimpleMovingAvg(10, 0x663300);
@@ -111,6 +137,15 @@ $c->addHLOC(0x008000, 0xcc0000);
 # Add a 75 pixels volume bars sub-chart to the bottom of the main chart, using
 # green/red/grey for up/down/flat days
 $c->addVolBars(75, 0x99ff99, 0xff9999, 0x808080);
+$c->addOBV(75, 0x0000ff);
+$c->addRSI(75, 14, 0x800080, 20, 0xff0000, 0x0000ff);
+$c->addMomentum(75, 12, 0x0000ff);
+$MCAD = $c->addMACD(75, 26, 12, 9, 0x0000ff, 0xff00ff, 0x008000);
+$xMark = $MCAD->xAxis->addMark($i, 0xff0000, "");
+$xMark->setLineWidth(1);
+$xMark->setAlignment(Left);
+
+$c->addWilliamR(75, 14, 0x800080, 30, 0xff6666, 0x6666ff);
 
 # Output the chart
 header("Content-type: image/png");
