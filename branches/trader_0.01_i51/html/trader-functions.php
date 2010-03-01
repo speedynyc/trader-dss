@@ -1303,7 +1303,8 @@ class quote extends security
 {
     protected $open, $close, $high, $low, $volume;
     protected $dates, $highData, $lowData, $openData, $closeData, $volData;
-    private $loadedStartDate, $loadedEndDate;
+    protected $max, $min, $maxDate, $minDate;
+    protected $loadedStartDate, $loadedEndDate;
     public function __construct($symb, $exch, $date)
     {
         // setup the the parent class (db connection etc)
@@ -1334,23 +1335,77 @@ class quote extends security
     public function getLow() { return $this->low; }
     public function getClose() { return $this->close; }
     public function getVolume() { return $this->volume; }
-    private function loadQuotes($startDate, $endDate)
+    public function getPrice($qty)
+    {
+        return $this->close * $qty;
+    }
+    protected function loadQuotes($startDate, $endDate)
     {
         // load all the quotes for the period
         $this->loadedStartDate = $startDate;
         $this->loadedEndDate = $endDate;
+        // zero the existing values
+        unset($this->dates, $this->highData, $this->lowData);
+        unset($this->openData, $this->closeData, $this->volData);
+        unset($this->max, $this->min);
         $exch = $this->exch->getID();
         $symb = $this->symb;
         $query = "select date, high, low, open, close, volume from quotes where symb = '$symb' and exch = '$exch' and date >= '$startDate' and date <= '$endDate' order by date";
         foreach ($this->dbh->query($query) as $row)
         {
-            $dates[] = $row['date'];
-            $highData[] = $row['high'];
-            $lowData[] = $row['low'];
-            $openData[] = $row['open'];
-            $closeData[] = $row['close'];
-            $volData[] = $row['volume'];
+            $this->dates[] = $row['date'];
+            $this->highData[] = $row['high'];
+            $this->lowData[] = $row['low'];
+            $this->openData[] = $row['open'];
+            $this->closeData[] = $row['close'];
+            $this->volData[] = $row['volume'];
+            if ($row['high'] > $this->max)
+            {
+                $this->max = $row['high'];
+                $this->maxDate = $row['date'];
+            }
+            if ($row['low'] < $this->min)
+            {
+                $this->min = $row['min'];
+                $this->minDate = $row['date'];
+            }
         }
+    }
+    public function getMin($startDate, $endDate)
+    {
+        if ($startDate != $this->loadedStartDate or $endDate != $this->loadedEndDate)
+        {
+            // load the data if not already loaded
+            $this->loadQuotes($startDate, $endDate);
+        }
+        return $this->min;
+    }
+    public function getMinDate($startDate, $endDate)
+    {
+        if ($startDate != $this->loadedStartDate or $endDate != $this->loadedEndDate)
+        {
+            // load the data if not already loaded
+            $this->loadQuotes($startDate, $endDate);
+        }
+        return $this->minDate;
+    }
+    public function getMax($startDate, $endDate)
+    {
+        if ($startDate != $this->loadedStartDate or $endDate != $this->loadedEndDate)
+        {
+            // load the data if not already loaded
+            $this->loadQuotes($startDate, $endDate);
+        }
+        return $this->max;
+    }
+    public function getMaxDate($startDate, $endDate)
+    {
+        if ($startDate != $this->loadedStartDate or $endDate != $this->loadedEndDate)
+        {
+            // load the data if not already loaded
+            $this->loadQuotes($startDate, $endDate);
+        }
+        return $this->maxDate;
     }
     public function getHighs($startDate, $endDate)
     {
@@ -1405,6 +1460,75 @@ class quote extends security
             $this->loadQuotes($startDate, $endDate);
         }
         return $this->dates;
+    }
+}
+
+class holding extends quote
+{
+    protected $hid, $buyPrice, $workingDate, $pfid, $openDate, $qty, $comment;
+    public function __construct($symb, $portfolio)
+    {
+        // setup the the parent class (db connection etc)
+        $workingDate = $portfolio->getWorkingDate();
+        $exch = $portfolio->exch->getID();
+        $pfid = $portfolio->getID();
+        $this->pfid = $pfid;
+        parent::__construct($symb, $exch, $workingDate);
+        // load the info from the stocks table
+        $query = "select * from holdings where symb = '$symb' and pfid = '$pfid';";
+        try 
+        {
+            $result = $this->dbh->query($query);
+        }
+        catch (PDOException $e)
+        {
+            tr_warn('holding:__construct:' . $query . ':' . $e->getMessage());
+            die("[FATAL]Class: holding, function: __construct\n");
+        }
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        if (isset($row['symb']) and $row['symb'] == $symb)
+        {
+            $this->hid = $row['hid'];
+            $this->pfid = $row['pfid'];
+            $this->openDate = $row['date'];
+            $this->price = $row['price'];
+            $this->qty = $row['volume'];
+            $this->comment = $row['comment'];
+        }
+    }
+    public function getHid() { return $this->hid; }
+    public function getPfid() { return $this->pfid; }
+    public function getOpenDate() { return $this->openDate; }
+    public function getPrice() { return $this->price; }
+    public function getQty() { return $this->qty; }
+    public function getComment() { return $this->comment; }
+    public function getGain()
+    {
+        return ($this->price * abs($this->qty)) + ($this->qty * ($this->cose - $this->price));
+    }
+    public function getValue()
+    {
+        return ($this->price * abs($this->qty)) + ($this->qty * ($this->cose - $this->price));
+    }
+    public function getCost()
+    {
+        return ($this->price * abs($this->qty));
+    }
+    public function IsGain()
+    {
+        $gain = $this->getGain();
+        if ( $gain < 0 )
+        {
+            return -1;
+        }
+        elseif ($gain == 0)
+        {
+            return 0;
+        }
+        else
+        {
+            return 1;
+        }
     }
 }
 
