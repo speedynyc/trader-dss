@@ -73,8 +73,8 @@ if (isset($username))
     $m_timeLabelSpacing = 50;
     $c->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
     $layer = $c->addLineLayer2();
-    $layer->addDataSet($ema_12, 0xff0000, "12 day");
-    $layer->addDataSet($ema_26, 0x00ff00, "26 day");
+    $layer->addDataSet($ema_12, -1, "12 day");
+    $layer->addDataSet($ema_26, -1, "26 day");
     $layer = $c->addHLOCLayer3($high, $low, $open, $close, 0x008000, 0xff0000);
     // Output the chart 
     header("Content-type: image/png");
