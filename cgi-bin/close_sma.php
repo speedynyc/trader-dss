@@ -78,12 +78,12 @@ if (isset($username))
     $m_timeLabelSpacing = 50;
     $c->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
     $layer = $c->addLineLayer2();
-    $layer->addDataSet($close_ma_10, 0xff0000, "10 day");
-    $layer->addDataSet($close_ma_20, 0x00ff00, "20 day");
-    $layer->addDataSet($close_ma_30, 0x0000ff, "30 day");
-    $layer->addDataSet($close_ma_50, 0x008800, "50 day");
-    $layer->addDataSet($close_ma_100, 0x003300, "100 day");
-    $layer->addDataSet($close_ma_200, 0xff00ff, "200 day");
+    $layer->addDataSet($close_ma_10, -1, "10 day");
+    $layer->addDataSet($close_ma_20, -1, "20 day");
+    $layer->addDataSet($close_ma_30, -1, "30 day");
+    $layer->addDataSet($close_ma_50, -1, "50 day");
+    $layer->addDataSet($close_ma_100, -1, "100 day");
+    $layer->addDataSet($close_ma_200, -1, "200 day");
     $layer = $c->addHLOCLayer3($high, $low, $open, $close, 0x008000, 0xff0000);
     #$barLayerObj = $c->addBarLayer($ma_10_diff);
     #$barLayerObj->setUseYAxis2();
