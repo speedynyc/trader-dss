@@ -99,12 +99,12 @@ $c->setData($timeStamps, $highData, $lowData, $openData, $closeData, $volData, 0
 # Add the main chart
 $MainChart = $c->addMainChart(300);
 
-if (isset($_REQUEST['buy_date']))
+if (isset($_REQUEST['ref_date']))
 {
-    $buy_date = chartTime2(strtotime($_REQUEST['buy_date']));
+    $reference_date = chartTime2(strtotime($_REQUEST['ref_date']));
     $found_date = false;
-    for($i=0; $i< count($timeStamps); $i++) {
-        if($timeStamps[$i] == $buy_date)
+    for($timestampIndex=0; $timestampIndex < count($timeStamps); $timestampIndex++) {
+        if($timeStamps[$timestampIndex] == $reference_date)
         {
             $found_date = true;
             break;
@@ -112,7 +112,7 @@ if (isset($_REQUEST['buy_date']))
     }
     if ($found_date)
     {
-        $xMark = $MainChart->xAxis->addMark($i, 0xff0000, "");
+        $xMark = $MainChart->xAxis->addMark($timestampIndex, 0x0000ff, "");
         $xMark->setLineWidth(1);
         $xMark->setAlignment(Left);
     }
@@ -141,9 +141,9 @@ $c->addOBV(75, 0x0000ff);
 $c->addRSI(75, 14, 0x800080, 20, 0xff0000, 0x0000ff);
 $c->addMomentum(75, 12, 0x0000ff);
 $MCAD = $c->addMACD(75, 26, 12, 9, 0x0000ff, 0xff00ff, 0x008000);
-$xMark = $MCAD->xAxis->addMark($i, 0xff0000, "");
-$xMark->setLineWidth(1);
-$xMark->setAlignment(Left);
+#$xMark = $MCAD->xAxis->addMark($timestampIndex, 0xff0000, "");
+#$xMark->setLineWidth(1);
+#$xMark->setAlignment(Left);
 
 $c->addWilliamR(75, 14, 0x800080, 30, 0xff6666, 0x6666ff);
 
