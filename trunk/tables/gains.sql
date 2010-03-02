@@ -7,6 +7,7 @@ CREATE TABLE gains
  date date NOT NULL, -- Date this row refers to.
  symb character varying(10) NOT NULL, -- symbol of the commodity being traded
  exch character varying(6) NOT NULL, -- Exchange code
+ gain_1 numeric(9,2),
  d_10 date,
  c_10 numeric(9,2),
  gain_10 numeric(9,2),
