@@ -36,7 +36,7 @@ BEGIN
         END;
     ELSE
         -- gain200
-        update gains set d_200 = new_date, c_200 = gain200.close, gain_200 = new_close - gain200.close where symb = new_symb and exch = new_exch and date = new_date;
+        update gains set d_200 = gain200.date, c_200 = gain200.close, gain_200 = new_close - gain200.close where symb = new_symb and exch = new_exch and date = new_date;
         IF NOT FOUND THEN
             insert into gains (date, symb, exch, d_200, c_200, gain_200) values (new_date, new_symb, new_exch, gain200.date, gain200.close, new_close - gain200.close);
         END IF;
