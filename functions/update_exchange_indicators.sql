@@ -28,7 +28,10 @@ AS $$
                     a_d_ratio = 0;
                 ELSE
                     -- nothing lost any ground? Hard to believe, but that's infinity
-                    a_d_ratio = 99999.9999;
+                    -- in practise this turns out to be on days when almost nothing trades 
+                    --  so you end up with 2 advance and 0 decline which I'm going to round to 0
+                    --  since it's not a significant value
+                    a_d_ratio = 0;
                 END IF;
             ELSE
                 a_d_ratio := (adv.count::numeric(9,4) / dec.count::numeric(9,4));

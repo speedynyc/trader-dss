@@ -88,6 +88,12 @@ while ((@row) = $sth->fetchrow_array)
     pause_or_stop();
 }
 print "[INFO]Total rows added $total_inserts\n";
+print "[INFO]Updating exchange indicators\n";
+$query = "select update_all_exchange_indicators();;\n";
+print "$query\n" if ($debug);
+$sth = $dbh->prepare("$query") or die $dbh->errstr;
+$sth->execute or die $dbh->errstr;
+$sth->finish;
 $isth->finish;
 
 sub pause_or_stop

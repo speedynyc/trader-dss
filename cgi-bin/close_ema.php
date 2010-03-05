@@ -1,6 +1,6 @@
 <?php
 include("../html/trader-functions.php");
-require_once("../ChartDirector/lib/FinanceChart.php");
+require_once("../ChartDirector/lib/phpchartdir.php");
 global $db_hostname, $db_database, $db_user, $db_password;
 
 redirect_login_pf();
@@ -60,9 +60,6 @@ if (isset($username))
     $textBoxObj = $c->addTitle("$symb.$pf_exch: $symb_name\nExponential Moving Averages from $first_date to $pf_working_date", "arialbd.ttf", 12);
     // Set the y axis label format to US$nnnn 
     $c->yAxis->setLabelFormat("£{value}");
-    // Set the labels on the x axis. 
-    $c->xAxis->setLabels2($dates);
-    $c->xAxis->setLabelStep(7, 1);
     $m_yearFormat = "{value|yyyy}";
     $m_firstMonthFormat = "<*font=bold*>{value|mmm yy}";
     $m_otherMonthFormat = "{value|mmm}";
@@ -73,9 +70,11 @@ if (isset($username))
     $m_timeLabelSpacing = 50;
     $c->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
     $layer = $c->addLineLayer2();
+    $layer->setXData($dates);
     $layer->addDataSet($ema_12, -1, "12 day");
     $layer->addDataSet($ema_26, -1, "26 day");
     $layer = $c->addHLOCLayer3($high, $low, $open, $close, 0x008000, 0xff0000);
+    $layer->setXData($dates);
     // Output the chart 
     header("Content-type: image/png");
     print($c->makeChart2(PNG));
