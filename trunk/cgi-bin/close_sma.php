@@ -1,6 +1,6 @@
 <?php
 include("../html/trader-functions.php");
-require_once("../ChartDirector/lib/FinanceChart.php");
+require_once("../ChartDirector/lib/phpchartdir.php");
 global $db_hostname, $db_database, $db_user, $db_password;
 
 redirect_login_pf();
@@ -66,8 +66,6 @@ if (isset($username))
     // Set the y axis label format to US$nnnn 
     $c->yAxis->setLabelFormat("£{value}");
     // Set the labels on the x axis. 
-    $c->xAxis->setLabels2($dates);
-    $c->xAxis->setLabelStep(7, 1);
     $m_yearFormat = "{value|yyyy}";
     $m_firstMonthFormat = "<*font=bold*>{value|mmm yy}";
     $m_otherMonthFormat = "{value|mmm}";
@@ -78,6 +76,7 @@ if (isset($username))
     $m_timeLabelSpacing = 50;
     $c->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
     $layer = $c->addLineLayer2();
+    $layer->setXData($dates);
     $layer->addDataSet($close_ma_10, -1, "10 day");
     $layer->addDataSet($close_ma_20, -1, "20 day");
     $layer->addDataSet($close_ma_30, -1, "30 day");
@@ -85,8 +84,7 @@ if (isset($username))
     $layer->addDataSet($close_ma_100, -1, "100 day");
     $layer->addDataSet($close_ma_200, -1, "200 day");
     $layer = $c->addHLOCLayer3($high, $low, $open, $close, 0x008000, 0xff0000);
-    #$barLayerObj = $c->addBarLayer($ma_10_diff);
-    #$barLayerObj->setUseYAxis2();
+    $layer->setXData($dates);
     // Output the chart 
     header("Content-type: image/png");
     print($c->makeChart2(PNG));

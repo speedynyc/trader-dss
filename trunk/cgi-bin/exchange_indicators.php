@@ -1,5 +1,6 @@
 <?php
 include("../html/trader-functions.php");
+#require_once("../ChartDirector/lib/FinanceChart.php");
 require_once("../ChartDirector/lib/phpchartdir.php");
 global $db_hostname, $db_database, $db_user, $db_password;
 
@@ -16,8 +17,7 @@ if (isset($username))
     $pf_name = $portfolio->getName();
     $pf_working_date = $portfolio->getWorkingDate();
     $pf_exch = $portfolio->getExch()->getID();
-    $symb = $_GET['symb'];
-    $symb_name = get_symb_name($symb, $pf_exch);
+    $pf_exch_name = $portfolio->getExch()->getName();
     $endDate = chartTime2(strtotime($pf_working_date));
     if (isset($_SESSION['chart_period']))
     {
@@ -36,10 +36,12 @@ if (isset($username))
     } catch (PDOException $e) {
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
-    $query = "select date, ma_10_diff from moving_averages where date >= '$first_date' and date <= '$pf_working_date' and symb = '$symb' and exch = '$pf_exch' order by date limit $chart_period;";
+    $query = "select date, adv_dec_spread, adv_dec_line, adv_dec_ratio from exchange_indicators where date >= '$first_date' and date <= '$pf_working_date' and exch = '$pf_exch' order by date limit $chart_period;";
     foreach ($pdo->query($query) as $row)
     {
-        $ma_10_diff[] = $row['ma_10_diff'];
+        $a_d_spread[] = $row['adv_dec_spread'];
+        $a_d_line[] = $row['adv_dec_line'];
+        $a_d_ratio[] = $row['adv_dec_ratio'];
         $dates[] = chartTime2(strtotime($row['date']));
     }
     // Set the plotarea at (50, 30) and of size 240 x 140 pixels. Use white (0xffffff) 
@@ -52,10 +54,8 @@ if (isset($username))
     $legendObj->setBackground(Transparent);
     // Add a title box to the chart using 8 pts Arial Bold font, with yellow (0xffff40)
     // background and a black border (0x0)
-    $textBoxObj = $c->addTitle("$symb.$pf_exch: $symb_name\n10 day Simple Moving Average Diff from $first_date to $pf_working_date", "arialbd.ttf", 12);
+    $textBoxObj = $c->addTitle("$pf_exch_name Breadth indicators from $first_date to $pf_working_date", "arialbd.ttf", 12);
     // Set the y axis label format to US$nnnn 
-    $c->yAxis->setLabelFormat("£{value}");
-    // Set the labels on the x axis. 
     $m_yearFormat = "{value|yyyy}";
     $m_firstMonthFormat = "<*font=bold*>{value|mmm yy}";
     $m_otherMonthFormat = "{value|mmm}";
@@ -65,9 +65,11 @@ if (isset($username))
     $m_otherHourFormat = "{value|h:nna}";
     $m_timeLabelSpacing = 50;
     $c->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
-    $barLayerObj = $c->addBarLayer($ma_10_diff);
-    $barLayerObj->setUseYAxis2();
-    $barLayerObj->setXData($dates);
+    $c->yAxis->setLogScale(0.1, 10);
+    #$lineLayerObj = $c->addLineLayer($a_d_line, -1, 'A/D Line');
+    #$lineLayerObj->setUseYAxis2();
+    $lineLayerObj = $c->addlineLayer($a_d_ratio, -1, 'A/D Ratio');
+    $lineLayerObj->setXData($dates);
     // Output the chart 
     header("Content-type: image/png");
     print($c->makeChart2(PNG));

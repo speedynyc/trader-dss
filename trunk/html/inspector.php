@@ -38,6 +38,7 @@ if (isset($username))
     print "<tr><td><img SRC=\"/cgi-bin/close_sma.php?symb=$symb\" ALIGN=\"bottom\" BORDER=\"0\"></td></tr>";
     print "<tr><td><img SRC=\"/cgi-bin/close_ma_diff.php?symb=$symb\" ALIGN=\"bottom\" BORDER=\"0\"></td></tr>";
     print "<tr><td><img SRC=\"/cgi-bin/close_ema.php?symb=$symb\" ALIGN=\"bottom\" BORDER=\"0\"></td></tr>";
+    print "<tr><td><img SRC=\"/cgi-bin/exchange_indicators.php\" ALIGN=\"bottom\" BORDER=\"0\"></td></tr>";
     print "</table>\n";
 }
 else

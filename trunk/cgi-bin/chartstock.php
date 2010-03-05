@@ -136,6 +136,7 @@ $c->addHLOC(0x008000, 0xcc0000);
 
 # Add a 75 pixels volume bars sub-chart to the bottom of the main chart, using
 # green/red/grey for up/down/flat days
+$c->addBollingerBand(10, 2, 0x9999ff, 0xc06666ff);
 $c->addVolBars(75, 0x99ff99, 0xff9999, 0x808080);
 $c->addOBV(75, 0x0000ff);
 $c->addRSI(75, 14, 0x800080, 20, 0xff0000, 0x0000ff);

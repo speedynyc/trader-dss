@@ -1,6 +1,6 @@
 <?php
 include("../html/trader-functions.php");
-require_once("../ChartDirector/lib/FinanceChart.php");
+require_once("../ChartDirector/lib/phpchartdir.php");
 global $db_hostname, $db_database, $db_user, $db_password;
 try {
     $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
@@ -14,7 +14,8 @@ if (isset($_REQUEST['pfid']))
     $portfolio = new portfolio($_REQUEST['pfid']);
     $pfid = $portfolio->getID();
     $name = $portfolio->getName();
-    $query = "select date, cash_in_hand, holdings from (select date, cash_in_hand, holdings from pf_summary where pfid = '$pfid' order by date desc limit 50) as base order by date;";
+    #$query = "select date, cash_in_hand, holdings from (select date, cash_in_hand, holdings from pf_summary where pfid = '$pfid' order by date desc limit 50) as base order by date;";
+    $query = "select date, cash_in_hand, holdings from pf_summary where pfid = '$pfid' order by date ;;";
     $first = true;
     foreach ($pdo->query($query) as $row)
     {
@@ -46,10 +47,7 @@ if (isset($_REQUEST['pfid']))
     // Set the y axis label format to US$nnnn 
     $c->yAxis->setLabelFormat("£{value}");
     // Set the labels on the x axis. 
-    #$c->xAxis->setLabelStep(2);
-    $c->xAxis->setLabels2($dates);
     // Display 1 out of 2 labels on the x-axis. Show minor ticks for remaining labels. 
-    $c->xAxis->setLabelStep(7, 1);
     $m_yearFormat = "{value|yyyy}";
     $m_firstMonthFormat = "<*font=bold*>{value|mmm yy}";
     $m_otherMonthFormat = "{value|mmm}";
@@ -59,12 +57,11 @@ if (isset($_REQUEST['pfid']))
     $m_otherHourFormat = "{value|h:nna}";
     $m_timeLabelSpacing = 50;
     $c->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
-    #$c->xAxis->setMultiFormat(StartOfMonthFilter(), $m_firstMonthFormat, StartOfMonthFilter(1, 0.5), $m_otherMonthFormat, 1);
-    #$c->xAxis->setMultiFormat(StartOfYearFilter(), $m_YearFormat, StartOfYearFilter(1, 0.5), $m_YearFormat, 1);
     // Add an stack area layer with three data sets 
     $layer = $c->addAreaLayer2(Stack);
     $layer->addDataSet($holdings, 0x4040ff, "Holdings");
     $layer->addDataSet($cash_in_hand, 0xff4040, "Cash");
+    $layer->setXData($dates);
     // Output the chart 
     header("Content-type: image/png");
     print($c->makeChart2(PNG));
