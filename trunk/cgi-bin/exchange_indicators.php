@@ -11,7 +11,9 @@ $uid = $_SESSION['uid'];
 // make sure they're logged in"
 if (isset($username))
 {
-    $c = new XYChart(640, 180);
+    $c1 = new XYChart(640, 180);
+    $c2 = new XYChart(640, 180);
+    $m = new MultiChart(640, 2*180);
     $portfolio = new portfolio($_SESSION['pfid']);
     $pf_id = $portfolio->getID();
     $pf_name = $portfolio->getName();
@@ -29,7 +31,7 @@ if (isset($username))
     }
     $durationInDays = (int)($chart_period);
     $startDate = $endDate - ($durationInDays*24*60*60);
-    $first_date = $c->formatValue($startDate, "{value|yyyy-mm-dd}");
+    $first_date = $c1->formatValue($startDate, "{value|yyyy-mm-dd}");
     try {
         $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -46,15 +48,19 @@ if (isset($username))
     }
     // Set the plotarea at (50, 30) and of size 240 x 140 pixels. Use white (0xffffff) 
     // background. 
-    $plotAreaObj = $c->setPlotArea(50, 45, 410, 100);
+    $plotAreaObj = $c1->setPlotArea(50, 45, 410, 100);
+    $plotAreaObj->setBackground(0xffffff);
+    $plotAreaObj = $c2->setPlotArea(50, 45, 410, 100);
     $plotAreaObj->setBackground(0xffffff);
     // Add a legend box at (50, 185) (below of plot area) using horizontal layout. Use 8 
     // pts Arial font with Transparent background. 
-    $legendObj = $c->addLegend(50, 45, false, "", 8);
+    $legendObj = $c1->addLegend(50, 45, false, "", 8);
+    $legendObj->setBackground(Transparent);
+    $legendObj = $c2->addLegend(50, 45, false, "", 8);
     $legendObj->setBackground(Transparent);
     // Add a title box to the chart using 8 pts Arial Bold font, with yellow (0xffff40)
     // background and a black border (0x0)
-    $textBoxObj = $c->addTitle("$pf_exch_name Breadth indicators from $first_date to $pf_working_date", "arialbd.ttf", 12);
+    $m->addTitle("$pf_exch_name Breadth indicators from $first_date to $pf_working_date", "arialbd.ttf", 12);
     // Set the y axis label format to US$nnnn 
     $m_yearFormat = "{value|yyyy}";
     $m_firstMonthFormat = "<*font=bold*>{value|mmm yy}";
@@ -64,15 +70,22 @@ if (isset($username))
     $m_firstHourFormat = "<*font=bold*>{value|d mmm\nh:nna}";
     $m_otherHourFormat = "{value|h:nna}";
     $m_timeLabelSpacing = 50;
-    $c->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
-    $c->yAxis->setLogScale(0.1, 10);
-    #$lineLayerObj = $c->addLineLayer($a_d_line, -1, 'A/D Line');
-    #$lineLayerObj->setUseYAxis2();
-    $lineLayerObj = $c->addlineLayer($a_d_ratio, -1, 'A/D Ratio');
+    $c1->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
+    $mark = $c1->yAxis->addMark(1, -1, "");
+    $mark->setLineWidth(1);
+    $c1->yAxis->setLogScale(0.1, 10);
+    $c2->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
+    $lineLayerObj = $c1->addlineLayer($a_d_ratio, 0x000000, 'A/D Ratio');
+    // add the colouring to the area between 1 and the current plot line
+    $c1->addInterLineLayer($lineLayerObj->getLine(), $mark->getLine(), 0x008800, 0xff0000);
+    $lineLayerObj->setXData($dates);
+    $lineLayerObj = $c2->addLineLayer($a_d_line, -1, 'A/D Line');
     $lineLayerObj->setXData($dates);
     // Output the chart 
     header("Content-type: image/png");
-    print($c->makeChart2(PNG));
+    $m->addChart(0, 0, $c1);
+    $m->addChart(0, 150, $c2);
+    print($m->makeChart2(PNG));
 }
 else
 {
