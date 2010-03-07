@@ -12,6 +12,7 @@ CREATE TABLE queries (
     sql_order_dir char(4),
     sql_limit integer,
     chart_period integer,
+    active boolean,
     unique (uid, name)
 );
 ALTER TABLE public.queries OWNER TO postgres;

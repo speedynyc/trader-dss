@@ -41,7 +41,7 @@ function validate_new_query($desc)
     }
     $q_desc = $pdo->quote($desc);
     $uid = $pdo->quote($_SESSION['uid']);
-    $query = "select count(*) from queries where name = $q_desc and uid = $uid;";
+    $query = "select count(*) from queries where name = $q_desc and uid = $uid and active = TRUE;";
     $count = 0;
     foreach ($pdo->query($query) as $row)
     {
@@ -54,13 +54,13 @@ function create_select_query_form()
 {
     global $db_hostname, $db_database, $db_user, $db_password, $pdo, $uid;
     global $select_query_form, $q_id;
-    $query = "select count(*) as count from queries where uid = '$uid';";
+    $query = "select count(*) as count from queries where uid = '$uid' and active = TRUE;";
     $result = $pdo->query($query);
     $row = $result->fetch(PDO::FETCH_ASSOC);
     if ($row['count'] > 0)
     {
         $first = true;
-        $query = "select qid, name from queries where uid = $uid order by name;";
+        $query = "select qid, name from queries where uid = $uid and active = TRUE order by name;";
         $result = $pdo->query($query);
         $choose_query = $select_query_form->addElement('select','choose_query','Select Query to Edit:');
         while ($row = $result->fetch(PDO::FETCH_ASSOC))
@@ -145,7 +145,7 @@ if (isset($_POST['edit_query']))
     $data = $select_query_form->exportValues();
     $q_id = $data['choose_query'];
     $_SESSION['qid'] = $q_id;
-    $query = "select * from queries where qid = $q_id;";
+    $query = "select * from queries where qid = $q_id and active = TRUE;";
     $result = $pdo->query($query);
     $row = $result->fetch(PDO::FETCH_ASSOC);
     $_SESSION['sql_name']      = $sql_name = $row['name'];
@@ -188,7 +188,7 @@ if (isset($_POST['save_sql']))
         $_SESSION['sql_limit']     = $sql_limit  = $data['sql_limit'];
         $_SESSION['chart_period']  = $chart_period = $data['chart_period'];
         // do we have a qid? if so save these to that
-        $query = "insert into queries (uid, name, sql_select, sql_from, sql_where, sql_order, sql_order_dir, sql_limit, chart_period) values ('$uid', '$sql_name', '$sql_select', '$sql_from', '$sql_where', '$sql_order', '$sql_order_dir', '$sql_limit', '$chart_period');";
+        $query = "insert into queries (uid, name, sql_select, sql_from, sql_where, sql_order, sql_order_dir, sql_limit, chart_period, active) values ('$uid', '$sql_name', '$sql_select', '$sql_from', '$sql_where', '$sql_order', '$sql_order_dir', '$sql_limit', '$chart_period', TRUE);";
         $pdo->exec($query);
         // changed both forms, so reload them
         $select_query_form = new HTML_QuickForm('select_query');
@@ -199,7 +199,7 @@ if (isset($_POST['save_sql']))
 }
 if (isset($_POST['del_sql']))
 {
-    $query = "delete from queries where qid = $q_id;";
+    $query = "update queries set active = FALSE where qid = $q_id;";
     $pdo->exec($query);
     $select_query_form = new HTML_QuickForm('select_query');
     create_select_query_form();
