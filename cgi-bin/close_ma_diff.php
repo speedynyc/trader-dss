@@ -44,8 +44,7 @@ if (isset($username))
     }
     // Set the plotarea at (50, 30) and of size 240 x 140 pixels. Use white (0xffffff) 
     // background. 
-    $plotAreaObj = $c->setPlotArea(50, 45, 410, 100);
-    $plotAreaObj->setBackground(0xffffff);
+    $plotAreaObj = $c->setPlotArea(50, 45, 410, 100, 0xffffff, 0xffffff, 0xc0c0c0, 0xc0c0c0, 0xc0c0c0);
     // Add a legend box at (50, 185) (below of plot area) using horizontal layout. Use 8 
     // pts Arial font with Transparent background. 
     $legendObj = $c->addLegend(50, 45, false, "", 8);
