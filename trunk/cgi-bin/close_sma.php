@@ -54,8 +54,7 @@ if (isset($username))
     }
     // Set the plotarea at (50, 30) and of size 240 x 140 pixels. Use white (0xffffff) 
     // background. 
-    $plotAreaObj = $c->setPlotArea(50, 45, 410, 400);
-    $plotAreaObj->setBackground(0xffffff);
+    $plotAreaObj = $c->setPlotArea(50, 45, 410, 400, 0xffffff, 0xffffff, 0xc0c0c0, 0xc0c0c0, 0xc0c0c0);
     // Add a legend box at (50, 185) (below of plot area) using horizontal layout. Use 8 
     // pts Arial font with Transparent background. 
     $legendObj = $c->addLegend(50, 455, false, "", 8);
@@ -77,6 +76,7 @@ if (isset($username))
     $c->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
     $layer = $c->addLineLayer2();
     $layer->setXData($dates);
+    $layer->setLineWidth(1);
     $layer->addDataSet($close_ma_10, -1, "10 day");
     $layer->addDataSet($close_ma_20, -1, "20 day");
     $layer->addDataSet($close_ma_30, -1, "30 day");
@@ -85,6 +85,7 @@ if (isset($username))
     $layer->addDataSet($close_ma_200, -1, "200 day");
     $layer = $c->addHLOCLayer3($high, $low, $open, $close, 0x008000, 0xff0000);
     $layer->setXData($dates);
+    $layer->setLineWidth(1);
     // Output the chart 
     header("Content-type: image/png");
     print($c->makeChart2(PNG));
