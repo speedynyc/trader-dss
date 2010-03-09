@@ -74,19 +74,17 @@ if (isset($username))
     $m_timeLabelSpacing = 50;
     $c1->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
     $mark1 = $c1->yAxis->addMark(1, -1, "");
-    #$c1->yAxis->setLogScale(0.1, 10);
     $c2->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
     $c3->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
     $mark3 = $c3->yAxis->addMark(0, -1, "");
     // add the colouring to the area between 1 and the current plot line
     $lineLayerObj1 = $c1->addLineLayer($a_d_ratio, $c1->yZoneColor(1, 0xff3333, 0x008800), 'A/D Ratio');
-    $c1->addInterLineLayer($lineLayerObj1->getLine(), $mark1->getLine(), 0x008800, 0xff0000);
+    $c1->addInterLineLayer($lineLayerObj1->getLine(), $mark1->getLine(), $c1->linearGradientColor(0, 50, 0, 255, 0xffffff, 0x008800), $c1->linearGradientColor(0, 50, 0, 255, 0xffffff, 0xff0000));
     $lineLayerObj1->setXData($dates);
     $lineLayerObj2 = $c2->addLineLayer($a_d_line, -1, 'A/D Line');
     $lineLayerObj2->setXData($dates);
-    #$lineLayerObj3 = $c3->addLineLayer($a_d_spread, -1, 'A/D Spread');
     $lineLayerObj3 = $c3->addLineLayer($a_d_spread, $c3->yZoneColor(0, 0xff3333, 0x008800), 'A/D Spread');
-    $c3->addInterLineLayer($lineLayerObj3->getLine(), $mark3->getLine(), 0x008800, 0xff0000);
+    $c3->addInterLineLayer($lineLayerObj3->getLine(), $mark3->getLine(), $c3->linearGradientColor(0, 50, 0, 255, 0xffffff, 0x008800), $c3->linearGradientColor(0, 50, 0, 255, 0xffffff, 0xff0000));
     $lineLayerObj3->setXData($dates);
     // Output the chart 
     header("Content-type: image/png");
