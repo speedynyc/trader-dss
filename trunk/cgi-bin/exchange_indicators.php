@@ -13,7 +13,8 @@ if (isset($username))
 {
     $c1 = new XYChart(640, 180);
     $c2 = new XYChart(640, 180);
-    $m = new MultiChart(640, 2*180);
+    $c3 = new XYChart(640, 180);
+    $m = new MultiChart(640, 3*180);
     $portfolio = new portfolio($_SESSION['pfid']);
     $pf_id = $portfolio->getID();
     $pf_name = $portfolio->getName();
@@ -50,11 +51,14 @@ if (isset($username))
     // background. 
     $plotAreaObj = $c1->setPlotArea(50, 45, 410, 100, 0xffffff, 0xffffff, 0xc0c0c0, 0xc0c0c0, 0xc0c0c0);
     $plotAreaObj = $c2->setPlotArea(50, 45, 410, 100, 0xffffff, 0xffffff, 0xc0c0c0, 0xc0c0c0, 0xc0c0c0);
+    $plotAreaObj = $c3->setPlotArea(50, 45, 410, 100, 0xffffff, 0xffffff, 0xc0c0c0, 0xc0c0c0, 0xc0c0c0);
     // Add a legend box at (50, 185) (below of plot area) using horizontal layout. Use 8 
     // pts Arial font with Transparent background. 
     $legendObj = $c1->addLegend(50, 45, false, "", 8);
     $legendObj->setBackground(Transparent);
     $legendObj = $c2->addLegend(50, 45, false, "", 8);
+    $legendObj->setBackground(Transparent);
+    $legendObj = $c3->addLegend(50, 45, false, "", 8);
     $legendObj->setBackground(Transparent);
     // Add a title box to the chart using 8 pts Arial Bold font, with yellow (0xffff40)
     // background and a black border (0x0)
@@ -69,20 +73,26 @@ if (isset($username))
     $m_otherHourFormat = "{value|h:nna}";
     $m_timeLabelSpacing = 50;
     $c1->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
-    $mark = $c1->yAxis->addMark(1, -1, "");
-    $mark->setLineWidth(1);
-    $c1->yAxis->setLogScale(0.1, 10);
+    $mark1 = $c1->yAxis->addMark(1, -1, "");
+    #$c1->yAxis->setLogScale(0.1, 10);
     $c2->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
-    $lineLayerObj = $c1->addlineLayer($a_d_ratio, 0x000000, 'A/D Ratio');
+    $c3->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
+    $mark3 = $c3->yAxis->addMark(0, -1, "");
     // add the colouring to the area between 1 and the current plot line
-    $c1->addInterLineLayer($lineLayerObj->getLine(), $mark->getLine(), 0x008800, 0xff0000);
-    $lineLayerObj->setXData($dates);
-    $lineLayerObj = $c2->addLineLayer($a_d_line, -1, 'A/D Line');
-    $lineLayerObj->setXData($dates);
+    $lineLayerObj1 = $c1->addLineLayer($a_d_ratio, $c1->yZoneColor(1, 0xff3333, 0x008800), 'A/D Ratio');
+    $c1->addInterLineLayer($lineLayerObj1->getLine(), $mark1->getLine(), 0x008800, 0xff0000);
+    $lineLayerObj1->setXData($dates);
+    $lineLayerObj2 = $c2->addLineLayer($a_d_line, -1, 'A/D Line');
+    $lineLayerObj2->setXData($dates);
+    #$lineLayerObj3 = $c3->addLineLayer($a_d_spread, -1, 'A/D Spread');
+    $lineLayerObj3 = $c3->addLineLayer($a_d_spread, $c3->yZoneColor(0, 0xff3333, 0x008800), 'A/D Spread');
+    $c3->addInterLineLayer($lineLayerObj3->getLine(), $mark3->getLine(), 0x008800, 0xff0000);
+    $lineLayerObj3->setXData($dates);
     // Output the chart 
     header("Content-type: image/png");
     $m->addChart(0, 0, $c1);
     $m->addChart(0, 150, $c2);
+    $m->addChart(0, 300, $c3);
     print($m->makeChart2(PNG));
 }
 else
