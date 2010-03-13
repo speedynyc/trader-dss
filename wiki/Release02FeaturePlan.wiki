@@ -16,7 +16,7 @@ Not in any particular order and not a commitment to implement!
   * Lots more technical indicators (*done MCAD*, might do OBV, RSI and CCI. Williams %R being improved with [http://code.google.com/p/trader-dss/issues/detail?id=9 Issue 9])
      * chart integration for indicators
   * utility scripts for another exchange (loading share names and historic prices) *(might not bother...)*
-  * Test with a second exchange
+  * Test with a second exchange *(might not bother...)*
   * Some support for sectors *(would be nice, but I can't find free sector information so it may not happen)*
     * Better table support
     * Trigger updates?
@@ -31,4 +31,6 @@ Not in any particular order and not a commitment to implement!
   * Trying to create a set of classes for securities. Not going well at the moment, but I'm trying. If I can get it to work, it will simplify the code enormously.
   * Auto stop loss has been implemented. If you say to sell after it falls 10% from the highest after you bought it, it will.
   * Warnings tell you if you're going long on a falling moving average or if you've disabled auto stop loss, that you've reached your stop loss
+  * Breadth indicators for the exchange have been added in the inspector. Advance/Decline ratio, spread and line
+  * A charts tab that allows any security to be selected and charted. A bit rough yet, but a start
   
