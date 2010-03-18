@@ -44,5 +44,7 @@ describe_table('indicators');
 describe_table('moving_averages');
 describe_table('standard_deviations_from_mean');
 describe_table('exchange_indicators');
+describe_table('gaps');
+describe_table('gains');
 ?>
 
