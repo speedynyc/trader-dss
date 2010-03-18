@@ -555,6 +555,9 @@ function draw_trader_header($active_page, $allow_others=true)
         case 'queries':
             print "<html><title>Create queries to find securities</title><body>\n";
             break;
+        case 'chart':
+            print "<html><title>Inspect all symbols</title><body>\n";
+            break;
         case 'docs':
             print "<html><title>Documentation of the Trader Relations</title><body>\n";
             break;
@@ -565,7 +568,8 @@ function draw_trader_header($active_page, $allow_others=true)
             break;
     }
     print '<table width="100%" border="0">';
-    print '<table border="1" cellpadding="5" cellspacing="0" width="100%" align="center"><tr>';
+    print '<table border="1" cellpadding="5" cellspacing="0" width="100%" align="center">';
+    print "\n<tr><td colspan=\"100\" valign=\"bottom\" bgcolor=\"$inactive_colour\"><h1 style=\"font-family:verdana\">Trader DSS</h1></td></tr><tr>\n";
     if ($active_page == 'login')
     {
         draw_cell($active_page, '/login.php', $active_colour, true);
@@ -622,6 +626,14 @@ function draw_trader_header($active_page, $allow_others=true)
     else
     {
         draw_cell('queries', '/queries.php', $inactive_colour, $allow_others);
+    }
+    if ($active_page == 'chart')
+    {
+        draw_cell($active_page, '/chart.php', $active_colour, $allow_others);
+    }
+    else
+    {
+        draw_cell('chart', '/chart.php', $inactive_colour, $allow_others);
     }
     if ($active_page == 'docs')
     {

@@ -49,17 +49,17 @@ if (isset($username))
     }
     // Set the plotarea at (50, 30) and of size 240 x 140 pixels. Use white (0xffffff) 
     // background. 
-    $plotAreaObj = $c1->setPlotArea(50, 45, 410, 100, 0xffffff, 0xffffff, 0xc0c0c0, 0xc0c0c0, 0xc0c0c0);
-    $plotAreaObj = $c2->setPlotArea(50, 45, 410, 100, 0xffffff, 0xffffff, 0xc0c0c0, 0xc0c0c0, 0xc0c0c0);
-    $plotAreaObj = $c3->setPlotArea(50, 45, 410, 100, 0xffffff, 0xffffff, 0xc0c0c0, 0xc0c0c0, 0xc0c0c0);
+    $plotAreaObj1 = $c1->setPlotArea(50, 45, 410, 100, 0xffffff, 0xffffff, 0xc0c0c0, 0xc0c0c0, 0xc0c0c0);
+    $plotAreaObj2 = $c2->setPlotArea(50, 45, 410, 100, 0xffffff, 0xffffff, 0xc0c0c0, 0xc0c0c0, 0xc0c0c0);
+    $plotAreaObj3 = $c3->setPlotArea(50, 45, 410, 100, 0xffffff, 0xffffff, 0xc0c0c0, 0xc0c0c0, 0xc0c0c0);
     // Add a legend box at (50, 185) (below of plot area) using horizontal layout. Use 8 
     // pts Arial font with Transparent background. 
-    $legendObj = $c1->addLegend(50, 45, false, "", 8);
-    $legendObj->setBackground(Transparent);
-    $legendObj = $c2->addLegend(50, 45, false, "", 8);
-    $legendObj->setBackground(Transparent);
-    $legendObj = $c3->addLegend(50, 45, false, "", 8);
-    $legendObj->setBackground(Transparent);
+    $legendObj1 = $c1->addLegend(50, 45, false, "", 8);
+    $legendObj1->setBackground(Transparent);
+    $legendObj2 = $c2->addLegend(50, 45, false, "", 8);
+    $legendObj2->setBackground(Transparent);
+    $legendObj3 = $c3->addLegend(50, 45, false, "", 8);
+    $legendObj3->setBackground(Transparent);
     // Add a title box to the chart using 8 pts Arial Bold font, with yellow (0xffff40)
     // background and a black border (0x0)
     $m->addTitle("$pf_exch_name Breadth indicators from $first_date to $pf_working_date", "arialbd.ttf", 12);
