@@ -58,6 +58,33 @@ $$;
 ALTER FUNCTION public.update_exchange_indicators(new_exch character varying, new_date date) OWNER TO postgres;
 
 --
+-- Name: update_exchange_volume(character varying, date); Type: FUNCTION; Schema: public; Owner: postgres
+--      This function could be invoked from the psql command line with something like this
+--      select update_exchange_volume('L', '2010-01-15');
+--      to calculate or re-sum the volume for 'L' (LSE in my case) on the 15th Jan 2010
+--
+CREATE or replace FUNCTION update_exchange_volume(new_exch character varying, new_date date) RETURNS void
+LANGUAGE plpgsql
+AS $$
+    -- this function works out some breadth indicators for the exchange on the date given
+    DECLARE
+        t_volume trade_dates.volume%TYPE;
+        totals RECORD;
+    BEGIN
+        select sum(volume) as volume into totals from quotes where exch = new_exch and date = new_date;
+        IF NOT FOUND THEN
+            -- nothing found, the date doesn't exist!
+            t_volume := 0;
+        ELSE
+            -- save the totals;
+            t_volume := totals.volume;
+            update trade_dates set volume = t_volume where exch = new_exch and date = new_date;
+        END IF;
+    END;
+$$;
+ALTER FUNCTION public.update_exchange_volume(new_exch character varying, new_date date) OWNER TO postgres;
+
+--
 -- Name: update_all_exchange_indicators(); Type: FUNCTION; Schema: public; Owner: postgres
 --      This function could be invoked from the psql command line with something like this
 --      select update_all_exchange_indicators();
@@ -75,6 +102,7 @@ AS $$
     BEGIN
         FOR trade_date IN SELECT exch, date FROM trade_dates WHERE not up_to_date ORDER BY date, exch LOOP
             perform update_exchange_indicators(trade_date.exch, trade_date.date);
+            perform update_exchange_volume(trade_date.exch, trade_date.date);
         END LOOP;
     END;
 $$;

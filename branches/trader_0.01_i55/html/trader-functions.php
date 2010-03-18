@@ -1035,7 +1035,7 @@ class exchange extends trader_base
     {
         // returns the next trading day for the exchange
         $exch = $this->exch;
-        $query = "select date from trade_dates where date > '$date' and exch = '$exch' order by date asc limit 1;";
+        $query = "select date from trade_dates where date > '$date' and exch = '$exch' and volume > 0 order by date asc limit 1;";
         try 
         {
             $result = $this->dbh->query($query);
@@ -1052,7 +1052,7 @@ class exchange extends trader_base
     {
         // returns the nearest trading day for the exchange
         $exch = $this->exch;
-        $query = "select date from trade_dates where date >= '$date' and exch = '$exch' order by date asc limit 1;";
+        $query = "select date from trade_dates where date >= '$date' and exch = '$exch' and volume > 0 order by date asc limit 1;";
         try 
         {
             $result = $this->dbh->query($query);
@@ -1069,7 +1069,7 @@ class exchange extends trader_base
     {
         // returns the first trading day for the exchange
         $exch = $this->exch;
-        $query = "select date from trade_dates where exch = '$exch' order by date asc limit 1;";
+        $query = "select date from trade_dates where exch = '$exch' and volume > 0 order by date asc limit 1;";
         try 
         {
             $result = $this->dbh->query($query);
@@ -1086,7 +1086,7 @@ class exchange extends trader_base
     {
         // returns the first trading day for the exchange
         $exch = $this->exch;
-        $query = "select date from trade_dates where exch = '$exch' order by date desc limit 1;";
+        $query = "select date from trade_dates where exch = '$exch' and volume > 0 order by date desc limit 1;";
         try 
         {
             $result = $this->dbh->query($query);
