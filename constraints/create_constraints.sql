@@ -1,5 +1,4 @@
 \i constraints/cart.sql
-\i constraints/create_constraints.sql
 \i constraints/deposits.sql
 \i constraints/gaps.sql
 \i constraints/holdings.sql

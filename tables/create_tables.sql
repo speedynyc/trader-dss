@@ -1,5 +1,4 @@
 \i tables/cart.sql
-\i tables/create_tables.sql
 \i tables/deposits.sql
 \i tables/exchange.sql
 \i tables/gains.sql
@@ -20,3 +19,4 @@
 \i tables/trades.sql
 \i tables/users.sql
 \i tables/watch.sql
+\i tables/exchange_indicators.sql
