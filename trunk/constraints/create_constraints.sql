@@ -2,7 +2,6 @@
 \i constraints/deposits.sql
 \i constraints/gaps.sql
 \i constraints/holdings.sql
-\i constraints/indicators.sql
 \i constraints/pf_summary.sql
 \i constraints/portfolios.sql
 \i constraints/queries.sql
