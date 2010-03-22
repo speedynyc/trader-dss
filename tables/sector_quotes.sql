@@ -10,7 +10,7 @@ CREATE TABLE sector_quotes (
     low numeric(9,2),
     close numeric(9,2),
     volume numeric(12,0),
-    sector_id numeric(7,0) NOT NULL
+    sector_id integer NOT NULL
 );
 ALTER TABLE public.sector_quotes OWNER TO postgres;
 ALTER TABLE ONLY sector_quotes ADD CONSTRAINT sector_quotes_pkey PRIMARY KEY (sector_id, exch, date);
