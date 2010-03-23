@@ -1,4 +1,3 @@
-\i functions/create_functions.sql
 \i functions/deviation.sql
 \i functions/ema.sql
 \i functions/tidy_quotes.sql
@@ -9,3 +8,4 @@
 \i functions/update_stock_dates.sql
 \i functions/update_trade_dates.sql
 \i functions/update_williams_pcr.sql
+\i functions/update_exchange_indicators.sql

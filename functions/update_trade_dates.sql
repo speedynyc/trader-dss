@@ -4,12 +4,13 @@
 CREATE or replace FUNCTION update_trade_dates(new_exch character varying, new_date date) RETURNS void
 LANGUAGE plpgsql
 AS $$
-    -- this functino records the dates that an exchange traded
+    -- this function records the dates that an exchange traded
     BEGIN
         BEGIN
-            insert into trade_dates ( exch, date ) VALUES ( new_exch, new_date);
+            insert into trade_dates ( exch, date, up_to_date ) VALUES ( new_exch, new_date, FALSE);
         EXCEPTION when unique_violation THEN
-        -- do nothing because the record is already there
+            -- mark that the exchange summary info needs to be updated
+            update trade_dates set up_to_date = FALSE where exch = new_exch and date = new_date;
         END;
     END;
 $$;
