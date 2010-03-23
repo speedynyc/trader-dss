@@ -168,6 +168,13 @@ function delete_portfolio($pfid)
         $query = "delete from portfolios where pfid = '$pfid';";
         $pdo->exec($query);
         $pdo->commit();
+        if ( $pfid == $_SESSION['pfid'] )
+        {
+            // we've deleted the currently active portfolio, reset the session variable
+            unset($_SESSION['pfid']);
+            $this_page = $_SERVER['REQUEST_URI'];
+            header("Location: $this_page");
+        }
     }
     catch (PDOException $e)
     {

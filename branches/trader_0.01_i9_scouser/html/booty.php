@@ -168,7 +168,7 @@ function draw_performance_table($portfolio)
                 $warning = "$warning<br>Close price has risen more than the stop loss from a min of $min_price. Sell!";
             }
         }
-        print "<tr><td><input type=\"checkbox\" name=\"mark[]\" value=\"$hid\"><font color=\"$colour\">$symb</font></td>\n";
+        print "<tr><td><input type=\"checkbox\" name=\"mark[]\" value=\"$hid\"><a href=\"/inspector.php?symb=$symb\" target=\"_blank\">$symb</a></td>\n";
         print "<td><font color=\"$colour\">$symb_name</font></td>\n";
         print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"comment_$hid\">$comment</textarea><br>$warning</td>";
         print "<td>$buy_date<input type=\"hidden\" name=\"date_$symb\" value=\"$buy_date\"></td>\n";
@@ -179,7 +179,7 @@ function draw_performance_table($portfolio)
         print "<td align=\"right\">$value</td>\n";
         if (isset($_SESSION['chart']))
         {
-            print "<td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symb&TimeRange=$chart_period&working_date=$pf_working_date&exch=$pf_exch&ChartSize=S&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td>";
+            print "<td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symb&TimeRange=$chart_period&working_date=$pf_working_date&exch=$pf_exch&price=$price&ref_date=$buy_date&ChartSize=S&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td>";
         }
         print "</tr>\n";
     }

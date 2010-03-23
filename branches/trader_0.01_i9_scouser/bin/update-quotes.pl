@@ -21,7 +21,7 @@ my $exchange = 'L';
 my (@row, $dbh, $sth, $found_code, $last_quote, $last_quote_plus, $isth);
 my ($a, $b, $c, $d, $e, $f);
 my ($symbol, $date, $open, $high, $low, $close, $volume, $adjusted);
-my ($q, $stock_code, $row, $first_quote);
+my ($tmp, $q, $stock_code, $row, $first_quote);
 my $total_inserts=0;
 my $stopfile = 'stop';
 my $pausefile = 'pause';
@@ -76,6 +76,19 @@ while ((@row) = $sth->fetchrow_array)
     foreach $row ($q->quotes())
     {
         ($symbol, $date, $open, $high, $low, $close, $volume, $adjusted) = @$row;
+        next unless ($volume); # skip on zero or missing volume
+        if ($low > $high)
+        {
+            # if low is > high, swap them. Looking at historical data, that looks about right
+            $tmp = $low;
+            $low = $high;
+            $high = $tmp;
+        }
+        if ( $low == 0 or $high == 0 or $open == 0 or $close ==0 )
+        {
+            # can't have zero prices
+            next;
+        }
         ($symbol, undef) = split(/\./, $symbol);
         $adjusted = $close if (not defined($adjusted));
         print "[INFO][inserting $total_inserts]$symbol, $date, $open, $high, $low, $close, $volume, $adjusted\n";
@@ -88,6 +101,12 @@ while ((@row) = $sth->fetchrow_array)
     pause_or_stop();
 }
 print "[INFO]Total rows added $total_inserts\n";
+print "[INFO]Updating exchange indicators\n";
+$query = "select update_all_exchange_indicators();;\n";
+print "$query\n" if ($debug);
+$sth = $dbh->prepare("$query") or die $dbh->errstr;
+$sth->execute or die $dbh->errstr;
+$sth->finish;
 $isth->finish;
 
 sub pause_or_stop
