@@ -84,6 +84,11 @@ while ((@row) = $sth->fetchrow_array)
             $low = $high;
             $high = $tmp;
         }
+        if ( $low == 0 or $high == 0 or $open == 0 or $close ==0 )
+        {
+            # can't have zero prices
+            next;
+        }
         ($symbol, undef) = split(/\./, $symbol);
         $adjusted = $close if (not defined($adjusted));
         print "[INFO][inserting $total_inserts]$symbol, $date, $open, $high, $low, $close, $volume, $adjusted\n";
