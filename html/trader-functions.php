@@ -191,6 +191,11 @@ function buy_stock($symb, $comment = '', $volume = 0)
         $holdings = $row['holdings'];
     }
     $duty = $total * ($portfolio->getTaxRate()/100);
+    if ($cash_in_hand < ($total + $duty + $commission))
+    {
+        // we can't afford this one!
+        return false;
+    }
     $cash_in_hand = $cash_in_hand - $total - $duty - $commission;
     $holdings = $holdings + $total;
     try 
@@ -555,6 +560,9 @@ function draw_trader_header($active_page, $allow_others=true)
         case 'queries':
             print "<html><title>Create queries to find securities</title><body>\n";
             break;
+        case 'chart':
+            print "<html><title>Inspect all symbols</title><body>\n";
+            break;
         case 'docs':
             print "<html><title>Documentation of the Trader Relations</title><body>\n";
             break;
@@ -565,7 +573,8 @@ function draw_trader_header($active_page, $allow_others=true)
             break;
     }
     print '<table width="100%" border="0">';
-    print '<table border="1" cellpadding="5" cellspacing="0" width="100%" align="center"><tr>';
+    print '<table border="1" cellpadding="5" cellspacing="0" width="100%" align="center">';
+    print "\n<tr><td colspan=\"100\" valign=\"bottom\" bgcolor=\"$inactive_colour\"><h1 style=\"font-family:verdana\">Trader DSS</h1></td></tr><tr>\n";
     if ($active_page == 'login')
     {
         draw_cell($active_page, '/login.php', $active_colour, true);
@@ -622,6 +631,14 @@ function draw_trader_header($active_page, $allow_others=true)
     else
     {
         draw_cell('queries', '/queries.php', $inactive_colour, $allow_others);
+    }
+    if ($active_page == 'chart')
+    {
+        draw_cell($active_page, '/chart.php', $active_colour, $allow_others);
+    }
+    else
+    {
+        draw_cell('chart', '/chart.php', $inactive_colour, $allow_others);
     }
     if ($active_page == 'docs')
     {
@@ -872,8 +889,18 @@ function get_table_field($table, $field, $symb, $date, $exch)
     } catch (PDOException $e) {
         die("ERROR: Cannot connect: " . $e->getMessage());
     }
-    $query = "select $field from $table where symb = '$symb' and date = '$date' and exch = '$exch';";
-    foreach ($pdo->query($query) as $row)
+    $query = "select $field from $table where date = '$date' and symb = '$symb' and exch = '$exch';";
+    try 
+    {
+        $result = $pdo->query($query);
+    }
+    catch (PDOException $e)
+    {
+        tr_warn('get_table_field' . $query . ':' . $e->getMessage());
+        die("[FATAL]\n");
+    }
+    $row = $result->fetch(PDO::FETCH_ASSOC);
+    if (isset($row[$field]))
     {
         return $row[$field];
     }
@@ -919,17 +946,48 @@ function chart_select()
     return $select_string;
 }
 
-class trader_base
+function get_warnings($symb, $pf_exch, $pf_working_date, $volume)
+{
+    // do a bunch of checks and return warning strings
+    $warnings = '';
+    // check that the volume and the moving average match
+    $ma_10_diff = get_table_field('moving_averages', 'ma_10_diff', $symb, $pf_working_date, $pf_exch);
+    if ($volume > 0 and $ma_10_diff < 0)
+    {
+        $warnings .= '<font color="red">Going long on a falling MA</font><br>';
+    }
+    elseif ($volume < 0 and $ma_10_diff > 0)
+    {
+        $warnings .= '<font color="red">Going short on a rising MA</font><br>';
+    }
+    return $warnings;
+}
+
+abstract class trader_base
 {
     // a base class to stop auto-vivication of object variables
+    // and to setup the DB connection
+    protected $dbh;
+    public function __construct()
+    {
+        // setup the DB connection for use in this script
+        global $db_hostname, $db_database, $db_user, $db_password;
+        try {
+            $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $e) {
+            die("ERROR: Cannot connect: " . $e->getMessage());
+        }
+        $this->dbh = $pdo;
+    }
     protected function __set($name, $value)
     {
-        tr_warn("No such property: $name = $value");
+        tr_warn("No such property trader_base __set(): $name = $value");
         die("Object error");
     }
     protected function __get($name)
     {
-        tr_warn("No such property: $name");
+        tr_warn("No such property trader_base __get(): $name");
         die("Object error");
     }
     protected function get($name)
@@ -940,28 +998,21 @@ class trader_base
         }
         else
         {
-            die("[FATAL]: No such property portfolio->$name\n");
+            die("[FATAL]: No such property  trader_base get() portfolio->$name\n");
         }
     }
 }
 
 class exchange extends trader_base
 {
-    protected $exch, $name, $symb, $currency, $dbh;
+    protected $exch, $name, $symb, $currency;
     public function __construct($exch_id)
     {
-        // setup the DB connection for use in this script
-        global $db_hostname, $db_database, $db_user, $db_password;
-        try {
-            $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $e) {
-            die("ERROR: Cannot connect: " . $e->getMessage());
-        }
+        parent::__construct();
         $query = "select * from exchange where exch = '$exch_id';";
         try 
         {
-            $result = $pdo->query($query);
+            $result = $this->dbh->query($query);
         }
         catch (PDOException $e)
         {
@@ -975,29 +1026,16 @@ class exchange extends trader_base
             $this->name = $row['name'];
             $this->symb = $row['curr_desc'];
             $this->symb = $row['curr_char'];
-            $this->dbh = $pdo;
         }
         else
         {
             die("[FATAL]exchange $exch_id missing from exchange table: $query\n");
         }
     }
-    public function getID()
-    {
-        return $this->exch;
-    }
-    public function getName()
-    {
-        return $this->name;
-    }
-    public function getSymb()
-    {
-        return $this->symb;
-    }
-    public function getCurrency()
-    {
-        return $this->currency;
-    }
+    public function getID() { return $this->exch; }
+    public function getName() { return $this->name; }
+    public function getSymb() { return $this->symb; }
+    public function getCurrency() { return $this->currency; }
     public function nextTradeDay($date)
     {
         // returns the next trading day for the exchange
@@ -1070,21 +1108,15 @@ class exchange extends trader_base
 
 class portfolio extends trader_base
 {
-    protected $pfid, $name, $exch, $parcel, $working_date, $hide_names, $stop_loss, $auto_stop_loss, $dbh;
+    protected $pfid, $name, $exch, $parcel, $working_date, $hide_names, $stop_loss, $auto_stop_loss;
     protected $cashInHand, $holdings, $openingBalance, $startDate, $countOfDaysTraded;
     protected $commission, $tax_rate;
     public function __construct($pfid)
     {
-        // setup the DB connection for use in this script
-        global $db_hostname, $db_database, $db_user, $db_password;
+        // setup the the parent class (db connection etc)
+        parent::__construct();
         // set all the 'lazy evaluate values to impossible numbers
         $this->countOfDaysTraded = -1;
-        try {
-            $this->dbh = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
-            $this->dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $e) {
-            die("ERROR: Cannot connect: " . $e->getMessage());
-        }
         $query = "select * from portfolios where pfid = '$pfid';";
         try 
         {
@@ -1153,62 +1185,20 @@ class portfolio extends trader_base
             die("[FATAL]Class: portfolio, function: __construct\n");
         }
     }
-    public function getID()
-    {
-        return $this->pfid;
-    }
-    public function getExch()
-    {
-        return $this->exch;
-    }
-    public function getName()
-    {
-        return $this->name;
-    }
-    public function getStopLoss()
-    {
-        return $this->stop_loss;
-    }
-    public function getAutoStopLoss()
-    {
-        return $this->auto_stop_loss;
-    }
-    public function symbNamesHidden()
-    {
-        return $this->hide_names;
-    }
-    public function getWorkingDate()
-    {
-        return $this->working_date;
-    }
-    public function getParcel()
-    {
-        return $this->parcel;
-    }
-    public function getStartDate()
-    {
-        return $this->startDate;
-    }
-    public function getCashInHand()
-    {
-        return $this->cashInHand;
-    }
-    public function getHoldings()
-    {
-        return $this->holdings;
-    }
-    public function getCommission()
-    {
-        return $this->commission;
-    }
-    public function getTaxRate()
-    {
-        return $this->tax_rate;
-    }
-    public function getOpeningBalance()
-    {
-        return $this->openingBalance;
-    }
+    public function getID() { return $this->pfid; }
+    public function getExch() { return $this->exch; }
+    public function getName() { return $this->name; }
+    public function getStopLoss() { return $this->stop_loss; }
+    public function getAutoStopLoss() { return $this->auto_stop_loss; }
+    public function symbNamesHidden() { return $this->hide_names; }
+    public function getWorkingDate() { return $this->working_date; }
+    public function getParcel() { return $this->parcel; }
+    public function getStartDate() { return $this->startDate; }
+    public function getCashInHand() { return $this->cashInHand; }
+    public function getHoldings() { return $this->holdings; }
+    public function getCommission() { return $this->commission; }
+    public function getTaxRate() { return $this->tax_rate; }
+    public function getOpeningBalance() { return $this->openingBalance; }
     public function countDaysTraded()
     {
         // returns the next trading day for the exchange
@@ -1250,6 +1240,312 @@ class portfolio extends trader_base
             $previous_total = $row['total'];
         }
         return $current_total - $previous_total;
+    }
+}
+
+class security extends trader_base
+{
+    protected $symb, $name, $exch, $pfid;
+    protected $firstQuote, $lastQuote;
+    public function __construct($symb, $exch)
+    {
+        // setup the the parent class (db connection etc)
+        parent::__construct();
+        $this->exch = new exchange($exch);
+        if (isset($_SESSION['pfid']))
+        {
+            $this->pfid = $_SESSION['pfid'];
+        }
+        else
+        {
+            $this->pfid = -1;
+        }
+        // load the info from the stocks table
+        $query = "select * from stocks where symb = '$symb' and exch = '$exch';";
+        try 
+        {
+            $result = $this->dbh->query($query);
+        }
+        catch (PDOException $e)
+        {
+            tr_warn('security:__construct:' . $query . ':' . $e->getMessage());
+            die("[FATAL]Class: security, function: __construct\n");
+        }
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        if (isset($row['symb']) and $row['symb'] == $symb)
+        {
+            $this->name = $row['name'];
+            $this->firstQuote = $row['first_quote'];
+            $this->lastQuote = $row['last_quote'];
+        }
+    }
+    protected function isInTable($table)
+    {
+        // check if the symbol is held in the current portfolio
+        if ($this->pfid > 0)
+        {
+            $symb = $this->symb;
+            $pfid = $this->pfid;
+            $query = "select count(*) as count from $table where symb = '$symb' and pfid = '$pfid';";
+            try 
+            {
+                $result = $this->dbh->query($query);
+            }
+            catch (PDOException $e)
+            {
+                tr_warn('security:isInTable:' . $query . ':' . $e->getMessage());
+                die("[FATAL]Class: security, function: isInTable\n");
+            }
+            $row = $result->fetch(PDO::FETCH_ASSOC);
+            if (isset($row['count']) and $row['count'] > 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
+    public function isInHolding() { return isInTable('holdings'); }
+    public function isInCart() { return isInTable('cart'); }
+    public function isInWatch() { return isInTable('watch'); }
+}
+
+class quote extends security
+{
+    protected $open, $close, $high, $low, $volume;
+    protected $dates, $highData, $lowData, $openData, $closeData, $volData;
+    protected $max, $min, $maxDate, $minDate;
+    protected $loadedStartDate, $loadedEndDate;
+    public function __construct($symb, $exch, $date)
+    {
+        // setup the the parent class (db connection etc)
+        parent::__construct($symb, $exch);
+        // load the info from the stocks table
+        $query = "select * from quotes where symb = '$symb' and exch = '$exch' and date = '$date';";
+        try 
+        {
+            $result = $this->dbh->query($query);
+        }
+        catch (PDOException $e)
+        {
+            tr_warn('quote:__construct:' . $query . ':' . $e->getMessage());
+            die("[FATAL]Class: quote, function: __construct\n");
+        }
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        if (isset($row['symb']) and $row['symb'] == $symb)
+        {
+            $this->open = $row['open'];
+            $this->high = $row['high'];
+            $this->low = $row['low'];
+            $this->close = $row['close'];
+            $this->volume = $row['volume'];
+        }
+    }
+    public function getOpen() { return $this->open; }
+    public function getHigh() { return $this->high; }
+    public function getLow() { return $this->low; }
+    public function getClose() { return $this->close; }
+    public function getVolume() { return $this->volume; }
+    public function getPrice($qty)
+    {
+        return $this->close * $qty;
+    }
+    protected function loadQuotes($startDate, $endDate)
+    {
+        // load all the quotes for the period
+        $this->loadedStartDate = $startDate;
+        $this->loadedEndDate = $endDate;
+        // zero the existing values
+        unset($this->dates, $this->highData, $this->lowData);
+        unset($this->openData, $this->closeData, $this->volData);
+        unset($this->max, $this->min);
+        $exch = $this->exch->getID();
+        $symb = $this->symb;
+        $query = "select date, high, low, open, close, volume from quotes where symb = '$symb' and exch = '$exch' and date >= '$startDate' and date <= '$endDate' order by date";
+        foreach ($this->dbh->query($query) as $row)
+        {
+            $this->dates[] = $row['date'];
+            $this->highData[] = $row['high'];
+            $this->lowData[] = $row['low'];
+            $this->openData[] = $row['open'];
+            $this->closeData[] = $row['close'];
+            $this->volData[] = $row['volume'];
+            if ($row['high'] > $this->max)
+            {
+                $this->max = $row['high'];
+                $this->maxDate = $row['date'];
+            }
+            if ($row['low'] < $this->min)
+            {
+                $this->min = $row['min'];
+                $this->minDate = $row['date'];
+            }
+        }
+    }
+    public function getMin($startDate, $endDate)
+    {
+        if ($startDate != $this->loadedStartDate or $endDate != $this->loadedEndDate)
+        {
+            // load the data if not already loaded
+            $this->loadQuotes($startDate, $endDate);
+        }
+        return $this->min;
+    }
+    public function getMinDate($startDate, $endDate)
+    {
+        if ($startDate != $this->loadedStartDate or $endDate != $this->loadedEndDate)
+        {
+            // load the data if not already loaded
+            $this->loadQuotes($startDate, $endDate);
+        }
+        return $this->minDate;
+    }
+    public function getMax($startDate, $endDate)
+    {
+        if ($startDate != $this->loadedStartDate or $endDate != $this->loadedEndDate)
+        {
+            // load the data if not already loaded
+            $this->loadQuotes($startDate, $endDate);
+        }
+        return $this->max;
+    }
+    public function getMaxDate($startDate, $endDate)
+    {
+        if ($startDate != $this->loadedStartDate or $endDate != $this->loadedEndDate)
+        {
+            // load the data if not already loaded
+            $this->loadQuotes($startDate, $endDate);
+        }
+        return $this->maxDate;
+    }
+    public function getHighs($startDate, $endDate)
+    {
+        if ($startDate != $this->loadedStartDate or $endDate != $this->loadedEndDate)
+        {
+            // load the data if not already loaded
+            $this->loadQuotes($startDate, $endDate);
+        }
+        return $this->highData;
+    }
+    public function getLows($startDate, $endDate)
+    {
+        if ($startDate != $this->loadedStartDate or $endDate != $this->loadedEndDate)
+        {
+            // load the data if not already loaded
+            $this->loadQuotes($startDate, $endDate);
+        }
+        return $this->lowData;
+    }
+    public function getOpens($startDate, $endDate)
+    {
+        if ($startDate != $this->loadedStartDate or $endDate != $this->loadedEndDate)
+        {
+            // load the data if not already loaded
+            $this->loadQuotes($startDate, $endDate);
+        }
+        return $this->openData;
+    }
+    public function getCloses($startDate, $endDate)
+    {
+        if ($startDate != $this->loadedStartDate or $endDate != $this->loadedEndDate)
+        {
+            // load the data if not already loaded
+            $this->loadQuotes($startDate, $endDate);
+        }
+        return $this->closeData;
+    }
+    public function getVolumes($startDate, $endDate)
+    {
+        if ($startDate != $this->loadedStartDate or $endDate != $this->loadedEndDate)
+        {
+            // load the data if not already loaded
+            $this->loadQuotes($startDate, $endDate);
+        }
+        return $this->volData;
+    }
+    public function getDates($startDate, $endDate)
+    {
+        if ($startDate != $this->loadedStartDate or $endDate != $this->loadedEndDate)
+        {
+            // load the data if not already loaded
+            $this->loadQuotes($startDate, $endDate);
+        }
+        return $this->dates;
+    }
+}
+
+class holding extends quote
+{
+    protected $hid, $buyPrice, $workingDate, $pfid, $openDate, $qty, $comment;
+    public function __construct($symb, $portfolio)
+    {
+        // setup the the parent class (db connection etc)
+        $workingDate = $portfolio->getWorkingDate();
+        $exch = $portfolio->exch->getID();
+        $pfid = $portfolio->getID();
+        $this->pfid = $pfid;
+        parent::__construct($symb, $exch, $workingDate);
+        // load the info from the stocks table
+        $query = "select * from holdings where symb = '$symb' and pfid = '$pfid';";
+        try 
+        {
+            $result = $this->dbh->query($query);
+        }
+        catch (PDOException $e)
+        {
+            tr_warn('holding:__construct:' . $query . ':' . $e->getMessage());
+            die("[FATAL]Class: holding, function: __construct\n");
+        }
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        if (isset($row['symb']) and $row['symb'] == $symb)
+        {
+            $this->hid = $row['hid'];
+            $this->pfid = $row['pfid'];
+            $this->openDate = $row['date'];
+            $this->price = $row['price'];
+            $this->qty = $row['volume'];
+            $this->comment = $row['comment'];
+        }
+    }
+    public function getHid() { return $this->hid; }
+    public function getPfid() { return $this->pfid; }
+    public function getOpenDate() { return $this->openDate; }
+    public function getPrice() { return $this->price; }
+    public function getQty() { return $this->qty; }
+    public function getComment() { return $this->comment; }
+    public function getGain()
+    {
+        return ($this->price * abs($this->qty)) + ($this->qty * ($this->cose - $this->price));
+    }
+    public function getValue()
+    {
+        return ($this->price * abs($this->qty)) + ($this->qty * ($this->cose - $this->price));
+    }
+    public function getCost()
+    {
+        return ($this->price * abs($this->qty));
+    }
+    public function IsGain()
+    {
+        $gain = $this->getGain();
+        if ( $gain < 0 )
+        {
+            return -1;
+        }
+        elseif ($gain == 0)
+        {
+            return 0;
+        }
+        else
+        {
+            return 1;
+        }
     }
 }
 

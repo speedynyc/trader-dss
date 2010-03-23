@@ -99,18 +99,6 @@ if (isset($_POST['execute_sql']))
         print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr>';
         print '<td><b>SQL</b></td>';
         print "<td>$query</td></tr></table>\n";
-        /*
-        print '<tr><td>';
-        print '<table border="1" cellpadding="5" cellspacing="0" align="center"><tr>';
-        print '<td><b>Added</b></td><td><b>Entered</b></td><td><b>Added</b></td></tr><tr>';
-        print "<td>select</td><td>$sql_select</td><td>.</td></tr>\n";
-        print "<tr><td>from</td><td>$sql_from</td><td>.</td></tr>\n";
-        print "<tr><td>where</td><td>$sql_where</td><td>and (quotes.date = '$pf_working_date' and quotes.exch = '$pf_exch')</td></tr>\n";
-        print "<tr><td>order by</td><td>$sql_order</td><td>$sql_order_dir</td></tr>\n";
-        print "<tr><td>limit</td><td>$sql_limit</td><td>;</td></tr>\n";
-        print "</table>\n";
-        print '</td></tr>';
-        */
         print '<tr><td>';
         $first = true;
         print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="stocks" id="stocks">';
@@ -163,7 +151,7 @@ if (isset($_POST['execute_sql']))
                     $symbol = $row['symb'];
                     $name = get_symb_name_coloured($symbol, $pf_exch, $pfid, $pf_working_date);
                     print '<tr><td><table border="0" cellpadding="0" cellspacing="0" align="left"><tr>';
-                    print "<td>$symbol: $name</td></tr>";
+                    print "<td><a href=\"/inspector.php?symb=$symbol\" target=\"_blank\">$symbol</a>: $name</td></tr>";
                     if (is_in_cart('cart', $symbol))
                     {
                         print "<tr><td>Buying:</td></tr>\n";
