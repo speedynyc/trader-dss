@@ -191,6 +191,11 @@ function buy_stock($symb, $comment = '', $volume = 0)
         $holdings = $row['holdings'];
     }
     $duty = $total * ($portfolio->getTaxRate()/100);
+    if ($cash_in_hand < ($total + $duty + $commission))
+    {
+        // we can't afford this one!
+        return false;
+    }
     $cash_in_hand = $cash_in_hand - $total - $duty - $commission;
     $holdings = $holdings + $total;
     try 
@@ -1035,7 +1040,7 @@ class exchange extends trader_base
     {
         // returns the next trading day for the exchange
         $exch = $this->exch;
-        $query = "select date from trade_dates where date > '$date' and exch = '$exch' and volume > 0 order by date asc limit 1;";
+        $query = "select date from trade_dates where date > '$date' and exch = '$exch' order by date asc limit 1;";
         try 
         {
             $result = $this->dbh->query($query);
@@ -1052,7 +1057,7 @@ class exchange extends trader_base
     {
         // returns the nearest trading day for the exchange
         $exch = $this->exch;
-        $query = "select date from trade_dates where date >= '$date' and exch = '$exch' and volume > 0 order by date asc limit 1;";
+        $query = "select date from trade_dates where date >= '$date' and exch = '$exch' order by date asc limit 1;";
         try 
         {
             $result = $this->dbh->query($query);
@@ -1069,7 +1074,7 @@ class exchange extends trader_base
     {
         // returns the first trading day for the exchange
         $exch = $this->exch;
-        $query = "select date from trade_dates where exch = '$exch' and volume > 0 order by date asc limit 1;";
+        $query = "select date from trade_dates where exch = '$exch' order by date asc limit 1;";
         try 
         {
             $result = $this->dbh->query($query);
@@ -1086,7 +1091,7 @@ class exchange extends trader_base
     {
         // returns the first trading day for the exchange
         $exch = $this->exch;
-        $query = "select date from trade_dates where exch = '$exch' and volume > 0 order by date desc limit 1;";
+        $query = "select date from trade_dates where exch = '$exch' order by date desc limit 1;";
         try 
         {
             $result = $this->dbh->query($query);
