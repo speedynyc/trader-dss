@@ -52,7 +52,6 @@ if (isset($username))
     {
         $chart_period = 180;
     }
-
     try {
         $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -61,28 +60,57 @@ if (isset($username))
     }
     $query = "select a.symb, a.name from stocks a, quotes b where a.symb = b.symb and a.exch = b.exch and a.exch = '$pf_exch' and a.exch = b.exch and b.volume > 0 and b.date = '$pf_working_date' order by symb;";
     $first = true;
+    $second = true;
+    $save_next = false;
     foreach ($pdo->query($query) as $row)
     {
         $value = $row['symb'];
-        $name = $row['name'];
+        $name = get_symb_name($value, $pf_exch);
         $pairs[$value] = "$value.$pf_exch $name";
         if ($first)
         {
             $first = false;
             $first_symb = $value;
+            $second = true;
+        }
+        elseif ($second)
+        {
+            $next_symb = $value;
+            $second = false;
+        }
+        if (isset($symb))
+        {
+            if ($save_next)
+            {
+                // record the next one so that we can use it later
+                $next_symb = $value;
+                $save_next = false;
+            }
+            if ($value == $symb)
+            {
+                // record the previous one so that we can use it later
+                $save_next = true;
+                $prev_symbol = $save_prev_symb;
+            }
+            $save_prev_symb = $value;
         }
     }
     if ( ! isset($symb))
     {
         $symb = $first_symb;
     }
+    if ( ! isset($prev_symbol))
+    {
+        $prev_symbol = $first_symb;
+    }
+
     $symb_name = get_symb_name($symb, $pf_exch);
     print '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" name="chart" id="chart">';
     print "<h1 align=\"center\">$symb.$pf_exch: $symb_name</h1>";
     print '<table border="1" cellpadding="5" cellspacing="0" align="center">';
-    print '<tr><td>';
-    echo create_dropdown("TickerSymbol", $pairs, "TickerSymbol", "", $symb);
-    print "<tr><td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symb&TimeRange=$chart_period&working_date=$pf_working_date&exch=$pf_exch&ChartSize=S&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td></tr>";
+    print '<tr><td><table width="100%" border="0"><tr><td>&lt;---<a href=' . $_SERVER['PHP_SELF'] . "?TickerSymbol=$prev_symbol>$prev_symbol.$pf_exch</a></td>";
+    print "<td>" . create_dropdown("TickerSymbol", $pairs, "TickerSymbol", "", $symb) . "</td>";
+    print "<td><a href=" . $_SERVER['PHP_SELF'] . "?TickerSymbol=$next_symb>$next_symb.$pf_exch</a>---&gt;</td></tr></table><tr><td><img SRC=\"/cgi-bin/chartstock.php?TickerSymbol=$symb&TimeRange=$chart_period&working_date=$pf_working_date&exch=$pf_exch&ChartSize=S&Volume=1&VGrid=1&HGrid=1&LogScale=0&ChartType=OHLC&Band=None&avgType1=SMA&movAvg1=10&avgType2=SMA&movAvg2=25&Indicator1=RSI&Indicator2=MACD&Indicator3=WilliamR&Indicator4=TRIX&Button1=Update%20Chart\" ALIGN=\"bottom\" BORDER=\"0\"></td></tr>";
     print "<tr><td><img SRC=\"/cgi-bin/close_sma.php?symb=$symb\" ALIGN=\"bottom\" BORDER=\"0\"></td></tr>";
     print "<tr><td><img SRC=\"/cgi-bin/close_ma_diff.php?symb=$symb\" ALIGN=\"bottom\" BORDER=\"0\"></td></tr>";
     print "<tr><td><img SRC=\"/cgi-bin/close_ema.php?symb=$symb\" ALIGN=\"bottom\" BORDER=\"0\"></td></tr>";
