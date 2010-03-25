@@ -38,17 +38,29 @@ install DBD::Pg
 
 == Postgresql setup ==
   * install postgres, the primary development platform is Centos 5 with the postgres (8.1.18) that's shipped with it.
+  * edit pg_hba.conf to allow access to the database. This is what I use, but it might be too open for your environment. Take care! *My internal subnet is 10.0.0.0/24, this needs to only allow systems _you_ want to trust*
+{{{
+# "local" is for Unix domain socket connections only
+local   all         all                               trust
+# IPv4 local connections:
+host    all         all         127.0.0.1/32          trust
+host    all         all         10.0.0.0/24           trust
+# IPv6 local connections:
+host    all         all         ::1/128               trust
+}}}
+  * Tune postgres for a big database. I don't know how to do this, so you're on your own. I have needed this setting in `postgresql.conf` to allow a `vacuum analyze` to complete. Your mileage may vary.
+{{{
+max_fsm_pages = 256000
+}}}
+  * Restart postgresql
+{{{
+sudo /sbin/service postgresql restart
+}}}
 
 == Create the database ==
   * as postgres
 {{{
-export PGDATA=/postgres/db
-export PGDATABASE=trader
-echo export PGDATA=$PGDATA >> $HOME/.profile
-echo export PGDATABASE=$PGDATABASE >> $HOME/.profile
-mkdir $PGDATA
-initdb -E UTF8 $PGDATA
-pg_ctl -l logfile start  # ignore the warnings about the ports
+export PGDATA=/var/lib/pgsql/data
 # create the trader database
 createdb trader
 # enable plpgsql on the trader database
