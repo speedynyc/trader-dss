@@ -11,4 +11,4 @@ CREATE TABLE trades (
     comment varchar(100)
 );
 ALTER TABLE public.trades OWNER TO postgres;
-ALTER TABLE ONLY trades ADD CONSTRAINT trades_pkey PRIMARY KEY (pfid);
+ALTER TABLE ONLY trades ADD CONSTRAINT trades_pkey PRIMARY KEY (trid);
