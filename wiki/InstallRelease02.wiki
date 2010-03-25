@@ -87,6 +87,7 @@ trader=# \i functions/create_functions.sql
 
 trader=# \i triggers/update_derived_tables.sql
 
+trader=# \i views/view_table_details.sql
 }}}
 
 == Populate with data ==
