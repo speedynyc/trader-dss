@@ -16,4 +16,4 @@ CREATE TABLE queries (
     unique (uid, name)
 );
 ALTER TABLE public.queries OWNER TO postgres;
-ALTER TABLE ONLY queries ADD CONSTRAINT queries_pkey PRIMARY KEY (qid, name);
+ALTER TABLE ONLY queries ADD CONSTRAINT queries_pkey PRIMARY KEY qid;

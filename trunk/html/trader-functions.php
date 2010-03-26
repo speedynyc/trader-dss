@@ -1182,7 +1182,7 @@ class portfolio extends trader_base
         }
         else
         {
-            tr_warn('portfolio:__construct:' . $query . ':' . $e->getMessage());
+            tr_warn('portfolio:__construct: $row[\'pfid\'] not defined: ' . $query);
             die("[FATAL]Class: portfolio, function: __construct\n");
         }
     }
