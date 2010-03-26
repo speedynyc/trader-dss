@@ -5,7 +5,7 @@ CREATE TABLE watch (
     pfid integer not null,
     date date not null,
     symb character varying(10) NOT NULL,
-    comment varchar(100),
+    comment text,
     volume numeric(12) NOT NULL
 );
 ALTER TABLE public.watch OWNER TO postgres;

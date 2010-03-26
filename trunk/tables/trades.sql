@@ -8,7 +8,7 @@ CREATE TABLE trades (
     date date not null,
     price numeric(9,2) NOT NULL,
     volume numeric(12) NOT NULL,
-    comment varchar(100)
+    comment text;
 );
 ALTER TABLE public.trades OWNER TO postgres;
 ALTER TABLE ONLY trades ADD CONSTRAINT trades_pkey PRIMARY KEY (trid);
