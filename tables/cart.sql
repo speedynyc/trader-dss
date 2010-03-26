@@ -6,7 +6,7 @@ CREATE TABLE cart
  pfid integer NOT NULL, -- Portfolio ID
  date date NOT NULL, -- the date the symb was added to the cart
  symb character varying(10) NOT NULL, -- The symbol name from the stocks table
- "comment" character varying(100), -- Any comment or notes on the symb traded
+ "comment" text, -- Any comment or notes on the symb traded
  volume numeric(12) NOT NULL -- The quantity of the symbol to be traded (negative for short trading)
 )
 WITHOUT OIDS;

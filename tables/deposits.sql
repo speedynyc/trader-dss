@@ -3,7 +3,7 @@
 --
 CREATE TABLE deposits (
     pfid integer not null,
-    comment varchar(100),
+    comment text,
     value numeric(9,2) NOT NULL,
     date date not null
 );
