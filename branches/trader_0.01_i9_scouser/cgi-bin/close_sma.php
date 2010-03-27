@@ -30,6 +30,7 @@ if (isset($username))
     $durationInDays = (int)($chart_period);
     $startDate = $endDate - ($durationInDays*24*60*60);
     $first_date = $c->formatValue($startDate, "{value|yyyy-mm-dd}");
+    $first = true;
     try {
         $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -51,6 +52,12 @@ if (isset($username))
         $close_ma_200[] = $row['close_ma_200'];
         $ma_10_diff[] = $row['ma_10_diff'];
         $dates[] = chartTime2(strtotime($row['date']));
+        if ($first)
+        {
+            // save the first found date for the chart title
+            $first_date = $row['date'];
+            $first = false;
+        }
     }
     // Set the plotarea at (50, 30) and of size 240 x 140 pixels. Use white (0xffffff) 
     // background. 

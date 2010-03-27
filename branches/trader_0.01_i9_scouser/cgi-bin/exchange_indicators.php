@@ -33,6 +33,7 @@ if (isset($username))
     $durationInDays = (int)($chart_period);
     $startDate = $endDate - ($durationInDays*24*60*60);
     $first_date = $c1->formatValue($startDate, "{value|yyyy-mm-dd}");
+    $count = 0;
     try {
         $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -46,6 +47,12 @@ if (isset($username))
         $a_d_line[] = $row['adv_dec_line'];
         $a_d_ratio[] = $row['adv_dec_ratio'];
         $dates[] = chartTime2(strtotime($row['date']));
+        if ($count == 0)
+        {
+            // save the first found date for the chart title
+            $first_date = $row['date'];
+        }
+        $count++;
     }
     // Set the plotarea at (50, 30) and of size 240 x 140 pixels. Use white (0xffffff) 
     // background. 
@@ -67,15 +74,22 @@ if (isset($username))
     $m_yearFormat = "{value|yyyy}";
     $m_firstMonthFormat = "<*font=bold*>{value|mmm yy}";
     $m_otherMonthFormat = "{value|mmm}";
-    $m_firstDayFormat = "<*font=bold*>{value|d mmm}";
+    $m_firstDayFormat = "<*font=bold*>{value|d mmm\nyyyy}";
     $m_otherDayFormat = "{value|d}";
     $m_firstHourFormat = "<*font=bold*>{value|d mmm\nh:nna}";
     $m_otherHourFormat = "{value|h:nna}";
-    $m_timeLabelSpacing = 50;
-    $c1->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
+    if ($count < 370)
+    {
+        $format = $m_firstDayFormat;
+    }
+    else
+    {
+        $format = $m_firstMonthFormat;
+    }
+    $c1->xAxis->setMultiFormat(StartOfDayFilter(), $format, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
     $mark1 = $c1->yAxis->addMark(1, -1, "");
-    $c2->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
-    $c3->xAxis->setMultiFormat(StartOfDayFilter(), $m_firstDayFormat, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
+    $c2->xAxis->setMultiFormat(StartOfDayFilter(), $format, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
+    $c3->xAxis->setMultiFormat(StartOfDayFilter(), $format, StartOfDayFilter(1, 0.5), $m_otherDayFormat, 1);
     $mark3 = $c3->yAxis->addMark(0, -1, "");
     // add the colouring to the area between 1 and the current plot line
     $lineLayerObj1 = $c1->addLineLayer($a_d_ratio, $c1->yZoneColor(1, 0xff3333, 0x008800), 'A/D Ratio');

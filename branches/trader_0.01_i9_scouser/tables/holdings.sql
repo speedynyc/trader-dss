@@ -8,7 +8,7 @@ CREATE TABLE holdings (
     date date not null,
     price numeric(9,2) NOT NULL,
     volume numeric(12) NOT NULL,
-    comment varchar(100)
+    comment text
 );
 CREATE INDEX idx_holdings_hid ON holdings (hid);
 ALTER TABLE public.holdings OWNER TO postgres;

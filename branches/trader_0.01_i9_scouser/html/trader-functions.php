@@ -501,18 +501,19 @@ function draw_trader_header($active_page, $allow_others=true)
         $exch_name = $exch->getName();
         $working_date = $portfolio->getWorkingDate();
         $pf_gain = $portfolio->dayGain(1);
+        $pf_CIH = $portfolio->getCashInHand();
+        $pf_currency_symb = $exch->getCurrency();
         if ($pf_gain > 0)
         {
             $pf_gain = sprintf("%.2f", $pf_gain);
-            $pf_gain = "<font color=\"green\">+$pf_gain</font>";
-            $pf_name = "$pf_name ($pf_gain)";
+            $pf_gain = "<font color=\"green\">+$pf_currency_symb$pf_gain</font>";
         }
         else
         {
             $pf_gain = sprintf("%.2f", $pf_gain);
-            $pf_gain = "<font color=\"red\">$pf_gain</font>";
-            $pf_name = "$pf_name ($pf_gain)";
+            $pf_gain = "<font color=\"red\">$pf_currency_symb$pf_gain</font>";
         }
+        $pf_name = "$pf_name ($pf_currency_symb$pf_CIH/$pf_gain)";
     }
     else
     {
@@ -1025,7 +1026,7 @@ class exchange extends trader_base
             $this->exch = $row['exch'];
             $this->name = $row['name'];
             $this->symb = $row['curr_desc'];
-            $this->symb = $row['curr_char'];
+            $this->currency = $row['curr_char'];
         }
         else
         {
@@ -1181,7 +1182,7 @@ class portfolio extends trader_base
         }
         else
         {
-            tr_warn('portfolio:__construct:' . $query . ':' . $e->getMessage());
+            tr_warn('portfolio:__construct: $row[\'pfid\'] not defined: ' . $query);
             die("[FATAL]Class: portfolio, function: __construct\n");
         }
     }
