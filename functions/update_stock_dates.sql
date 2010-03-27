@@ -13,10 +13,14 @@ AS $$
         IF NOT FOUND THEN
             insert into stocks ( symb, exch, name, first_quote, last_quote ) values ( new_symb, new_exch, 'Unknown Name', new_date, new_date);
         ELSE
-            IF new_date < rec_first_last.first_quote or rec_first_last.first_quote IS NULL THEN
-                update stocks set first_quote = new_date where symb = new_symb and exch = new_exch;
-            ELSIF new_date > rec_first_last.last_quote or rec_first_last.last_quote IS NULL THEN
-                update stocks set last_quote = new_date where symb = new_symb and exch = new_exch;
+            IF rec_first_last.first_quote IS NULL THEN
+                update stocks set first_quote = new_date, last_quote = new_date where symb = new_symb and exch = new_exch;
+            ELSE
+                IF new_date < rec_first_last.first_quote or rec_first_last.first_quote IS NULL THEN
+                    update stocks set first_quote = new_date where symb = new_symb and exch = new_exch;
+                ELSIF new_date > rec_first_last.last_quote or rec_first_last.last_quote IS NULL THEN
+                    update stocks set last_quote = new_date where symb = new_symb and exch = new_exch;
+                END IF;
             END IF;
         END IF;
     END;
