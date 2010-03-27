@@ -16,7 +16,7 @@ AS $$
             IF rec_first_last.first_quote IS NULL THEN
                 update stocks set first_quote = new_date, last_quote = new_date where symb = new_symb and exch = new_exch;
             ELSE
-                IF new_date < rec_first_last.first_quote or rec_first_last.first_quote IS NULL THEN
+                IF new_date < rec_first_last.first_quote THEN
                     update stocks set first_quote = new_date where symb = new_symb and exch = new_exch;
                 ELSIF new_date > rec_first_last.last_quote or rec_first_last.last_quote IS NULL THEN
                     update stocks set last_quote = new_date where symb = new_symb and exch = new_exch;
