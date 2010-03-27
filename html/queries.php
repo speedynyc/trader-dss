@@ -189,7 +189,14 @@ if (isset($_POST['save_sql']))
         $_SESSION['chart_period']  = $chart_period = $data['chart_period'];
         // do we have a qid? if so save these to that
         $query = "insert into queries (uid, name, sql_select, sql_from, sql_where, sql_order, sql_order_dir, sql_limit, chart_period, active) values ('$uid', '$sql_name', '$sql_select', '$sql_from', '$sql_where', '$sql_order', '$sql_order_dir', '$sql_limit', '$chart_period', TRUE);";
-        $pdo->exec($query);
+        try
+        {
+            $pdo->exec($query);
+        }
+        catch (PDOException $e)
+        {
+            tr_warn("html/queries.php: $update " . ':' . $e->getMessage());
+        }
         // changed both forms, so reload them
         $select_query_form = new HTML_QuickForm('select_query');
         create_select_query_form();
