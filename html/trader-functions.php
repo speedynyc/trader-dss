@@ -564,6 +564,9 @@ function draw_trader_header($active_page, $allow_others=true)
         case 'chart':
             print "<html><title>Inspect all symbols</title><body>\n";
             break;
+        case 'history':
+            print "<html><title>Historical trades</title><body>\n";
+            break;
         case 'docs':
             print "<html><title>Documentation of the Trader Relations</title><body>\n";
             break;
@@ -640,6 +643,14 @@ function draw_trader_header($active_page, $allow_others=true)
     else
     {
         draw_cell('chart', '/chart.php', $inactive_colour, $allow_others);
+    }
+    if ($active_page == 'history')
+    {
+        draw_cell($active_page, '/history.php', $active_colour, $allow_others);
+    }
+    else
+    {
+        draw_cell('history', '/history.php', $inactive_colour, $allow_others);
     }
     if ($active_page == 'docs')
     {
