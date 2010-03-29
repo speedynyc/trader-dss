@@ -25,3 +25,8 @@ drop index idx_holdings_hid;
 {{{
 alter table holdings add primary key (hid);
 }}}
+
+  * Add a `hid` column to the trades table
+{{{
+alter table trades add column hid integer;
+}}}
