@@ -10,6 +10,5 @@ CREATE TABLE holdings (
     volume numeric(12) NOT NULL,
     comment text
 );
-CREATE INDEX idx_holdings_hid ON holdings (hid);
+ALTER TABLE ONLY holdings ADD CONSTRAINT holdings_pkey PRIMARY KEY (hid);
 ALTER TABLE public.holdings OWNER TO postgres;
-ALTER TABLE ONLY holdings ADD CONSTRAINT holdings_pkey PRIMARY KEY (pfid, symb, date);
