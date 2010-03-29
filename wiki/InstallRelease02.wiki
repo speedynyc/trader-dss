@@ -117,7 +117,7 @@ bin/update-quotes.pl
 }}}
   * Create a user for the web interface
 {{{
-insert into users (name, passwd) values ('username of your choice', md5('password of your choice');
+insert into users (name, passwd) values ('username of your choice', md5('password of your choice'));
 }}}
 
   * setup the web interface
