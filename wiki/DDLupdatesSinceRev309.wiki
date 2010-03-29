@@ -9,9 +9,9 @@ These are the changes to the database structure since r309. They will continue u
 
   * Add a column to show the trade opening or closing
 {{{
-alter table trades add column type char(1);
+alter table trades add column tr_type char(1);
 }}}
- Then update the field by hand to set the transaction type.
+ Then update the tr_type field by hand to set the transaction type. ('O' for open, 'C' for close) if you have existing transactions.
 
   * The primary key on holdings is too restrictive. Remove it
 {{{
