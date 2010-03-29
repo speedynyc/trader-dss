@@ -129,17 +129,24 @@ function create_portfolio($form)
     $tax_rate = $form['tax_rate'];
     $commission = $form['commission'];
     $start_date = $exchange->nearestTradeDay($start_date);
+    try
+    {
+        $query = "select nextval('portfolios_pfid_seq') as pfid;";
+        $result = $pdo->query($query);
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        $next_pfid = $row['pfid'];
+    }
+    catch (PDOException $e)
+    {
+        tr_warn('sell_stock:' . $query . ':' . $e->getMessage());
+        return false;
+    }
     // need to create the portfolio and add the first entry into summary as a transaction so that if one fails both do
     try{
         $pdo->beginTransaction();
-        $query = "insert into portfolios (name, uid, exch, opening_balance, parcel, working_date, hide_names, stop_loss, auto_stop_loss, tax_rate, commission) values ($pf_desc, '$uid', '$exch', $opening_balance, $parcel, '$start_date', '$hide', '$stop_loss', '$auto', '$tax_rate', '$commission');";
+        $query = "insert into portfolios (pfid, name, uid, exch, opening_balance, parcel, working_date, hide_names, stop_loss, auto_stop_loss, tax_rate, commission) values ($next_pfid, $pf_desc, '$uid', '$exch', $opening_balance, $parcel, '$start_date', '$hide', '$stop_loss', '$auto', '$tax_rate', '$commission');";
         $pdo->exec($query);
-        $query = "select pfid from portfolios where uid = '$uid' and name = $pf_desc and exch = '$exch';";
-        foreach ($pdo->query($query) as $row)
-        {
-            $pf_id = $pdo->quote($row['pfid']);
-        }
-        $query = "insert into pf_summary (pfid, date, cash_in_hand, holdings) values ($pf_id, '$start_date', $opening_balance, 0);";
+        $query = "insert into pf_summary (pfid, date, cash_in_hand, holdings) values ($next_pfid, '$start_date', $opening_balance, 0);";
         $pdo->exec($query);
         $pdo->commit();
     }
