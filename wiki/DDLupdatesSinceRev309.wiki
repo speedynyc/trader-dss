@@ -1,0 +1,10 @@
+#summary DDL changes since r309
+
+= Introduction =
+
+These are the changes to the database structure since r309. They will continue until Release 0.2 when a new file will be started
+
+
+= Details =
+
+  * `alter table trades add column type char(1);` Then update the field by hand to set the transaction type.
