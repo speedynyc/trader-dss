@@ -188,14 +188,27 @@ if (isset($_POST['save_sql']))
         $_SESSION['sql_limit']     = $sql_limit  = $data['sql_limit'];
         $_SESSION['chart_period']  = $chart_period = $data['chart_period'];
         // do we have a qid? if so save these to that
-        $query = "insert into queries (uid, name, sql_select, sql_from, sql_where, sql_order, sql_order_dir, sql_limit, chart_period, active) values ('$uid', '$sql_name', '$sql_select', '$sql_from', '$sql_where', '$sql_order', '$sql_order_dir', '$sql_limit', '$chart_period', TRUE);";
         try
         {
-            $pdo->exec($query);
+            $query = "select nextval('queries_qid_seq') as qid;";
+            $result = $pdo->query($query);
+            $row = $result->fetch(PDO::FETCH_ASSOC);
+            $next_qid = $row['qid'];
         }
         catch (PDOException $e)
         {
-            tr_warn("html/queries.php: $update " . ':' . $e->getMessage());
+            tr_warn('queries.php:' . $query . ':' . $e->getMessage());
+            return false;
+        }
+        $query = "insert into queries (qid, uid, name, sql_select, sql_from, sql_where, sql_order, sql_order_dir, sql_limit, chart_period, active) values ($next_qid, $uid, '$sql_name', '$sql_select', '$sql_from', '$sql_where', '$sql_order', '$sql_order_dir', '$sql_limit', '$chart_period', TRUE);";
+        try
+        {
+            $pdo->exec($query);
+            $_SESSION['qid'] = $next_qid;
+        }
+        catch (PDOException $e)
+        {
+            tr_warn("html/queries.php: $query " . ':' . $e->getMessage());
         }
         // changed both forms, so reload them
         $select_query_form = new HTML_QuickForm('select_query');

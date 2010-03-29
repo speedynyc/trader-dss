@@ -102,16 +102,16 @@ function sell_stock($hid, $symb, $comment = '')
     $date = $portfolio->getWorkingDate();
     $exch = $portfolio->getExch()->getID();
     $close = get_stock_close($symb, $date, $exch);
-    $volume = get_hid_volume($hid);
+    $qty = get_hid_volume($hid);
     $buy_price = get_hid_buy_price($hid);
     $commission = $portfolio->getCommission();
     // this will work correctly for both longs and shorts. See the wiki
-    $total = ($buy_price * abs($volume)) + ($volume * ($close - $buy_price));
+    $total = ($buy_price * abs($qty)) + ($qty * ($close - $buy_price));
     try {
         $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     } catch (PDOException $e) {
-        die("ERROR: Cannot connect: " . $e->getMessage());
+        die("ERROR: sell_stock Cannot connect: " . $e->getMessage());
     }
     // find out how much money, and stocks are in the portfolio today
     $query = "select cash_in_hand, holdings from pf_summary where pfid = '$pfid' and date = '$date';";
@@ -122,11 +122,24 @@ function sell_stock($hid, $symb, $comment = '')
     }
     $cash_in_hand = $cash_in_hand + $total - $commission;
     $holdings = $holdings - $total;
+    try
+    {
+        $query = "select nextval('trades_trid_seq') as trid;";
+        $result = $pdo->query($query);
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        $next_trid = $row['trid'];
+    }
+    catch (PDOException $e)
+    {
+        tr_warn('sell_stock:' . $query . ':' . $e->getMessage());
+        return false;
+    }
     try 
     {
         $pdo->beginTransaction();
         // add the trade to the trades table
-        $query = "insert into trades (pfid, date, symb, price, volume, comment) values ('$pfid', '$date', '$symb', '$close', '$volume', '$comment');";
+        $qty = 0 - $qty; # we're selling after all.
+        $query = "insert into trades (trid, pfid, hid, date, symb, price, volume, comment, tr_type) values ($next_trid, $pfid, $hid, '$date', '$symb', $close, $qty, '$comment', 'C');";
         $pdo->exec($query);
         // delete the stock from the holdings table
         $query = "delete from holdings where hid = '$hid';";
@@ -138,6 +151,7 @@ function sell_stock($hid, $symb, $comment = '')
     }
     catch (PDOException $e)
     {
+        $pdo->rollBack();
         tr_warn('sell_stock:' . $query . ':' . $e->getMessage());
         return false;
     }
@@ -198,31 +212,39 @@ function buy_stock($symb, $comment = '', $volume = 0)
     }
     $cash_in_hand = $cash_in_hand - $total - $duty - $commission;
     $holdings = $holdings + $total;
+    try
+    {
+        $query = "select nextval('trades_trid_seq') as trid;";
+        $result = $pdo->query($query);
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        $next_trid = $row['trid'];
+    }
+    catch (PDOException $e)
+    {
+        tr_warn('buy_stock:' . $query . ':' . $e->getMessage());
+        return false;
+    }
+    try
+    {
+        $query = "select nextval('holdings_hid_seq') as hid;";
+        $result = $pdo->query($query);
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        $next_hid = $row['hid'];
+    }
+    catch (PDOException $e)
+    {
+        tr_warn('buy_stock:' . $query . ':' . $e->getMessage());
+        return false;
+    }
     try 
     {
         $pdo->beginTransaction();
         // add the trade to the trades table
-        $query = "insert into trades (pfid, date, symb, price, volume, comment) values ('$pfid', '$date', '$symb', '$close', '$qty', '$comment');";
+        $query = "insert into trades (trid, pfid, hid, date, symb, price, volume, comment, tr_type) values ('$next_trid', '$pfid', '$next_hid', '$date', '$symb', '$close', '$qty', '$comment', 'O');";
         $pdo->exec($query);
-        // add the stock to the holdings table
-        // if it's already there, we add the existing to the new
-        $query = "select count(*) as count, sum(volume) as volume from holdings where pfid = '$pfid' and date = '$date' and symb = '$symb';";
-        $result = $pdo->query($query);
-        $row = $result->fetch(PDO::FETCH_ASSOC);
-        $count = $row['count'];
-        $volume = $row['volume'] + $qty;
-        if ($count == 0)
-        {
-            $query = "insert into holdings (pfid, date, symb, price, volume, comment) values ('$pfid', '$date', '$symb', '$close', '$qty', '$comment');";
-            $pdo->exec($query);
-        }
-        else
-        {
-            // we use $volume not $qty here because it's the total of the exising volume and qty.
-            // what heppens if they add to zero?
-            $query = "update holdings set volume = '$volume' where pfid = '$pfid' and date = '$date' and symb = '$symb';";
-            $pdo->exec($query);
-        }
+        // add the transaction to the holdings table
+        $query = "insert into holdings (hid, pfid, date, symb, price, volume, comment) values ('$next_hid', '$pfid', '$date', '$symb', '$close', '$qty', '$comment');";
+        $pdo->exec($query);
         // update the pf_summary with the trade
         $query = "update pf_summary set cash_in_hand = '$cash_in_hand', holdings = '$holdings' where date = '$date' and pfid = '$pfid';";
         $pdo->exec($query);
@@ -230,6 +252,7 @@ function buy_stock($symb, $comment = '', $volume = 0)
     }
     catch (PDOException $e)
     {
+        $pdo->rollBack();
         tr_warn('buy_stock:' . $query . ':' . $e->getMessage());
         return false;
     }

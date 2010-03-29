@@ -91,7 +91,7 @@ function draw_performance_table($portfolio)
         }
         print "<tr><td><a href=\"/inspector.php?symb=$symb\" target=\"_blank\">$symb</a></td>\n";
         print "<td><font color=\"$colour\">$symb_name</font></td>\n";
-        print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"comment_$hid\">$comment</textarea><br>$warning</td>";
+        print "<td><textarea wrap=\"soft\" rows=\"1\" cols=\"50\" name=\"comment_$hid\">$comment</textarea></td>";
         print "<td>$buy_date<input type=\"hidden\" name=\"date_$symb\" value=\"$buy_date\"></td>\n";
         print "<td align=\"right\">" . $row['volume'] . '</td>';
         print "<td align=\"right\">$price</td>\n";
