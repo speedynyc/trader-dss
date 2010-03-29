@@ -41,7 +41,7 @@ function validate_new_query($desc)
     }
     $q_desc = $pdo->quote($desc);
     $uid = $pdo->quote($_SESSION['uid']);
-    $query = "select count(*) from queries where name = $q_desc and uid = $uid and active = TRUE;";
+    $query = "select count(*) from queries where name = $q_desc and active = TRUE;";
     $count = 0;
     foreach ($pdo->query($query) as $row)
     {
@@ -54,13 +54,13 @@ function create_select_query_form()
 {
     global $db_hostname, $db_database, $db_user, $db_password, $pdo, $uid;
     global $select_query_form, $q_id;
-    $query = "select count(*) as count from queries where uid = '$uid' and active = TRUE;";
+    $query = "select count(*) as count from queries where active = TRUE;";
     $result = $pdo->query($query);
     $row = $result->fetch(PDO::FETCH_ASSOC);
     if ($row['count'] > 0)
     {
         $first = true;
-        $query = "select qid, name from queries where uid = $uid and active = TRUE order by name;";
+        $query = "select qid, name from queries where active = TRUE order by name;";
         $result = $pdo->query($query);
         $choose_query = $select_query_form->addElement('select','choose_query','Select Query to Edit:');
         while ($row = $result->fetch(PDO::FETCH_ASSOC))
