@@ -88,7 +88,7 @@ svn checkout http://trader-dss.googlecode.com/svn/trunk/ trader-dss-read-only
 == Create the tables etc ==
   * Still as the postgres user
 {{{
-cd trunk
+cd trader-dss-read-only
 psql trader -U postgres
 
 trader=# \i tables/create_tables.sql
