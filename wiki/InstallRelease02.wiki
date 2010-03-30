@@ -82,7 +82,7 @@ createlang plpgsql trader # turn on pgsql for triggers
 == Grab a copy of the 0.2 release ==
   * As the postgres user 
 {{{
-svn co http://trader-dss.googlecode.com/svn/tags/trunk
+svn checkout http://trader-dss.googlecode.com/svn/trunk/ trader-dss-read-only
 }}}
 
 == Create the tables etc ==
