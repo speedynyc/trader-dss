@@ -10,7 +10,7 @@ CREATE TABLE trades (
     price numeric(9,2) NOT NULL,
     volume numeric(12) NOT NULL,
     tr_type char(1) NOT NULL,
-    comment text;
+    comment text
 );
 ALTER TABLE public.trades OWNER TO postgres;
 ALTER TABLE ONLY trades ADD CONSTRAINT trades_pkey PRIMARY KEY (trid);
