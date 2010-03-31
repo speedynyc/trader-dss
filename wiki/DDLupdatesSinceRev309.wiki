@@ -30,3 +30,10 @@ alter table holdings add primary key (hid);
 {{{
 alter table trades add column hid integer;
 }}}
+  * Noticed that the yahoo data is wrong in more than 600,000 records! It looks like simple mistakes not corruption. This to fix it
+{{{
+update quotes set high=open where open > high;
+update quotes set low=open where open < low;
+update quotes set high=close where close > high;
+update quotes set low=close where close < low;
+}}} 
