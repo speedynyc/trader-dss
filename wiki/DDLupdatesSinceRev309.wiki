@@ -37,3 +37,4 @@ update quotes set low=open where open < low;
 update quotes set high=close where close > high;
 update quotes set low=close where close < low;
 }}} 
+I have to wonder if this is the fix or if yahoo have swapped columns some of the time...
