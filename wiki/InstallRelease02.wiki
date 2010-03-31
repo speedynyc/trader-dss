@@ -28,6 +28,7 @@ install HTML::Filter
 install HTML::Tagset
 install HTML::TreeBuilder
 install HTML::TableExtract
+install HTML::TableContentParser
 install LWP
 install Regexp::Common
 install Finance::Quote
