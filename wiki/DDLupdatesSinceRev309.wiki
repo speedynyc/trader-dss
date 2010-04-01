@@ -30,11 +30,16 @@ alter table holdings add primary key (hid);
 {{{
 alter table trades add column hid integer;
 }}}
-  * Noticed that the yahoo data is wrong in more than 600,000 records! It looks like simple mistakes not corruption. This to fix it
+
+  * Noticed that the yahoo data is wrong in more than 600,000 records! It looks like simple mistakes not corruption. This to fix it. (Yeah, it's not DDL, I know)
 {{{
 update quotes set high=open where open > high;
 update quotes set low=open where open < low;
 update quotes set high=close where close > high;
 update quotes set low=close where close < low;
-}}} 
-I have to wonder if this is the fix or if yahoo have swapped columns some of the time...
+}}}
+
+  * The `update_all_exchange_indicators` function has changed to take an exchange as a parameter. This was needed to manage multiple exchanges in the database. Replace the definition with
+{{{
+\i functions/update_exchange_indicators.sql
+}}}
