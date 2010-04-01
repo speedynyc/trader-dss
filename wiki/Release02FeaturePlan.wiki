@@ -11,13 +11,13 @@ Not in any particular order and not a commitment to implement!
 
 == Features to add ==
 
-  * notes fields for trades need to be of type text and the interface needs to allow more editing (larger field window) *(not going to bother, safari allows resizing which is good enough for me)*
+  * notes fields for trades need to be of type text *(done)* and the interface needs to allow more editing (larger field window) *(not going to bother, safari allows resizing which is good enough for me)*
   * Documentation of selectable indicators and how to query them *(done)*
   * Lots more technical indicators (*done MCAD*, might do OBV, RSI and CCI. Williams %R being improved with [http://code.google.com/p/trader-dss/issues/detail?id=9 Issue 9])
      * chart integration for indicators
-  * utility scripts for another exchange (loading share names and historic prices) *(might not bother...)*
-  * Test with a second exchange *(might not bother...)*
-  * Some support for sectors *(would be nice, but I can't find free sector information so it may not happen)*
+  * utility scripts for another exchange (loading share names and historic prices) *(Done for the ASX)*
+  * Test with a second exchange *(done)*
+  * Some support for sectors *(would be nice, the ASX data is the All Ords, so will try that)*
     * Better table support
     * Trigger updates?
     * utility script to update sector indicators?    
