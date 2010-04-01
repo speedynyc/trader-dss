@@ -93,14 +93,14 @@ ALTER FUNCTION public.update_exchange_volume(new_exch character varying, new_dat
 --      is added on that date. This is done by the 'update_trade_dates' function called by the trigger
 --      on the quotes table.
 --
-CREATE or replace FUNCTION update_all_exchange_indicators() RETURNS void
+CREATE or replace FUNCTION update_all_exchange_indicators(new_exch character varying) RETURNS void
 LANGUAGE plpgsql
 AS $$
     -- update all the days where trade_dates.up_to_date is false
     DECLARE
         trade_date RECORD;
     BEGIN
-        FOR trade_date IN SELECT exch, date FROM trade_dates WHERE not up_to_date ORDER BY date, exch LOOP
+        FOR trade_date IN SELECT exch, date FROM trade_dates WHERE not up_to_date and exch = 'new_exch' ORDER BY date, exch LOOP
             perform update_exchange_indicators(trade_date.exch, trade_date.date);
             perform update_exchange_volume(trade_date.exch, trade_date.date);
         END LOOP;
