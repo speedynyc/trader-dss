@@ -43,3 +43,7 @@ update quotes set low=close where close < low;
 {{{
 \i functions/update_exchange_indicators.sql
 }}}
+  * Volume is bigger than numeric(12)! Need to switch to bigint to hold it. This is issue 69
+{{{
+alter table quotes alter column volume type bigint;
+}}}
