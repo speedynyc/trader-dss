@@ -121,8 +121,10 @@ while ((@xrow) = $xsth->fetchrow_array)
             } 
             ($symbol, undef) = split(/\./, $symbol);
             $adjusted = $close if (not defined($adjusted));
-            print "[INFO][inserting $total_inserts]$symbol, $date, $open, $high, $low, $close, $volume, $adjusted\n";
-            $query = "insert into quotes (date, symb, exch, open, high, low, close, volume, adj_close) values ('$date', '$stock_code', '$exchange', $open, $high, $low, $close, $volume, $adjusted);";
+            # we use close for adjusted because yahoo has some crazy values like this
+            # AKR, 2000/03/06, 546.0000, 546.0000, 518.0000, 546.0000, 900, 10701600.0000
+            print "[INFO][inserting $total_inserts]$symbol, $date, $open, $high, $low, $close, $volume, $close\n";
+            $query = "insert into quotes (date, symb, exch, open, high, low, close, volume, adj_close) values ('$date', '$stock_code', '$exchange', $open, $high, $low, $close, $volume, $close);";
             print "$query\n" if ($debug);
             $isth = $dbh->prepare($query) or die $dbh->errstr;
             $isth->execute or die $dbh->errstr;
