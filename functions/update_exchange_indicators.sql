@@ -100,10 +100,10 @@ AS $$
     DECLARE
         trade_date RECORD;
     BEGIN
-        FOR trade_date IN SELECT exch, date FROM trade_dates WHERE not up_to_date and exch = 'new_exch' ORDER BY date, exch LOOP
+        FOR trade_date IN SELECT exch, date FROM trade_dates WHERE not up_to_date and exch = new_exch ORDER BY date, exch LOOP
             perform update_exchange_indicators(trade_date.exch, trade_date.date);
             perform update_exchange_volume(trade_date.exch, trade_date.date);
         END LOOP;
     END;
 $$;
-ALTER FUNCTION public.update_all_exchange_indicators() OWNER TO postgres;
+ALTER FUNCTION public.update_all_exchange_indicators(new_exch character varying) OWNER TO postgres;

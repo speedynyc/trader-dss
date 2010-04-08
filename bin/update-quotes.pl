@@ -36,7 +36,7 @@ $six_months_ago = UnixDate($six_months_ago, "%Y-%m-%d");
 
 $dbh = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password) or die $DBI::errstr;
 
-my $exch_query = 'select exch from exchange order by exch;';
+my $exch_query = 'select exch from exchange where exch = \'L\' order by exch;';
 $xsth = $dbh->prepare("$exch_query") or die $dbh->errstr;
 $xsth->execute or die $dbh->errstr;
 while ((@xrow) = $xsth->fetchrow_array)
@@ -134,7 +134,7 @@ while ((@xrow) = $xsth->fetchrow_array)
     }
     print "[INFO]Total rows added $total_inserts\n";
     print "[INFO]Updating exchange indicators\n";
-    $query = "select update_all_exchange_indicators('L');";
+    $query = "select update_all_exchange_indicators('$exchange');";
     print "$query\n" if ($debug);
     $sth = $dbh->prepare("$query") or die $dbh->errstr;
     $sth->execute or die $dbh->errstr;
