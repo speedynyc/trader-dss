@@ -24,7 +24,7 @@ into /var/www/html/.htaccess
   * setup CodeIgniter config
 {{{
 vim /var/www/html/trader-DSS/config/config.php
-$config['base_url'] = "http://painless.stubbs-family.org/";
+$config['base_url'] = "http://hostname.site.org/";
 $config['index_page'] = "";
 $config['sess_use_database'] = TRUE;
 $config['css'] = 'trader.css';
@@ -40,7 +40,7 @@ $db['default']['hostname'] = "10.0.0.3";
 $db['default']['username'] = "postgres";
 $db['default']['password'] = "happy";
 $db['default']['database'] = "trader";
-$db['default']['dbdriver'] = "postgresql";
+$db['default']['dbdriver'] = "postgre";
 $db['default']['dbprefix'] = "";
 $db['default']['pconnect'] = TRUE;
 $db['default']['db_debug'] = TRUE;
