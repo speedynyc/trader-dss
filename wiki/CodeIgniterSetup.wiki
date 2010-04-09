@@ -31,7 +31,7 @@ $config['css'] = 'trader.css';
 $config['global_xss_filtering'] = TRUE;
 }}}
 
-  * Check with http://hostname.org/welcome
+  * Check with http://hostname.site.org/welcome
 
   * setup code igniter's database access
 {{{
