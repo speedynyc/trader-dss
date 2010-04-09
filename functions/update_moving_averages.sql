@@ -49,6 +49,12 @@ DECLARE
         v_ma_50_MAPR indicators.mapr_50%TYPE;
         v_ma_100_MAPR indicators.mapr_100%TYPE;
         v_ma_200_MAPR indicators.mapr_200%TYPE;
+        v_ema_10 moving_averages.ema_10%TYPE;
+        v_ema_20 moving_averages.ema_20%TYPE;
+        v_ema_30 moving_averages.ema_30%TYPE;
+        v_ema_50 moving_averages.ema_50%TYPE;
+        v_ema_100 moving_averages.ema_100%TYPE;
+        v_ema_200 moving_averages.ema_200%TYPE;
         v_ema_12 moving_averages.ema_12%TYPE;
         v_ema_26 moving_averages.ema_26%TYPE;
         v_mcad indicators.mcad%TYPE;
@@ -190,11 +196,23 @@ BEGIN
         v_ma_200_MAPR := 0;
     end if;
     -- find the previous exponential moving averages etc.
-    SELECT ema_12, ema_26 INTO last_ema FROM moving_averages WHERE DATE < new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 1;
+    SELECT ema_10, ema_20, ema_30, ema_50, ema_100, ema_200, ema_12, ema_26 INTO last_ema FROM moving_averages WHERE DATE < new_date AND symb = new_symb AND exch = new_exch ORDER BY DATE DESC limit 1;
     if not found then
+        v_ema_10 := new_close;
+        v_ema_20 := new_close;
+        v_ema_30 := new_close;
+        v_ema_50 := new_close;
+        v_ema_100 := new_close;
+        v_ema_200 := new_close;
         v_ema_12 := new_close;
         v_ema_26 := new_close;
     else
+        v_ema_10 := ema(new_close, last_ema.ema_10, 10);
+        v_ema_20 := ema(new_close, last_ema.ema_20, 20);
+        v_ema_30 := ema(new_close, last_ema.ema_30, 30);
+        v_ema_50 := ema(new_close, last_ema.ema_50, 50);
+        v_ema_100 := ema(new_close, last_ema.ema_100, 100);
+        v_ema_200 := ema(new_close, last_ema.ema_200, 200);
         v_ema_12 := ema(new_close, last_ema.ema_12, 12);
         v_ema_26 := ema(new_close, last_ema.ema_26, 26);
     end if;
@@ -229,7 +247,10 @@ BEGIN
                 ma_10_diff, ma_20_diff,
                 ma_30_diff, ma_50_diff,
                 ma_100_diff, ma_200_diff,
-                ema_12, ema_26
+                ema_12, ema_26,
+                ema_10, ema_20,
+                ema_30, ema_50,
+                ema_100, ema_200
             )
             VALUES
             (
@@ -252,7 +273,10 @@ BEGIN
                 v_ma_10_diff, v_ma_20_diff,
                 v_ma_30_diff, v_ma_50_diff,
                 v_ma_100_diff, v_ma_200_diff,
-                v_ema_12, v_ema_26
+                v_ema_12, v_ema_26,
+                v_ema_10, v_ema_20,
+                v_ema_30, v_ema_50,
+                v_ema_100, v_ema_200
             );
     EXCEPTION when unique_violation THEN
         update moving_averages set
@@ -293,7 +317,13 @@ BEGIN
             ma_100_diff = v_ma_100_diff,
             ma_200_diff = v_ma_200_diff,
             ema_12 = v_ema_12,
-            ema_26 = v_ema_26
+            ema_26 = v_ema_26,
+            ema_10 = v_ema_10,
+            ema_20 = v_ema_20,
+            ema_30 = v_ema_30,
+            ema_50 = v_ema_50,
+            ema_100 = v_ema_100,
+            ema_200 = v_ema_200
             where date = new_date and symb = new_symb and exch = new_exch;
     END;
     -- update the indicators table with the MAPR info
