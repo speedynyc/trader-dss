@@ -36,7 +36,7 @@ $six_months_ago = UnixDate($six_months_ago, "%Y-%m-%d");
 
 $dbh = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password) or die $DBI::errstr;
 
-my $exch_query = 'select exch from exchange where exch = \'L\' order by exch;';
+my $exch_query = 'select exch from exchange order by exch;';
 $xsth = $dbh->prepare("$exch_query") or die $dbh->errstr;
 $xsth->execute or die $dbh->errstr;
 while ((@xrow) = $xsth->fetchrow_array)
