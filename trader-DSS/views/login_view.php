@@ -1,3 +1,4 @@
+<?php $this->load->view('templates/header'); ?>
     <script type="text/javascript"> 
     // prepare the form when the DOM is ready 
     $(document).ready(function() { 
@@ -64,3 +65,5 @@
     </tr>
     </table>
     <?php form_close() ?>
+
+<?php $this->load->view('templates/footer'); ?>
