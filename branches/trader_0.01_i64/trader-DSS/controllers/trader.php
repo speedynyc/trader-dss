@@ -15,8 +15,7 @@ class Trader extends Controller {
     function login()
     {
         $data = array();
-        $data['body_view'] = 'login_view';
-        $this->load->view('templates/body', $data);
+        $this->load->view('login_view', $data);
     }
 
     function check_login()
@@ -47,8 +46,7 @@ class Trader extends Controller {
     function portfolios()
     {
         $data = array();
-        $data['body_view'] = 'portfolios_view';
-        $this->load->view('templates/body', $data);
+        $this->load->view('portfolios_view', $data);
     }
 }
 
