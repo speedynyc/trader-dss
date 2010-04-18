@@ -14,6 +14,8 @@ class Trader extends Controller {
 
     function login()
     {
+        $data['username'] = $this->session->userdata('username');
+        $this->session->sess_destroy();
         $data = array();
         $this->load->view('login_view', $data);
     }
@@ -34,7 +36,6 @@ class Trader extends Controller {
                     'is_logged_in' => true
                     );
             $this->session->set_userdata($cookie);
-            #$this->portfolios();
             echo base_url() . '/trader/portfolios';
         }
         else
@@ -46,8 +47,93 @@ class Trader extends Controller {
     function portfolios()
     {
         $data = array();
+        $data['uid'] = $this->session->userdata('uid');
+        $data['pfid'] = $this->session->userdata('pfid');
+        $data['username'] = $this->session->userdata('username');
+        $data['active_page'] = 'portfolios';
         $this->load->view('portfolios_view', $data);
     }
+
+    function booty()
+    {
+        $data = array();
+        $data['uid'] = $this->session->userdata('uid');
+        $data['pfid'] = $this->session->userdata('pfid');
+        $data['username'] = $this->session->userdata('username');
+        $data['active_page'] = 'booty';
+        $this->load->view('portfolios_view', $data);
+    }
+
+    function select()
+    {
+        $data = array();
+        $data['uid'] = $this->session->userdata('uid');
+        $data['pfid'] = $this->session->userdata('pfid');
+        $data['username'] = $this->session->userdata('username');
+        $data['active_page'] = 'select';
+        $this->load->view('portfolios_view', $data);
+    }
+
+    function trade()
+    {
+        $data = array();
+        $data['uid'] = $this->session->userdata('uid');
+        $data['pfid'] = $this->session->userdata('pfid');
+        $data['username'] = $this->session->userdata('username');
+        $data['active_page'] = 'trade';
+        $this->load->view('portfolios_view', $data);
+    }
+
+    function watch()
+    {
+        $data = array();
+        $data['uid'] = $this->session->userdata('uid');
+        $data['pfid'] = $this->session->userdata('pfid');
+        $data['username'] = $this->session->userdata('username');
+        $data['active_page'] = 'watch';
+        $this->load->view('portfolios_view', $data);
+    }
+
+    function queries()
+    {
+        $data = array();
+        $data['uid'] = $this->session->userdata('uid');
+        $data['pfid'] = $this->session->userdata('pfid');
+        $data['username'] = $this->session->userdata('username');
+        $data['active_page'] = 'queries';
+        $this->load->view('portfolios_view', $data);
+    }
+
+    function chart()
+    {
+        $data = array();
+        $data['uid'] = $this->session->userdata('uid');
+        $data['pfid'] = $this->session->userdata('pfid');
+        $data['username'] = $this->session->userdata('username');
+        $data['active_page'] = 'chart';
+        $this->load->view('portfolios_view', $data);
+    }
+
+    function history()
+    {
+        $data = array();
+        $data['uid'] = $this->session->userdata('uid');
+        $data['pfid'] = $this->session->userdata('pfid');
+        $data['username'] = $this->session->userdata('username');
+        $data['active_page'] = 'history';
+        $this->load->view('portfolios_view', $data);
+    }
+
+    function docs()
+    {
+        $data = array();
+        $data['uid'] = $this->session->userdata('uid');
+        $data['pfid'] = $this->session->userdata('pfid');
+        $data['username'] = $this->session->userdata('username');
+        $data['active_page'] = 'docs';
+        $this->load->view('portfolios_view', $data);
+    }
+
 }
 
 ?>

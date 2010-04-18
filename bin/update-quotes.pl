@@ -17,6 +17,7 @@ Date_Init("DateFormat=non-US");
 my $dbname   = 'trader';
 my $username = 'postgres';
 my $password = 'happy';
+my $host = '10.0.0.3';
 my $exchange;
 my (@row, $dbh, $sth, $found_code, $last_quote, $last_quote_plus, $isth);
 my ($a, $b, $c, $d, $e, $f);
@@ -34,7 +35,7 @@ print "[INFO]six months ago is " . UnixDate($six_months_ago, "%Y-%m-%d") . "\n" 
 $last_business_day = UnixDate($last_business_day, "%Y-%m-%d");
 $six_months_ago = UnixDate($six_months_ago, "%Y-%m-%d");
 
-$dbh = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password) or die $DBI::errstr;
+$dbh = DBI->connect("dbi:Pg:dbname=$dbname:host=$host", $username, $password) or die $DBI::errstr;
 
 my $exch_query = 'select exch from exchange order by exch;';
 $xsth = $dbh->prepare("$exch_query") or die $dbh->errstr;
