@@ -1,7 +1,12 @@
 <?php
 
-class Trader_model extends Model
+class Trader_login_model extends Model
 {
+    function Trader_login_model()
+    {
+        parent::Model();
+    }
+
     function get_uid($username, $passwd)
     {
         $uid = -1;
