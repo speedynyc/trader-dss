@@ -9,8 +9,14 @@ class Trader_portfolios_model extends Model
 
     function get_portfolios($uid)
     {
-        $query = $this->db->from('portfolios')->where('uid', $uid)->get();
-        return $query->result();
+        $this->load->helper('trader');
+        $portfolios = array();
+        $query = $this->db->select('pfid')->from('portfolios')->where('uid', $uid)->get();
+        foreach ($query->result() as $row)
+        {
+            $portfolios[] = new portfolio($row->pfid);
+        }
+        return $portfolios;
     }
 }
 
