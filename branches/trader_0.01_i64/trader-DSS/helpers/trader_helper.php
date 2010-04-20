@@ -13,22 +13,25 @@ function t_for_true($value)
     return false;
 }
 
+function tr_warn($message='No message!')
+{
+    print('<font color="red">' . $message . '</font><br>');
+}
+
 abstract class trader_base
 {
     // a base class to stop auto-vivication of object variables
     // and to setup the DB connection
-    protected $db_hostname = 'localhost';
+    protected $db_hostname = '10.0.0.3';
     protected $db_database = 'trader';
     protected $db_user     = 'postgres';
     protected $db_password = 'happy';
     protected $dbh;
-
     public function __construct()
     {
         // setup the DB connection for use in this script
-        global $db_hostname, $db_database, $db_user, $db_password;
         try {
-            $pdo = new PDO("pgsql:host=$db_hostname;dbname=$db_database", $db_user, $db_password);
+            $pdo = new PDO("pgsql:host=$this->db_hostname;dbname=$this->db_database", $this->db_user, $this->db_password);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
             die("ERROR: Cannot connect: " . $e->getMessage());
@@ -302,19 +305,11 @@ class security extends trader_base
 {
     protected $symb, $name, $exch, $pfid;
     protected $firstQuote, $lastQuote;
-    public function __construct($symb, $exch)
+    public function __construct($symb, $exch, $pfid = -1)
     {
         // setup the the parent class (db connection etc)
         parent::__construct();
         $this->exch = new exchange($exch);
-        if (isset($_SESSION['pfid']))
-        {
-            $this->pfid = $_SESSION['pfid'];
-        }
-        else
-        {
-            $this->pfid = -1;
-        }
         // load the info from the stocks table
         $query = "select * from stocks where symb = '$symb' and exch = '$exch';";
         try 
