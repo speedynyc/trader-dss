@@ -46,14 +46,29 @@ class Trader extends Controller {
         }
     }
 
+    function check_logged_in()
+    {
+        $uid = $this->session->userdata('uid');
+        if ($uid == '')
+        {
+            $this->login();
+            return false;
+        }
+        return true;
+    }
+
     function portfolios()
     {
-        $data = array();
-        $data['uid'] = $this->session->userdata('uid');
-        $data['pfid'] = $this->session->userdata('pfid');
-        $data['username'] = $this->session->userdata('username');
-        $data['active_page'] = 'portfolios';
-        $this->load->view('portfolios_view', $data);
+        // check logged in
+        if ($this->check_logged_in())
+        {
+            $data = array();
+            $data['uid'] = $this->session->userdata('uid');
+            $data['pfid'] = $this->session->userdata('pfid');
+            $data['username'] = $this->session->userdata('username');
+            $data['active_page'] = 'portfolios';
+            $this->load->view('portfolios_view', $data);
+        }
     }
 
     function get_portfolios()
@@ -63,6 +78,68 @@ class Trader extends Controller {
         $uid = $this->session->userdata('uid');
         $data['portfolios'] = $this->Trader_portfolios_model->get_portfolios($uid);
         $this->load->view('select_portfolio_view', $data);
+    }
+
+    function get_summary_table()
+    {
+        // intended to be called via AJAX to return the the currently active portfolio
+        $data = array();
+        $pfid = $this->session->userdata('pfid');
+        if ($pfid != '')
+        {
+            $portfolio = new portfolio($pfid);
+            $data['summary_pf_name'] = $portfolio->getName();
+            $data['summary_pf_working_date'] = $portfolio->getWorkingDate();
+            $data['summary_pf_exchange'] = $portfolio->getExch()->getName();
+            $currency = $portfolio->getExch()->getCurrency();
+            $gain = $portfolio->dayGain(1);
+            $formatted_gain = sprintf("%s%.2f", $currency, $gain);
+            if ( $gain > 0 )
+            {
+                $data['summary_pf_gain'] = '<font color="green">' . $formatted_gain . '</font>';
+            }
+            elseif ( $gain < 0 )
+            {
+                $data['summary_pf_gain'] = '<font color="red">' . $formatted_gain . '</font>';
+            }
+            else
+            {
+                $data['summary_pf_gain'] = $formatted_gain;
+            }
+            $cash_in_hand = $portfolio->getCashInHand();
+            $formatted_CIH = sprintf("%.2f", $portfolio->getCashInHand());
+            $data['summary_pf_cash_in_hand'] = "$currency$formatted_CIH";
+        }
+        else
+        {
+            $data['summary_pf_name'] = '';
+            $data['summary_pf_working_date'] = '';
+            $data['summary_pf_exchange'] = '';
+            $data['summary_pf_gain'] = '';
+            $data['summary_pf_cash_in_hand'] = '';
+        }
+        $data['summary_query_name'] = $this->get_summary_query_name();
+        $this->load->view('templates/header_summary_view', $data);
+    }
+
+    function get_summary_query_name()
+    {
+        // intended to be called via AJAX to return the the currently active portfolio
+        $qid = $this->session->userdata('qid');
+        if ($qid != '')
+        {
+            return 'Query Name';
+        }
+        return 'QN';
+    }
+
+    function set_portfolio()
+    {
+        $pfid = $this->input->post('pfid_radio');
+        if ($pfid != '')
+        {
+            $this->session->set_userdata('pfid', $pfid);
+        }
     }
 
     function booty()

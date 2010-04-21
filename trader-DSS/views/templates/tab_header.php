@@ -1,3 +1,12 @@
+<script>
+    $(document).ready(function() {
+        update_summary_header();
+    });
+    function update_summary_header(responseText, statusText, xhr, $form)
+    {
+        $('#summary_table').load('/trader/get_summary_table');
+    }
+</script>
 <?php
 
 // dray the header with a table linking the trader pages like tabs in a notebook
@@ -58,8 +67,12 @@ switch ($active_page) {
         $allow_others = false;
         break;
 }
-print '<table border="1" cellpadding="5" cellspacing="0" width="100%" align="center" class="nbb">' . "\n";
-print "<tr><td colspan=\"100\" valign=\"bottom\" bgcolor=\"$inactive_colour\" class=\"nbb\"><h1 style=\"font-family:verdana\">Trader DSS</h1></td></tr><tr>\n";
+?>
+
+<table border="1" cellpadding="5" cellspacing="0" width="100%" align="center" class="nbb">
+<tr><td colspan="100" valign="bottom" bgcolor="<?php echo $inactive_colour?>" class="nbb"><h1 style="font-family:verdana">Trader DSS</h1></td></tr><tr>
+
+<?php
 draw_cell('login', '/trader/login', $active_page, $active_colour, $inactive_colour, $allow_others);
 draw_cell('portfolios', '/trader/portfolios', $active_page, $active_colour, $inactive_colour, $allow_others);
 draw_cell('booty', '/trader/booty', $active_page, $active_colour, $inactive_colour, $allow_others);
@@ -70,8 +83,21 @@ draw_cell('queries', '/trader/queries', $active_page, $active_colour, $inactive_
 draw_cell('chart', '/trader/chart', $active_page, $active_colour, $inactive_colour, $allow_others);
 draw_cell('history', '/trader/history', $active_page, $active_colour, $inactive_colour, $allow_others);
 draw_cell('docs', '/trader/docs', $active_page, $active_colour, $inactive_colour, $allow_others);
-print "</tr></table></table>\n";
+?>
 
+</tr></table></table>
+<div id=summary_table>
+<table border="0" cellpadding="5" cellspacing="0" width="100%" align="center">
+<td><div id="summary_pf_name"></div></td>
+<td><div id="summary_pf_working_date"></div></td>
+<td><div id="summary_pf_exchange"></div></td>
+<td><div id="summary_pf_gain"></div></td>
+<td><div id="summary_pf_cash_in_hand"></div></td>
+<td><div id="summary_query_name"></div></td>
+</div>
+</table>
+
+<?php
 function draw_cell($cell_desc, $cell_link, $active_page, $active_colour, $inactive_colour, $cell_selectable)
 {
     if ($cell_desc == $active_page)
@@ -103,3 +129,4 @@ function draw_cell($cell_desc, $cell_link, $active_page, $active_colour, $inacti
 }
 
 ?>
+</div>
