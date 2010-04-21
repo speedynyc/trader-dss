@@ -40,7 +40,7 @@
         <td><b>Username:</b></td>
         <td>
         <?php $form_data = array(
-            'name'          => 'username',
+            'name'        => 'username',
             'id'          => 'username',
             'style'       => 'width:80%',
             );
