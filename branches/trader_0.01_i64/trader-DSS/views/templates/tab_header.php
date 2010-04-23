@@ -1,19 +1,18 @@
-<script>
-    $(document).ready(function() {
-        update_summary_header();
-    });
-    function update_summary_header(responseText, statusText, xhr, $form)
-    {
-        $('#summary_table').load('/trader/get_summary_table');
-    }
-</script>
 <?php
 
 // dray the header with a table linking the trader pages like tabs in a notebook
 // session infomation is used to communicate between the tabs
-$active_page = strtolower($active_page);
+$active_page = strtolower($this->session->userdata('active_page'));
+$uid = $this->session->userdata('uid');
+$pfid = $this->session->userdata('pfid');
 $active_colour = '#b1b1b1';
 $inactive_colour = 'grey';
+$allow_others = true;
+if ($pfid == '')
+{
+    // don't allow other tabs if a portfolio hasn't been selected
+    $allow_others = false;
+}
 if (! isset($uid))
 {
     // don't allow other page links if uid isn't set
@@ -86,16 +85,6 @@ draw_cell('docs', '/trader/docs', $active_page, $active_colour, $inactive_colour
 ?>
 
 </tr></table></table>
-<div id=summary_table>
-<table border="0" cellpadding="5" cellspacing="0" width="100%" align="center">
-<td><div id="summary_pf_name"></div></td>
-<td><div id="summary_pf_working_date"></div></td>
-<td><div id="summary_pf_exchange"></div></td>
-<td><div id="summary_pf_gain"></div></td>
-<td><div id="summary_pf_cash_in_hand"></div></td>
-<td><div id="summary_query_name"></div></td>
-</div>
-</table>
 
 <?php
 function draw_cell($cell_desc, $cell_link, $active_page, $active_colour, $inactive_colour, $cell_selectable)
@@ -127,6 +116,5 @@ function draw_cell($cell_desc, $cell_link, $active_page, $active_colour, $inacti
     }
     print "</td>\n";
 }
-
 ?>
 </div>
