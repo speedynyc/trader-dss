@@ -7,15 +7,20 @@ $(document).ready(function() {
         // has been received; here we apply a fade-in effect to the new content 
         timeout: 3000,
         error: report_select_portfolio_error,
-        success: update_select_portfolios_success }); 
+        success: update_select_portfolios_success
+    }); 
     $('#use_pf').click(function() {
-        $('#portfolio_select_form').ajaxSubmit({ url: "/trader/set_portfolio"});
-        update_select_portfolios_success();
+        $('#portfolio_select_form').ajaxSubmit({
+            url: "/trader/set_portfolio",
+            success: update_select_portfolios_success
+        });
         return false;
     });
     $('#del_pf').click(function() {
-        $('#portfolio_select_form').ajaxSubmit({ url: "/trader/del_portfolio"});
-        window.location = "/trader/portfolios";
+        $('#portfolio_select_form').ajaxSubmit({
+            url: "/trader/del_portfolio",
+            success: update_select_portfolios_success
+        });
         return false;
     });
 });
@@ -30,6 +35,7 @@ function update_select_portfolios_success(responseText, statusText, xhr, $form) 
         url: '/trader/get_summary_table',
         success: function(data) {
             $('#summary_table').html(data);
+            update_tab_header();
         }
     });
     // redirect to query selectiion or report seccess?

@@ -33,6 +33,7 @@ class Trader extends Controller {
             $cookie = array(
                     'username' => $username,
                     'uid' => $uid,
+                    'sess_expiration' => 0,
                     'is_logged_in' => true
                     );
             $this->session->set_userdata($cookie);
@@ -46,7 +47,7 @@ class Trader extends Controller {
         }
     }
 
-    function check_logged_in()
+    function is_logged_in()
     {
         $uid = $this->session->userdata('uid');
         if ($uid == '')
@@ -57,17 +58,22 @@ class Trader extends Controller {
         return true;
     }
 
+    function headers($active_page = '')
+    {
+        $this->session->set_userdata('active_page', $active_page);
+        $this->load->view('templates/header');
+        $this->load->view('templates/tab_header');
+        $this->get_summary_table();
+    }
+
     function portfolios()
     {
         // check logged in
-        if ($this->check_logged_in())
+        if ($this->is_logged_in())
         {
-            $data = array();
-            $data['uid'] = $this->session->userdata('uid');
-            $data['pfid'] = $this->session->userdata('pfid');
-            $data['username'] = $this->session->userdata('username');
-            $data['active_page'] = 'portfolios';
-            $this->load->view('portfolios_view', $data);
+            $this->headers('portfolios');
+            $this->load->view('portfolios_view');
+            $this->load->view('templates/footer');
         }
     }
 
@@ -78,6 +84,11 @@ class Trader extends Controller {
         $uid = $this->session->userdata('uid');
         $data['portfolios'] = $this->Trader_portfolios_model->get_portfolios($uid);
         $this->load->view('select_portfolio_view', $data);
+    }
+
+    function get_tab_header()
+    {
+        $this->load->view('templates/tab_header');
     }
 
     function get_summary_table()
@@ -144,82 +155,90 @@ class Trader extends Controller {
 
     function booty()
     {
-        $data = array();
-        $data['uid'] = $this->session->userdata('uid');
-        $data['pfid'] = $this->session->userdata('pfid');
-        $data['username'] = $this->session->userdata('username');
-        $data['active_page'] = 'booty';
-        $this->load->view('portfolios_view', $data);
+        // check logged in
+        if ($this->is_logged_in())
+        {
+            $this->headers('booty');
+            $this->load->view('booty_view');
+            $this->load->view('templates/footer');
+        }
     }
 
     function select()
     {
-        $data = array();
-        $data['uid'] = $this->session->userdata('uid');
-        $data['pfid'] = $this->session->userdata('pfid');
-        $data['username'] = $this->session->userdata('username');
-        $data['active_page'] = 'select';
-        $this->load->view('portfolios_view', $data);
+        // check logged in
+        if ($this->is_logged_in())
+        {
+            $this->headers('select');
+            $this->load->view('select_view');
+            $this->load->view('templates/footer');
+        }
     }
 
     function trade()
     {
-        $data = array();
-        $data['uid'] = $this->session->userdata('uid');
-        $data['pfid'] = $this->session->userdata('pfid');
-        $data['username'] = $this->session->userdata('username');
-        $data['active_page'] = 'trade';
-        $this->load->view('portfolios_view', $data);
+        // check logged in
+        if ($this->is_logged_in())
+        {
+            $this->headers('trade');
+            $this->load->view('trade_view');
+            $this->load->view('templates/footer');
+        }
     }
 
     function watch()
     {
-        $data = array();
-        $data['uid'] = $this->session->userdata('uid');
-        $data['pfid'] = $this->session->userdata('pfid');
-        $data['username'] = $this->session->userdata('username');
-        $data['active_page'] = 'watch';
-        $this->load->view('portfolios_view', $data);
+        // check logged in
+        if ($this->is_logged_in())
+        {
+            $this->headers('watch');
+            $this->load->view('watch_view');
+            $this->load->view('templates/footer');
+        }
     }
 
     function queries()
     {
-        $data = array();
-        $data['uid'] = $this->session->userdata('uid');
-        $data['pfid'] = $this->session->userdata('pfid');
-        $data['username'] = $this->session->userdata('username');
-        $data['active_page'] = 'queries';
-        $this->load->view('portfolios_view', $data);
+        // check logged in
+        if ($this->is_logged_in())
+        {
+            $this->headers('queries');
+            $this->load->view('queries_view');
+            $this->load->view('templates/footer');
+        }
     }
 
     function chart()
     {
-        $data = array();
-        $data['uid'] = $this->session->userdata('uid');
-        $data['pfid'] = $this->session->userdata('pfid');
-        $data['username'] = $this->session->userdata('username');
-        $data['active_page'] = 'chart';
-        $this->load->view('portfolios_view', $data);
+        // check logged in
+        if ($this->is_logged_in())
+        {
+            $this->headers('chart');
+            $this->load->view('chart_view');
+            $this->load->view('templates/footer');
+        }
     }
 
     function history()
     {
-        $data = array();
-        $data['uid'] = $this->session->userdata('uid');
-        $data['pfid'] = $this->session->userdata('pfid');
-        $data['username'] = $this->session->userdata('username');
-        $data['active_page'] = 'history';
-        $this->load->view('portfolios_view', $data);
+        // check logged in
+        if ($this->is_logged_in())
+        {
+            $this->headers('history');
+            $this->load->view('history_view');
+            $this->load->view('templates/footer');
+        }
     }
 
     function docs()
     {
-        $data = array();
-        $data['uid'] = $this->session->userdata('uid');
-        $data['pfid'] = $this->session->userdata('pfid');
-        $data['username'] = $this->session->userdata('username');
-        $data['active_page'] = 'docs';
-        $this->load->view('portfolios_view', $data);
+        // check logged in
+        if ($this->is_logged_in())
+        {
+            $this->headers('docs');
+            $this->load->view('docs_view');
+            $this->load->view('templates/footer');
+        }
     }
 
 }

@@ -13,5 +13,21 @@
 <script src="<?php echo base_url();?>css/jquery-1.4.2.js" type="text/javascript" charset="utf-8"></script>	
 <script src="<?php echo base_url();?>css/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>	
 <script src="<?php echo base_url();?>css/jquery.form.js" type="text/javascript" charset="utf-8"></script>	
+<script>
+    // update the summary header if the div exists
+    $(document).ready(function() {
+        update_summary_header();
+    });
+    function update_summary_header(responseText, statusText, xhr, $form)
+    {
+        $('#summary_table').load('/trader/get_summary_table');
+    }
+    function update_tab_header()
+    {
+        $('#tab_header').load('/trader/get_tab_header');
+    }
+</script>
 </head>
 <html>
+<!-- the tab header comes next (usually) -->
+<div id="tab_header">
