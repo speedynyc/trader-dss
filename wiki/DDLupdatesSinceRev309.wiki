@@ -69,14 +69,6 @@ COMMENT ON COLUMN gaps.last_gap IS 'The most recent gap or zero if there has not
 COMMENT ON COLUMN gaps.days_since_gap_up IS 'The count of days since the last gap up or zero';
 COMMENT ON COLUMN gaps.days_since_gap_down IS 'The count of days since the last gap down or zero';
 }}}
-  * Load the new function
-{{{
-\i functions/update_gaps.sql
-}}}
-  * update the gaps table
-{{{
-select update_gaps(date, symb, exch, low, high) from quotes order by date, symb, exch;
-}}}
   * Still more gaps info. Too many charts are distorted by huge jumps. I suspect that they're splits, but I can't find good info on splits
 {{{
 alter table gaps add column gap_sum_10 numeric(9,2);
@@ -91,4 +83,12 @@ COMMENT ON COLUMN gaps.gap_sum_30 IS 'The sum of the gaps in the last 30 traded 
 COMMENT ON COLUMN gaps.gap_sum_50 IS 'The sum of the gaps in the last 50 traded days';
 COMMENT ON COLUMN gaps.gap_sum_100 IS 'The sum of the gaps in the last 100 traded days';
 COMMENT ON COLUMN gaps.gap_sum_200 IS 'The sum of the gaps in the last 200 traded days';
+}}}
+  * Load the new function
+{{{
+\i functions/update_gaps.sql
+}}}
+  * update the gaps table
+{{{
+select update_gaps(date, symb, exch, low, high) from quotes order by date, symb, exch;
 }}}
