@@ -10,7 +10,7 @@ use strict;
 
 $| = 1;
 my $debug = 0;
-my $sleep_time = 15;
+my $sleep_time = 5;
 
 Date_Init("DateFormat=non-US");
 
