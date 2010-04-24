@@ -60,3 +60,20 @@ COMMENT ON COLUMN moving_averages.ema_200 IS 'The 200 day Exponential Moving Ave
 {{{
 select update_moving_averages(date, symb, exch, close, volume) from quotes order by date, symb, exch;
 }}}
+  * Need to be able to find gap information more easily, so the gaps table needs to be expanded
+{{{
+alter table gaps add column last_gap numeric(9,2);
+alter table gaps add column days_since_gap_up integer;
+alter table gaps add column days_since_gap_down integer;
+COMMENT ON COLUMN gaps.last_gap IS 'The most recent gap or zero if there has not been one';
+COMMENT ON COLUMN gaps.days_since_gap_up IS 'The count of days since the last gap up or zero';
+COMMENT ON COLUMN gaps.days_since_gap_down IS 'The count of days since the last gap down or zero';
+}}}
+  * Load the new function
+{{{
+\i functions/update_gaps.sql
+}}}
+  * update the gaps table
+{{{
+select update_gaps(date, symb, exch, low, high) from quotes order by date, symb, exch;
+}}}
