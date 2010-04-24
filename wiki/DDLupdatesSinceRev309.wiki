@@ -85,4 +85,10 @@ alter table gaps add column gap_sum_30 numeric(9,2);
 alter table gaps add column gap_sum_50 numeric(9,2);
 alter table gaps add column gap_sum_100 numeric(9,2);
 alter table gaps add column gap_sum_200 numeric(9,2);
+COMMENT ON COLUMN gaps.gap_sum_10 IS 'The sum of the gaps in the last 10 traded days';
+COMMENT ON COLUMN gaps.gap_sum_20 IS 'The sum of the gaps in the last 20 traded days';
+COMMENT ON COLUMN gaps.gap_sum_30 IS 'The sum of the gaps in the last 30 traded days';
+COMMENT ON COLUMN gaps.gap_sum_50 IS 'The sum of the gaps in the last 50 traded days';
+COMMENT ON COLUMN gaps.gap_sum_100 IS 'The sum of the gaps in the last 100 traded days';
+COMMENT ON COLUMN gaps.gap_sum_200 IS 'The sum of the gaps in the last 200 traded days';
 }}}
