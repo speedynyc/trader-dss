@@ -29,34 +29,18 @@ BEGIN
             v_gap := new_low - yesterdays_quote.high;
             v_last_gap = v_gap;
             v_days_since_gap_up := 1;
-            if ( yesterdays_gap.days_since_gap_down <> 0 ) then
-                v_days_since_gap_down := yesterdays_gap.days_since_gap_down + 1;
-            else
-                v_days_since_gap_down := 0;
-            end if;
+            v_days_since_gap_down := gap_increment(yesterdays_gap.days_since_gap_down);
         elsif (yesterdays_quote.low > new_high) then
             -- gap down
             v_gap := new_high - yesterdays_quote.low;
             v_last_gap = v_gap;
             v_days_since_gap_down := 1;
-            if ( yesterdays_gap.days_since_gap_up <> 0 ) then
-                v_days_since_gap_up := yesterdays_gap.days_since_gap_up + 1;
-            else
-                v_days_since_gap_up := 0;
-            end if;
+            v_days_since_gap_up := gap_increment(yesterdays_gap.days_since_gap_up);
         else
             v_gap = 0;
             v_last_gap = yesterdays_gap.last_gap;
-            if ( yesterdays_gap.days_since_gap_down <> 0 ) then
-                v_days_since_gap_down := yesterdays_gap.days_since_gap_down + 1;
-            else
-                v_days_since_gap_down := 0;
-            end if;
-            if ( yesterdays_gap.days_since_gap_up <> 0 ) then
-                v_days_since_gap_up := yesterdays_gap.days_since_gap_up + 1;
-            else
-                v_days_since_gap_up := 0;
-            end if;
+            v_days_since_gap_down := gap_increment(yesterdays_gap.days_since_gap_down);
+            v_days_since_gap_up := gap_increment(yesterdays_gap.days_since_gap_up);
         end if;
         BEGIN
             INSERT INTO gaps ( date, symb, exch, gap, last_gap, days_since_gap_up, days_since_gap_down) VALUES ( new_date, new_symb, new_exch, v_gap, v_last_gap, v_days_since_gap_up, v_days_since_gap_down);
@@ -67,3 +51,18 @@ BEGIN
 END
 $$;
 ALTER FUNCTION public.update_gaps(new_date date, new_symb character varying, new_exch character varying, new_low numeric, new_high numeric) OWNER TO postgres;
+
+-- We increment the days since the last gap as long and there has ever been a gap.
+--    That means that we don't increment '0' but do increment every thing else
+CREATE or replace FUNCTION gap_increment(v_yesterday_day_count gaps.days_since_gap_up%TYPE) returns gaps.days_since_gap_up%TYPE
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        if (v_yesterday_day_count <> 0) then
+            return v_yesterday_day_count + 1;
+        else
+            return 0;
+        end if;
+    END;
+$$;
+ALTER FUNCTION gap_increment(v_yesterday_day_count gaps.days_since_gap_up%TYPE) OWNER TO postgres;
