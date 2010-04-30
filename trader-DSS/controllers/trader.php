@@ -33,7 +33,6 @@ class Trader extends Controller {
             $cookie = array(
                     'username' => $username,
                     'uid' => $uid,
-                    'sess_expiration' => 0,
                     'is_logged_in' => true
                     );
             $this->session->set_userdata($cookie);
