@@ -10,7 +10,7 @@ use strict;
 
 $| = 1;
 my $debug = 0;
-my $sleep_time = 15;
+my $sleep_time = 5;
 
 Date_Init("DateFormat=non-US");
 
@@ -135,7 +135,7 @@ while ((@xrow) = $xsth->fetchrow_array)
     }
     print "[INFO]Total rows added $total_inserts\n";
     print "[INFO]Updating exchange indicators\n";
-    $query = "select update_all_exchange_indicators('L');";
+    $query = "select update_all_exchange_indicators('$exchange');";
     print "$query\n" if ($debug);
     $sth = $dbh->prepare("$query") or die $dbh->errstr;
     $sth->execute or die $dbh->errstr;
