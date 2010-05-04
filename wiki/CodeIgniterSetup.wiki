@@ -51,3 +51,9 @@ $db['default']['cachedir'] = "";
 $db['default']['char_set'] = "utf8";
 $db['default']['dbcollat'] = "utf8_general_ci";
 }}}
+  * Start to use the trader code
+{{{
+vim /var/www/html/trader-DSS/config/routes.php
+$route['default_controller'] = "trader";
+$route['scaffolding_trigger'] = "";
+}}}
