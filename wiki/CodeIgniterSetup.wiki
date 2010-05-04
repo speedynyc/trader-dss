@@ -2,7 +2,7 @@
 
   * unpack CodeIgniter
 {{{
-mv CodeIgniter/application /var/www/html/trader-DSS
+mv CodeIgniter/system/application /var/www/html/trader-DSS
 mkdir /var/www/CodeIgniter
 mv CodeIgniter/system /var/www/CodeIgniter/
 mv CodeIgniter/* /var/www/html
