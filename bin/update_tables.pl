@@ -5,7 +5,7 @@
 use strict;
 use DBI;
 use strict;
-use Proc::Queue size => 4;
+use Proc::Queue size => 4;  # max of 4 child processes. This should match the number of CPUs you want to keep busy
 use POSIX ":sys_wait_h"; # imports WNOHANG
 
 $| = 1;
@@ -25,6 +25,7 @@ my $pausefile = 'pause';
 my $execute = 1;
 my $update_query;
 my $dbhc;
+my $pid;
 
 $dbh = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password, {pg_server_prepare => 0}) or die $DBI::errstr;
 
@@ -36,19 +37,18 @@ while ((@row) = $sth->fetchrow_array)
 {
     $symb = $row[0];
     $exchange = $row[1];
-    #print "$update_query\n" if ($debug);
     $total_inserts++;
     if ($execute)
     {
-        my $f=fork;
-        if ( defined($f) and $f==0)
+        $pid = fork();
+        if ( defined($pid) and $pid==0 )
         {
             $update_query = "select update_gaps(date, symb, exch, low, high) from quotes where symb = '$symb' and exch = '$exchange' order by date;";
-            print "$total_inserts $update_query\n";
+            print "[START]$total_inserts $update_query\n";
             $dbhc = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password, {pg_server_prepare => 0}) or die $DBI::errstr;
             $isth = $dbhc->prepare($update_query) or die $dbh->errstr;
             $isth->execute() or die $dbh->errstr;
-            #$isth->execute($symb, $exchange) or die $dbh->errstr;
+            print "[DONE]$total_inserts $update_query\n";
             exit(0);
         }
         1 while waitpid(-1, WNOHANG)>0; # reaps children
@@ -60,7 +60,7 @@ $isth->finish;
 
 sub pause_or_stop
 {
-# stop of the stopfile's been created in CWD
+    # stop of the stopfile's been created in CWD
     if (-f $stopfile)
     {
         warn "[INFO]Exiting on stopfile\n";
@@ -72,7 +72,7 @@ sub pause_or_stop
 
 sub wait_on_pause
 {
-# sleep if the pausefile's in CWD
+    # sleep if the pausefile's in CWD
     my $pause_time = 60;
     while (-f $pausefile)
     {
