@@ -56,7 +56,6 @@ while ((@row) = $sth->fetchrow_array)
     }
 }
 print "[INFO]Total rows added $total_inserts\n";
-$isth->finish;
 
 sub pause_or_stop
 {
