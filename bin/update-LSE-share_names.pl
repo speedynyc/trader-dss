@@ -16,9 +16,10 @@ my $dbname   = 'trader';
 my $username = 'postgres';
 my $password = '';
 my $total_added=0;
+my $host     = $ARGV[0];
 my $exch = 'L';
 
-my $dbh = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password) or die $DBI::errstr;
+my $dbh = DBI->connect("dbi:Pg:dbname=$dbname;host=$host", $username, $password) or die $DBI::errstr;
 
 # get the base one, then get all subsequent ones
 my $res = get_page("http://uk.biz.yahoo.com/p/uk/cpi/index.html");
