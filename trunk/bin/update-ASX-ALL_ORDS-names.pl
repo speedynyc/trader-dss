@@ -15,8 +15,9 @@ my $dbname   = 'trader';
 my $username = 'postgres';
 my $password = '';
 my $total_added=0;
+my $host     = $ARGV[0];
 
-my $dbh = DBI->connect("dbi:Pg:dbname=$dbname", $username, $password) or die $DBI::errstr;
+my $dbh = DBI->connect("dbi:Pg:dbname=$dbname;host=$host", $username, $password) or die $DBI::errstr;
 
 my $table_to_parse = 16;
 my $exch = 'AX';
