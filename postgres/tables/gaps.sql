@@ -8,6 +8,7 @@ CREATE TABLE gaps
     symb character varying(10) NOT NULL,
     exch character varying(6) NOT NULL,
     gap numeric(9,2),
+    last_gap numeric(9,2),
     gap_sum_10 numeric(9,2),
     gap_sum_20 numeric(9,2),
     gap_sum_30 numeric(9,2),
