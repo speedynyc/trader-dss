@@ -78,6 +78,8 @@ export PGDATA=/var/lib/pgsql/data
 createdb trader
 # enable plpgsql on the trader database
 createlang plpgsql trader # turn on pgsql for triggers
+# add a role for the application
+createuser -P -E -D -S -R -l trader
 }}}
 
 == Grab a copy of the 0.2 release ==
