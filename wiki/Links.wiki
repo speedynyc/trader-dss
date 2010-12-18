@@ -1,3 +1,4 @@
 #summary Links to pages or projects that might be useful.
 
 [http://search.cpan.org/~ecocode/Finance-GeniusTrader-0.00_50/lib/Finance/GeniusTrader.pm Genuis Trader Perl Module]
+[http://code.google.com/p/quantkit/ Quankit] might have some interesting stuff
