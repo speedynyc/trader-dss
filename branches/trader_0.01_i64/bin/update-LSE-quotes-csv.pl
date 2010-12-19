@@ -39,7 +39,7 @@ while ($line = <QUOTES>)
     #($symb, $exch) = split(/\./, $symb);
     $symb =~ s/\.$exch$//;    # rip off the exchange from the end of the symbol, NOTE: BT is BT.A.L, so this leaves it as BT.A
     $adjusted = $close;
-    next unless ($volume);    # skip on zero or missing volume
+    next unless ($volume > 0);    # skip on zero or missing volume
     if ($low == 0 or $high == 0 or $open == 0 or $close == 0)
     {
         # can't have zero prices
@@ -89,6 +89,7 @@ while ($line = <QUOTES>)
     {
         @symb_results = $symb_sth->fetchrow_array;
         ($stock_name) = @symb_results;
+        $stock_name =~ s/'/''/g;    # quote quotes
         if ($stock_name ne $name)
         {
             die "[FATAL]Symbol name changed. Was $stock_name, now $name\n";
