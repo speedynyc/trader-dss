@@ -91,18 +91,18 @@ svn checkout http://trader-dss.googlecode.com/svn/trunk/ trader-dss-read-only
 == Create the tables etc ==
   * Still as the postgres user
 {{{
-cd trader-dss-read-only
+cd trader-dss-read-only/postgres
 psql trader -U postgres
 
-trader=# \i postgres/tables/create_tables.sql
+trader=# \i tables/create_tables.sql
 
-trader=# \i postgres/constraints/create_constraints.sql
+trader=# \i constraints/create_constraints.sql
 
-trader=# \i postgres/functions/create_functions.sql
+trader=# \i functions/create_functions.sql
 
-trader=# \i postgres/triggers/update_derived_tables.sql
+trader=# \i triggers/update_derived_tables.sql
 
-trader=# \i postgres/views/view_table_details.sql
+trader=# \i views/view_table_details.sql
 }}}
 
 == Populate with data ==
