@@ -9,7 +9,7 @@ CREATE TABLE exchange_indicators (
  decline integer, -- Number of declining
  adv_dec_spread integer, -- (Number of advancing - Number of declining)
  adv_dec_line integer, -- (Number of advancing - Number of declining) + adv_dec_line from yesterday
- adv_dec_ratio numeric(9,4), -- (Number of advancing / Number of decling)
+ adv_dec_ratio numeric, -- (Number of advancing / Number of decling)
  CONSTRAINT constraint_exchange_indicators FOREIGN KEY (date, exch)
  REFERENCES trade_dates (date, exch) MATCH FULL
  ON UPDATE NO ACTION ON DELETE NO ACTION
