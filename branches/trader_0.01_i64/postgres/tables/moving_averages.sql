@@ -7,24 +7,24 @@ CREATE TABLE moving_averages
  date date NOT NULL,
  symb character varying(10) NOT NULL,
  exch character varying(6) NOT NULL,
- close_ma_10 numeric(9,2), -- Moving average on the close price over the last 10 trading days
- close_ma_20 numeric(9,2), -- Moving average on the close price over the last 20 trading days
- close_ma_30 numeric(9,2), -- Moving average on the close price over the last 30 trading days
- close_ma_50 numeric(9,2), -- Moving average on the close price over the last 50 trading days
- close_ma_100 numeric(9,2), -- Moving average on the close price over the last 100 trading days
- close_ma_200 numeric(9,2), -- Moving average on the close price over the last 200 trading days
- volume_ma_10 numeric(12), -- Moving average on the volume over the last 10 trading days
- volume_ma_20 numeric(12), -- Moving average on the volume over the last 20 trading days
- volume_ma_30 numeric(12), -- Moving average on the volume over the last 30 trading days
- volume_ma_50 numeric(12), -- Moving average on the volume over the last 50 trading days
- volume_ma_100 numeric(12), -- Moving average on the volume over the last 100 trading days
- volume_ma_200 numeric(12), -- Moving average on the volume over the last 200 trading days
- ma_10_diff numeric(9,2), -- The difference between the close price and the 10 day moving average. (close price - 10 day moving average of the close price)
- ma_20_diff numeric(9,2), -- The difference between the close price and the 20 day moving average. (close price - 20 day moving average of the close price)
- ma_30_diff numeric(9,2), -- The difference between the close price and the 30 day moving average. (close price - 30 day moving average of the close price)
- ma_50_diff numeric(9,2), -- The difference between the close price and the 50 day moving average. (close price - 50 day moving average of the close price)
- ma_100_diff numeric(9,2), -- The difference between the close price and the 100 day moving average. (close price - 100 day moving average of the close price)
- ma_200_diff numeric(9,2), -- The difference between the close price and the 200 day moving average. (close price - 200 day moving average of the close price)
+ close_ma_10 numeric, -- Moving average on the close price over the last 10 trading days
+ close_ma_20 numeric, -- Moving average on the close price over the last 20 trading days
+ close_ma_30 numeric, -- Moving average on the close price over the last 30 trading days
+ close_ma_50 numeric, -- Moving average on the close price over the last 50 trading days
+ close_ma_100 numeric, -- Moving average on the close price over the last 100 trading days
+ close_ma_200 numeric, -- Moving average on the close price over the last 200 trading days
+ volume_ma_10 numeric, -- Moving average on the volume over the last 10 trading days
+ volume_ma_20 numeric, -- Moving average on the volume over the last 20 trading days
+ volume_ma_30 numeric, -- Moving average on the volume over the last 30 trading days
+ volume_ma_50 numeric, -- Moving average on the volume over the last 50 trading days
+ volume_ma_100 numeric, -- Moving average on the volume over the last 100 trading days
+ volume_ma_200 numeric, -- Moving average on the volume over the last 200 trading days
+ ma_10_diff numeric, -- The difference between the close price and the 10 day moving average. (close price - 10 day moving average of the close price)
+ ma_20_diff numeric, -- The difference between the close price and the 20 day moving average. (close price - 20 day moving average of the close price)
+ ma_30_diff numeric, -- The difference between the close price and the 30 day moving average. (close price - 30 day moving average of the close price)
+ ma_50_diff numeric, -- The difference between the close price and the 50 day moving average. (close price - 50 day moving average of the close price)
+ ma_100_diff numeric, -- The difference between the close price and the 100 day moving average. (close price - 100 day moving average of the close price)
+ ma_200_diff numeric, -- The difference between the close price and the 200 day moving average. (close price - 200 day moving average of the close price)
  ma_10_dir integer, -- sign(ma_10_diff)
  ma_20_dir integer, -- sign(ma_20_diff)
  ma_30_dir integer, -- sign(ma_30_diff)
@@ -37,20 +37,20 @@ CREATE TABLE moving_averages
  ma_50_run integer, -- The number of days since ma_50_diff changed signs, or the number of days that the close price has been above or below the moving average.
  ma_100_run integer, -- The number of days since ma_100_diff changed signs, or the number of days that the close price has been above or below the moving average.
  ma_200_run integer, -- The number of days since ma_200_diff changed signs, or the number of days that the close price has been above or below the moving average.
- ma_10_sum numeric(12,2), -- The sum of ma_10_diff since it last changed signs, or the total of the difference between the close price and the moving average for the number of days that the close price has been above or below the moving average.
- ma_20_sum numeric(12,2), -- The sum of ma_20_diff since it last changed signs, or the total of the difference between the close price and the moving average for the number of days that the close price has been above or below the moving average.
- ma_30_sum numeric(12,2), -- The sum of ma_30_diff since it last changed signs, or the total of the difference between the close price and the moving average for the number of days that the close price has been above or below the moving average.
- ma_50_sum numeric(12,2), -- The sum of ma_50_diff since it last changed signs, or the total of the difference between the close price and the moving average for the number of days that the close price has been above or below the moving average.
- ma_100_sum numeric(12,2), -- The sum of ma_100_diff since it last changed signs, or the total of the difference between the close price and the moving average for the number of days that the close price has been above or below the moving average.
- ma_200_sum numeric(12,2),  -- The sum of ma_200_diff since it last changed signs, or the total of the difference between the close price and the moving average for the number of days that the close price has been above or below the moving average.
- ema_10 numeric(9,2),
- ema_20 numeric(9,2),
- ema_30 numeric(9,2),
- ema_50 numeric(9,2),
- ema_100 numeric(9,2),
- ema_200 numeric(9,2),
- ema_12 numeric(9,2),
- ema_26 numeric(9,2)
+ ma_10_sum numeric, -- The sum of ma_10_diff since it last changed signs, or the total of the difference between the close price and the moving average for the number of days that the close price has been above or below the moving average.
+ ma_20_sum numeric, -- The sum of ma_20_diff since it last changed signs, or the total of the difference between the close price and the moving average for the number of days that the close price has been above or below the moving average.
+ ma_30_sum numeric, -- The sum of ma_30_diff since it last changed signs, or the total of the difference between the close price and the moving average for the number of days that the close price has been above or below the moving average.
+ ma_50_sum numeric, -- The sum of ma_50_diff since it last changed signs, or the total of the difference between the close price and the moving average for the number of days that the close price has been above or below the moving average.
+ ma_100_sum numeric, -- The sum of ma_100_diff since it last changed signs, or the total of the difference between the close price and the moving average for the number of days that the close price has been above or below the moving average.
+ ma_200_sum numeric,  -- The sum of ma_200_diff since it last changed signs, or the total of the difference between the close price and the moving average for the number of days that the close price has been above or below the moving average.
+ ema_10 numeric,
+ ema_20 numeric,
+ ema_30 numeric,
+ ema_50 numeric,
+ ema_100 numeric,
+ ema_200 numeric,
+ ema_12 numeric,
+ ema_26 numeric
 )
 WITHOUT OIDS;
 ALTER TABLE moving_averages OWNER TO postgres;

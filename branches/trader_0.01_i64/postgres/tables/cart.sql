@@ -7,7 +7,7 @@ CREATE TABLE cart
  date date NOT NULL, -- the date the symb was added to the cart
  symb character varying(10) NOT NULL, -- The symbol name from the stocks table
  "comment" text, -- Any comment or notes on the symb traded
- volume numeric(12) NOT NULL -- The quantity of the symbol to be traded (negative for short trading)
+ volume numeric NOT NULL -- The quantity of the symbol to be traded (negative for short trading)
 )
 WITHOUT OIDS;
 COMMENT ON COLUMN cart.pfid IS 'Portfolio ID';

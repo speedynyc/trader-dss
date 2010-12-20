@@ -7,8 +7,8 @@ CREATE TABLE trades (
     hid integer not null,
     symb character varying(10) NOT NULL,
     date date not null,
-    price numeric(9,2) NOT NULL,
-    volume numeric(12) NOT NULL,
+    price numeric NOT NULL,
+    volume numeric NOT NULL,
     tr_type char(1) NOT NULL,
     comment text
 );

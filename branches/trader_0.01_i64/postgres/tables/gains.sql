@@ -7,25 +7,25 @@ CREATE TABLE gains
  date date NOT NULL, -- Date this row refers to.
  symb character varying(10) NOT NULL, -- symbol of the commodity being traded
  exch character varying(6) NOT NULL, -- Exchange code
- gain_1 numeric(9,2),
+ gain_1 numeric,
  d_10 date,
- c_10 numeric(9,2),
- gain_10 numeric(9,2),
+ c_10 numeric,
+ gain_10 numeric,
  d_20 date,
- c_20 numeric(9,2),
- gain_20 numeric(9,2),
+ c_20 numeric,
+ gain_20 numeric,
  d_30 date,
- c_30 numeric(9,2),
- gain_30 numeric(9,2),
+ c_30 numeric,
+ gain_30 numeric,
  d_50 date,
- c_50 numeric(9,2),
- gain_50 numeric(9,2),
+ c_50 numeric,
+ gain_50 numeric,
  d_100 date,
- c_100 numeric(9,2),
- gain_100 numeric(9,2),
+ c_100 numeric,
+ gain_100 numeric,
  d_200 date,
- c_200 numeric(9,2),
- gain_200 numeric(9,2)
+ c_200 numeric,
+ gain_200 numeric
 )
 WITHOUT OIDS;
 ALTER TABLE gains OWNER TO postgres;
