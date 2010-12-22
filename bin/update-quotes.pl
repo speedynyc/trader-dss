@@ -83,12 +83,12 @@ while ((@xrow) = $xsth->fetchrow_array)
         foreach $row ($q->quotes())
         {
             ($symbol, $date, $open, $high, $low, $close, $volume, $adjusted) = @$row;
-            next unless ($volume); # skip on zero or missing volume
-                if ( $low == 0 or $high == 0 or $open == 0 or $close == 0 )
-                {
-                    # can't have zero prices
-                    next;
-                }
+            #next unless ($volume); # skip on zero or missing volume
+            if ( $low == 0 or $high == 0 or $open == 0 or $close == 0 )
+            {
+                # can't have zero prices
+                next;
+            }
             if ($low > $high)
             {
                 # if low is > high, swap them. Looking at historical data, that looks about right
