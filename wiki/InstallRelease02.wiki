@@ -35,6 +35,7 @@ install Finance::Quote
 install Finance::QuoteHist
 install DBI
 install DBD::Pg
+install Proc::Queue
 }}}
 
 == Postgresql setup ==
