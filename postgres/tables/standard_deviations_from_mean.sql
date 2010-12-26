@@ -5,7 +5,7 @@
 CREATE TABLE standard_deviations_from_mean
 (
  date date NOT NULL,
- symb character varying(10) NOT NULL,
+ symb character varying(12) NOT NULL,
  exch character varying(6) NOT NULL,
  close_sd_10 numeric, -- The standard deviation of the close price over the last 10 days
  close_sd_20 numeric, -- The standard deviation of the close price over the last 20 days

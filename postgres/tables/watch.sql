@@ -4,7 +4,7 @@
 CREATE TABLE watch (
     pfid integer not null,
     date date not null,
-    symb character varying(10) NOT NULL,
+    symb character varying(12) NOT NULL,
     comment text,
     volume numeric NOT NULL
 );

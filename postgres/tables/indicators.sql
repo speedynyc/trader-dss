@@ -4,7 +4,7 @@
 CREATE TABLE indicators
 (
  date date NOT NULL, -- The date of the data
- symb character varying(10) NOT NULL, -- The symbol code used by Finance::Quote
+ symb character varying(12) NOT NULL, -- The symbol code used by Finance::Quote
  exch character varying(6) NOT NULL, -- The Exchange code
  wpr_10 numeric, -- Williams %R calculated over 10 days.
  wpr_20 numeric, -- Williams %R calculated over 20 days.
