@@ -5,7 +5,7 @@
 CREATE TABLE moving_averages
 (
  date date NOT NULL,
- symb character varying(10) NOT NULL,
+ symb character varying(12) NOT NULL,
  exch character varying(6) NOT NULL,
  close_ma_10 numeric, -- Moving average on the close price over the last 10 trading days
  close_ma_20 numeric, -- Moving average on the close price over the last 20 trading days
