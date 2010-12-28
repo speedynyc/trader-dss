@@ -50,8 +50,6 @@ AS $$
             EXCEPTION when unique_violation THEN
                 update exchange_indicators set exch = new_exch, date = new_date, advance = adv.count, decline = dec.count, adv_dec_spread = a_d_spread, adv_dec_line = a_d_line, adv_dec_ratio = a_d_ratio where date = new_date and exch = new_exch;
             END;
-            -- record that we've made the exchange_indicators up to date
-            update trade_dates set up_to_date = TRUE where exch = new_exch and date = new_date;
         END IF;
     END;
 $$;
@@ -103,6 +101,8 @@ AS $$
         FOR trade_date IN SELECT exch, date FROM trade_dates WHERE not up_to_date and exch = new_exch ORDER BY date, exch LOOP
             perform update_exchange_indicators(trade_date.exch, trade_date.date);
             perform update_exchange_volume(trade_date.exch, trade_date.date);
+            -- record that we've made the exchange_indicators up to date
+            update trade_dates set up_to_date = TRUE where exch = trade_date.exch and date = trade_date.date;
         END LOOP;
     END;
 $$;
