@@ -10,6 +10,10 @@ CREATE TABLE exchange_indicators (
  adv_dec_spread integer, -- (Number of advancing - Number of declining)
  adv_dec_line integer, -- (Number of advancing - Number of declining) + adv_dec_line from yesterday
  adv_dec_ratio numeric, -- (Number of advancing / Number of decling)
+ adv_ratio numeric, -- (Number of advancing / total number)
+ dec_ratio numeric, -- (Number of declining / total number)
+ static_ratio numeric, -- (Number staying the same / total number)
+ volume numeric, -- (Number of shares traded that day on that exchange)
  CONSTRAINT constraint_exchange_indicators FOREIGN KEY (date, exch)
  REFERENCES trade_dates (date, exch) MATCH FULL
  ON UPDATE NO ACTION ON DELETE NO ACTION
@@ -23,4 +27,7 @@ COMMENT ON COLUMN exchange_indicators."date" IS 'The date of the data';
 COMMENT ON COLUMN exchange_indicators.adv_dec_spread IS '(Number of advancing - Number of declining)';
 COMMENT ON COLUMN exchange_indicators.adv_dec_line IS '(Number of advancing - Number of declining) + adv_dec_line from yesterday';
 COMMENT ON COLUMN exchange_indicators.adv_dec_ratio IS '(Number of advancing / Number of decling)';
-
+COMMENT ON COLUMN exchange_indicators.adv_ratio IS '(Number of advancing / total number)';
+COMMENT ON COLUMN exchange_indicators.dec_ratio IS '(Number of declining / total number)';
+COMMENT ON COLUMN exchange_indicators.static_ratio IS '(Number staying the same / total number)';
+COMMENT ON COLUMN exchange_indicators.volume IS '(Number of shares traded that day on that exchange)';
