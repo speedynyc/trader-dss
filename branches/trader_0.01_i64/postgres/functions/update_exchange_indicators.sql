@@ -41,10 +41,10 @@ AS $$
                     a_d_ratio = 0;
                 END IF;
             ELSE
-                a_d_ratio := (adv.count::numeric(9,4) / dec.count::numeric(9,4));
-                a_ratio := (adv.count::numeric(9,4) / (adv.count::numeric(9,4) + static.count::numeric(9,4) + dec.count::numeric(9,4)));
-                d_ratio := (dec.count::numeric(9,4) / (adv.count::numeric(9,4) + static.count::numeric(9,4) + dec.count::numeric(9,4)));
-                s_ratio := (static.count::numeric(9,4) / (adv.count::numeric(9,4) + static.count::numeric(9,4) + dec.count::numeric(9,4)));
+                a_d_ratio := (adv.count::numeric / dec.count::numeric);
+                a_ratio := (adv.count::numeric / (adv.count::numeric + static.count::numeric + dec.count::numeric));
+                d_ratio := (dec.count::numeric / (adv.count::numeric + static.count::numeric + dec.count::numeric));
+                s_ratio := (static.count::numeric / (adv.count::numeric + static.count::numeric + dec.count::numeric));
             END IF;
             -- find yesterday's adv_dec_line value
             select adv_dec_line as adv_dec_line into yesterday from exchange_indicators where date < new_date and exch = new_exch order by date desc limit 1;
