@@ -5,9 +5,9 @@ CREATE or replace FUNCTION ema(v_close real, v_ema_yesterday real, v_ema_period 
     LANGUAGE plpgsql
     AS $$
     DECLARE
-        v_alpha numeric(9,6);
+        v_alpha numeric;
     BEGIN
-        v_alpha := 2 / (v_ema_period::numeric(9,6) + 1);
+        v_alpha := 2 / (v_ema_period::numeric + 1);
         return v_ema_yesterday + (v_alpha * (v_close - v_ema_yesterday));
     END;
 $$;
