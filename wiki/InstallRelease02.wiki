@@ -111,7 +111,7 @@ trader=# \i views/view_table_details.sql
 {{{
 insert into exchange (exch, name, curr_desc, curr_char) values ('L', 'London Stock Exchange', 'GBP', '£');
 }}}
-  * Load all the share names with (NOTE: It looks like yahoo finance have changed their pages, so this doesn't work at the moment)
+  * Load all the share names with (*NOTE:* It looks like yahoo finance have changed their pages, so this doesn't work at the moment)
 {{{
 bin/update-share_names.pl
 }}}
@@ -152,3 +152,4 @@ sudo pear install HTML_QuickForm
 </VirtualHost>
 }}}
   * Restart apache `service httpd restart`
+  * *Note* the `*:80` bits need to match between NameVirtualHost and VirtualHost
