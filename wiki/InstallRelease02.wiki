@@ -115,7 +115,7 @@ insert into exchange (exch, name, curr_desc, curr_char) values ('L', 'London Sto
 {{{
 bin/update-share_names.pl
 }}}
-  * Load the quotes from with. Beware, this may take days!
+  * Load the quotes from Yahoo finance with the following. Beware, this may take days!
 {{{
 bin/update-quotes.pl
 }}}
