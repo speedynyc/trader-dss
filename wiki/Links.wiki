@@ -2,3 +2,5 @@
 
   * [http://search.cpan.org/~ecocode/Finance-GeniusTrader-0.00_50/lib/Finance/GeniusTrader.pm Genuis Trader Perl Module]
   * [http://code.google.com/p/quantkit/ Quankit] might have some interesting stuff
+
+  * [http://www.postgresonline.com/journal/archives/188-Quick-Intro-to-R-and-PLR-Part-1.html Quick Intro to R and PL/R] Might help with Issue 67
