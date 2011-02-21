@@ -1,0 +1,19 @@
+#summary A collection of sample queries to get started with.
+
+= Introduction =
+
+A sample of queries to show the purpose of each of the indicators
+
+== The Moving Averages Table ==
+
+These are the field in the moving averages table
+  * *date, exch, symb*. These provide the foreign key with the stocks table
+  * *close_ma_XXX*. The 10, 20, 30, 50, 100 and 200 day simple moving averages of the closing price calculated by this [http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:moving_averages#sma_calculation formula]
+  * *ema_XXX*. The 10, 12, 20, 26, 30, 50, 100 and 200 exponential moving average of the closing price calculated by this [http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:moving_averages#ema_calculation formula]. The 12 and 26 day EMAs are included because they are often used by technical analysts.
+  * *ma_XXX_diff*. The difference between today's close price and the 10, 20, 30, 50, 100 and 200 day moving average. Useful to decide if the price is above or below the moving average. Formula : today_close - XXX-DayMovingAverage
+  * *ma_XXX_dir*. +1 when ma_XXX_diff > 0, -1 when ma_XXX_diff < 0
+  * *ma_XXX_run*. The number of days that ma_XXX_dir has been the same. Equally the number of days in a row that the simple moving average has been exceeded by close price.
+  * *ma_XX_sum*. The sum of the ma_XXX_diff since the price came above or fell below the close_ma_XXX. In other words the sum of the close_ma_XXX for the duration of ma_XXX_run or since the ma_XXX_dir changed sign. They're all the same thing.
+  * *volume_ma_XXX*. The 10, 20, 30, 50, 100, 200 day simple moving average of the volume.
+
+=== Sample Queries ==
