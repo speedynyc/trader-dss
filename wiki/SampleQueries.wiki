@@ -6,6 +6,8 @@ A sample of queries to show the purpose of each of the indicators
 
 == The Moving Averages Table ==
 
+  * Most of these are calculated by `update_moving_averages.sql`
+
 These are the field in the moving averages table
   * *date, exch, symb*. These provide the foreign key with the stocks table
   * *close_ma_XXX*. The 10, 20, 30, 50, 100 and 200 day simple moving averages of the closing price calculated by this [http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:moving_averages#sma_calculation formula]
