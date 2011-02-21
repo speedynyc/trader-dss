@@ -8,7 +8,7 @@ A sample of queries to show the purpose of each of the indicators
 
   * Most of these are calculated by `update_moving_averages.sql`
 
-These are the field in the moving averages table
+=== Fields in moving_averages ===
   * *date, exch, symb*. These provide the foreign key with the stocks table
   * *close_ma_XXX*. The 10, 20, 30, 50, 100 and 200 day simple moving averages of the closing price calculated by this [http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:moving_averages#sma_calculation formula]
   * *ema_XXX*. The 10, 12, 20, 26, 30, 50, 100 and 200 exponential moving average of the closing price calculated by this [http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:moving_averages#ema_calculation formula]. The 12 and 26 day EMAs are included because they are often used by technical analysts.
@@ -18,4 +18,63 @@ These are the field in the moving averages table
   * *ma_XX_sum*. The sum of the ma_XXX_diff since the price came above or fell below the close_ma_XXX. In other words the sum of the close_ma_XXX for the duration of ma_XXX_run or since the ma_XXX_dir changed sign. They're all the same thing.
   * *volume_ma_XXX*. The 10, 20, 30, 50, 100, 200 day simple moving average of the volume.
 
-=== Sample Queries ==
+=== Sample Queries for moving_averages ===
+  * Use *ma_10_diff* to find the symbols with the gains over their 10 day moving averages. The trouble with this simple query is that the larger priced stocks will be at the top of the list.
+{{{
+select 
+  quotes.symb as symb, close, volume, round(ma_10_diff, 2) as ma_10_diff 
+from
+  quotes, moving_averages b 
+where 
+  ((quotes.date = b.date and quotes.symb = b.symb and quotes.exch = b.exch)) 
+order by 
+  ma_10_diff
+  desc;
+}}}
+  * if we normalize the moving average difference (*ma_10_diff*) with the close price we will get a list of the fastest growing stocks. Reverse it for the fastest losing stocks
+{{{
+select 
+  quotes.symb as symb, close, volume, round(ma_10_diff / close, 2) as ma_10_diff
+from
+  quotes, moving_averages b 
+where 
+  ((quotes.date = b.date and quotes.symb = b.symb and quotes.exch = b.exch)) 
+order by 
+  ma_10_diff
+  desc;
+}}}
+  * How about finding the stocks that have been above their moving average for the longest? Here we use *ma_10_run* to find the stocks that have exceeded their 10 day moving average the longest. We specify `ma_10_dir > 0` to exclude the ones that have been falling. We can reverse that to find all the falling stocks.
+{{{
+select
+  quotes.symb as symb, close, volume, ma_10_run 
+from
+  quotes, moving_averages b
+where
+  ((quotes.date = b.date and quotes.symb = b.symb and quotes.exch = b.exch) and ma_10_dir > 0)
+order by
+  ma_10_run 
+  desc;
+}}}
+  The longer moving averages can find some impressive gradients. You can combine them to find stocks that have certain historical and recent qualities. Like they've had a good 100 day moving average run, but fallen below their 10 day moving average.
+  * we can find the stocks that are exceeding their moving averages by the most with the following
+{{{
+select
+  quotes.symb as symb, close, volume, round(close_ma_10/close,2) as close_10_ratio
+from
+  quotes, moving_averages b 
+where 
+  ((quotes.date = b.date and quotes.symb = b.symb and quotes.exch = b.exch) and volume > 0)
+order by
+  close_10_ratio;
+}}}
+  * Combine this with *ma_10_run* to find stocks that have been doing well for a while, but are now taking off.
+{{{
+select
+  quotes.symb as symb, close, volume, round(close_ma_10/close,2) as close_10_ratio
+from
+  quotes, moving_averages b 
+where 
+  ((quotes.date = b.date and quotes.symb = b.symb and quotes.exch = b.exch) and volume > 0 and ma_10_run > 20)
+order by
+  close_10_ratio;
+}}}
