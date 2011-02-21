@@ -2,7 +2,11 @@
 
 = Introduction =
 
-A sample of queries to show the purpose of each of the indicators
+A sample of queries to show the purpose of each of the indicators.
+* General tips
+ # Ignore stocks with zero volume
+ # The stocks table has to be in the query. Join it with a second table with the foreign keys `date, symb, exch`
+ # The second table should be aliased to `b` to make copying queries easier
 
 == The Moving Averages Table ==
 
