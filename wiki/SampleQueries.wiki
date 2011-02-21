@@ -3,10 +3,10 @@
 = Introduction =
 
 A sample of queries to show the purpose of each of the indicators.
-* General tips
- # Ignore stocks with zero volume
- # The stocks table has to be in the query. Join it with a second table with the foreign keys `date, symb, exch`
- # The second table should be aliased to `b` to make copying queries easier
+ * General tips
+  # Ignore stocks with zero volume
+  # The stocks table has to be in the query. Join it with a second table with the foreign keys `date, symb, exch`
+  # The second table should be aliased to `b` to make copying queries easier
 
 == The Moving Averages Table ==
 
@@ -30,7 +30,7 @@ select
 from
   quotes, moving_averages b 
 where 
-  ((quotes.date = b.date and quotes.symb = b.symb and quotes.exch = b.exch)) 
+  (quotes.date = b.date and quotes.symb = b.symb and quotes.exch = b.exch and volume > 0) 
 order by 
   ma_10_diff
   desc;
@@ -42,7 +42,7 @@ select
 from
   quotes, moving_averages b 
 where 
-  ((quotes.date = b.date and quotes.symb = b.symb and quotes.exch = b.exch)) 
+  (quotes.date = b.date and quotes.symb = b.symb and quotes.exch = b.exch and volume > 0) 
 order by 
   ma_10_diff
   desc;
@@ -54,7 +54,7 @@ select
 from
   quotes, moving_averages b
 where
-  ((quotes.date = b.date and quotes.symb = b.symb and quotes.exch = b.exch) and ma_10_dir > 0)
+  ((quotes.date = b.date and quotes.symb = b.symb and quotes.exch = b.exch) and ma_10_dir > 0 and volume > 0)
 order by
   ma_10_run 
   desc;
