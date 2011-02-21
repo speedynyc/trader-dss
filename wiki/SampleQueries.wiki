@@ -35,6 +35,7 @@ order by
   ma_10_diff
   desc;
 }}}
+  https://sites.google.com/site/traderdssproject/home/ma_10_diff.png
   * if we normalize the moving average difference (*ma_10_diff*) with the close price we will get a list of the fastest growing stocks. Reverse it for the fastest losing stocks
 {{{
 select 
@@ -47,6 +48,7 @@ order by
   ma_10_diff
   desc;
 }}}
+  https://sites.google.com/site/traderdssproject/home/ma_10_diff2.png
   * How about finding the stocks that have been above their moving average for the longest? Here we use *ma_10_run* to find the stocks that have exceeded their 10 day moving average the longest. We specify `ma_10_dir > 0` to exclude the ones that have been falling. We can reverse that to find all the falling stocks.
 {{{
 select
