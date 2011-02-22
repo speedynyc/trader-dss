@@ -84,3 +84,10 @@ where
 order by
   close_10_ratio;
 }}}
+
+== The Indicators Table ==
+  * These are calculated by the `update_williams_pcr.sql` and `update_moving_averages.sql`
+=== Fields in indicators ===
+  * *wpr_XXX*. The 10, 20, 30, 50, 100 and 200 day Williams Percent Range. Calculated according to the normal [http://en.wikipedia.org/wiki/Williams_%25R formula]
+  * *mapr_XXX*. This a personal invention. The formula is ma_XXX_sum / ma_XXX_run. It's use is in ordering symbols according by their performance.
+=== Sample Queries against the indicators table ===
