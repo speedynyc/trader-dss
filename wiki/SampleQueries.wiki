@@ -65,7 +65,7 @@ order by
 }}}
   https://sites.google.com/site/traderdssproject/home/ma_10_run_1.png
    * The longer moving averages can find some impressive gradients. This chart uses *ma_100_run* in the place of ma_10_run above. It shows a symbol that has a good long upwards run.
-https://sites.google.com/site/traderdssproject/home/ma_100_run_1.png
+   https://sites.google.com/site/traderdssproject/home/ma_100_run_1.png
    * You can combine them to find stocks that have certain historical and recent qualities. Like they've had a good 100 day moving average run, but fallen below their 10 day moving average.
   * we can find the stocks that are exceeding their moving averages by the most with the following
 {{{
