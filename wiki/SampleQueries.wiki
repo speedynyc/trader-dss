@@ -2,6 +2,8 @@
 
 = Introduction =
 
+The Trader Decision Support System provides you with the raw data and leaves you to query it yourself, however these queries may help to explain how to use the system. They are given as samples of possible use of the data only, not as recommended trading strategies.
+
 A sample of queries to show the purpose of each of the indicators.
  * General tips
   # Ignore stocks with zero volume
