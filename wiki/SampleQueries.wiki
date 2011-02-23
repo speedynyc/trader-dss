@@ -63,7 +63,7 @@ order by
   ma_10_run 
   desc;
 }}}
-   https://sites.google.com/site/traderdssproject/home/ma_10_run_1.png
+  https://sites.google.com/site/traderdssproject/home/ma_10_run_1.png
    * The longer moving averages can find some impressive gradients. This chart uses *ma_100_run* in the place of ma_10_run above. It shows a symbol that has a good long upwards run.
 https://sites.google.com/site/traderdssproject/home/ma_100_run_1.png
    * You can combine them to find stocks that have certain historical and recent qualities. Like they've had a good 100 day moving average run, but fallen below their 10 day moving average.
@@ -78,7 +78,7 @@ where
 order by
   close_10_ratio;
 }}}
-   https://sites.google.com/site/traderdssproject/home/close_10_ratio_1.png
+  https://sites.google.com/site/traderdssproject/home/close_10_ratio_1.png
   * Combine this with *ma_10_run* to find stocks that have been doing well for a while, but are now taking off.
 {{{
 select
@@ -90,7 +90,7 @@ where
 order by
   close_10_ratio;
 }}}
-   https://sites.google.com/site/traderdssproject/home/close_10_ratio_2.png
+  https://sites.google.com/site/traderdssproject/home/close_10_ratio_2.png
 == The Indicators Table ==
   * These are calculated by the `update_williams_pcr.sql` and `update_moving_averages.sql`
 === Fields in indicators ===
@@ -107,4 +107,4 @@ order by
   mapr_10
   desc;
 }}}
-   https://sites.google.com/site/traderdssproject/home/mapr_1.png
+  https://sites.google.com/site/traderdssproject/home/mapr_1.png
