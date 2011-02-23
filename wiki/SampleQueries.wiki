@@ -7,7 +7,7 @@ A sample of queries to show the purpose of each of the indicators.
   # Ignore stocks with zero volume
   # The stocks table has to be in the query. Join it with a second table with the foreign keys `date, symb, exch`
   # The second table should be aliased to `b` to make copying queries easier
-
+ * Where a sample chart is given. It is the chart of the first symbol returned by the query.
 == The Moving Averages Table ==
 
   * Most of these are calculated by `update_moving_averages.sql`
@@ -61,6 +61,7 @@ order by
   ma_10_run 
   desc;
 }}}
+https://sites.google.com/site/traderdssproject/home/ma_10_run_1.png
   The longer moving averages can find some impressive gradients. You can combine them to find stocks that have certain historical and recent qualities. Like they've had a good 100 day moving average run, but fallen below their 10 day moving average.
   * we can find the stocks that are exceeding their moving averages by the most with the following
 {{{
@@ -89,5 +90,16 @@ order by
   * These are calculated by the `update_williams_pcr.sql` and `update_moving_averages.sql`
 === Fields in indicators ===
   * *wpr_XXX*. The 10, 20, 30, 50, 100 and 200 day Williams Percent Range. Calculated according to the normal [http://en.wikipedia.org/wiki/Williams_%25R formula]
-  * *mapr_XXX*. This a personal invention. The formula is ma_XXX_sum / ma_XXX_run. It's use is in ordering symbols according by their performance.
-=== Sample Queries against the indicators table ===
+  * *mapr_XXX*. The formula is ma_XXX_sum / ma_XXX_run. It's use is in ordering symbols according by their performance. Normalising it with close_ma_XXX may be a good idea. Perhaps that should be done to create a mapr_rank?
+=== Sample queries on the indicators table ===
+  * Use *mapr_XXX* to rank stock by their 10 day performance
+{{{
+select
+  quotes.symb as symb, close, volume, round(mapr_10/close,2) as mapr_10
+from
+  quotes, indicators b where ((quotes.date = b.date and quotes.symb = b.symb and quotes.exch = b.exch) and volume > 0)
+order by
+  mapr_10
+  desc;
+}}}
+[https://sites.google.com/site/traderdssproject/home/mapr_1.png]
