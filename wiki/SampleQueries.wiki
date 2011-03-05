@@ -7,7 +7,7 @@ The Trader Decision Support System provides you with the raw data and leaves you
 == ER Diagram ==
 
 For reference, this is the ER Diagram for the backend database
-[https://sites.google.com/site/traderdssproject/home/ER_Diagram.png]
+[https://sites.google.com/site/traderdssproject/home/ER-Diagram.png]
 
 = Sample Queries =
 
