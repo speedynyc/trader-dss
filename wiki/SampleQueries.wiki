@@ -104,7 +104,7 @@ order by
   * *wpr_XXX*. The 10, 20, 30, 50, 100 and 200 day Williams Percent Range. Calculated according to the normal [http://en.wikipedia.org/wiki/Williams_%25R formula]
   * *mapr_XXX*. The formula is ma_XXX_sum / ma_XXX_run. It's use is in ordering symbols according by their performance. Normalising it with close_ma_XXX may be a good idea. Perhaps that should be done to create a mapr_rank?
 === Sample queries on the indicators table ===
-  * Use *mapr_XXX* to rank stock by their 10 day performance
+  * Use *mapr_XXX* to rank stocks by their 10 day performance
 {{{
 select
   quotes.symb as symb, close, volume, round(mapr_10/close,2) as mapr_10
@@ -115,3 +115,26 @@ order by
   desc;
 }}}
   https://sites.google.com/site/traderdssproject/home/mapr_1.png
+=== Sample queries on the gaps table ===
+ * use *gap_sum_XXX* to rank stocks by the size of the gaps in the last 10 days
+{{{
+select
+  quotes.symb as symb, close, volume, gap_sum_10, days_since_gap_up, round(gap_sum_10/close,2) as gap_sum_r, round(gap/close, 2) as gap_r
+from
+  quotes, gaps b
+where
+   (quotes.date = b.date and quotes.symb = b.symb and quotes.exch = b.exch) and volume > 0
+order by
+  gap_sum_r
+}}}
+ * use *gap_sum_XXX* to rank stocks by the size of the gaps in the last 10 days and there was a gap yesterday and it was positive.
+{{{
+select
+  quotes.symb as symb, close, volume, gap_sum_10, days_since_gap_up, round(gap_sum_10/close,2) as gap_sum_r, round(gap/close, 2) as gap_r
+from
+  quotes, gaps b
+where
+   (quotes.date = b.date and quotes.symb = b.symb and quotes.exch = b.exch) and volume > 0 and days_since_gap_up = 1 and gap > 0
+order by
+  gap_sum_r
+}}}
