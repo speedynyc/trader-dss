@@ -21,10 +21,7 @@ CREATE TABLE indicators
  mcad numeric, 
  mcad_signal numeric, 
  mcad_histogram numeric, 
- CONSTRAINT indicators_pkey PRIMARY KEY (date, symb, exch),
- CONSTRAINT constraint_indicators FOREIGN KEY (symb, exch)
- REFERENCES stocks (symb, exch) MATCH FULL
- ON UPDATE NO ACTION ON DELETE NO ACTION
+ CONSTRAINT indicators_pkey PRIMARY KEY (date, symb, exch)
  )
 WITHOUT OIDS;
 ALTER TABLE indicators OWNER TO postgres;

@@ -10,5 +10,8 @@
 \i constraints/sectors.sql
 \i constraints/stock_sector.sql
 \i constraints/stocks.sql
+\i constraints/moving_averages.sql
+\i constraints/indicators.sql
+\i constraints/standard_deviations_from_mean.sql
 \i constraints/trades.sql
 \i constraints/watch.sql

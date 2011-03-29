@@ -35,7 +35,7 @@ print "[INFO]six months ago is " . UnixDate($six_months_ago, "%Y-%m-%d") . "\n" 
 $last_business_day = UnixDate($last_business_day, "%Y-%m-%d");
 $six_months_ago = UnixDate($six_months_ago, "%Y-%m-%d");
 
-$dbh = DBI->connect("dbi:Pg:dbname=$dbname:host=$host", $username, $password) or die $DBI::errstr;
+$dbh = DBI->connect("dbi:Pg:dbname=$dbname;host=$host", $username, $password) or die $DBI::errstr;
 
 my $exch_query = 'select exch from exchange order by exch;';
 $xsth = $dbh->prepare("$exch_query") or die $dbh->errstr;
@@ -68,10 +68,10 @@ while ((@xrow) = $xsth->fetchrow_array)
         print "[INFO][Updating]$stock_code.$exchange, have $first_quote to $last_quote. Retrieving $last_quote_plus to today\n";
         $q = new Finance::QuoteHist(
                 lineup     => [qw(
-                    Finance::QuoteHist::Yahoo
                     Finance::QuoteHist::Google
                     Finance::QuoteHist::MSN
                     Finance::QuoteHist::QuoteMedia
+                    Finance::QuoteHist::Yahoo
                     )],
                 symbols    => [qq($stock_code.$exchange)],
                 start_date => $last_quote_plus,
