@@ -16,8 +16,7 @@ $system_folder = "/var/www/CodeIgniter/system";
 $application_folder = "/var/www/html/trader-DSS";
 }}}
 
-  * setup the .htaccess file by pulling .htaccess file from http://codeigniter.com/wiki/mod_rewrite
-into /var/www/html/.htaccess
+  * setup the .htaccess file by pulling .htaccess file from http://codeigniter.com/wiki/mod_rewrite into /var/www/html/.htaccess
 
   * setup CodeIgniter config
 {{{
